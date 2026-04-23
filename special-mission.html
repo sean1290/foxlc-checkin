@@ -431,7 +431,9 @@ function submitMissionToSheet(name) {
     };
     const url = localStorage.getItem(K_SCRIPT) || DEFAULT_SCRIPT_URL;
     if (!url) return;
-    fetch(url, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+    const ctrl = new AbortController();
+    setTimeout(() => ctrl.abort(), 8000);
+    fetch(url, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload), signal:ctrl.signal });
   } catch(e) {}
 }
 

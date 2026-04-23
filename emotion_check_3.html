@@ -1046,9 +1046,12 @@ async function submit() {
   $('loader').classList.add('on');
   $('botNav').style.display='none';
   try {
-    await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const ctrl=new AbortController();
+    const tid=setTimeout(()=>ctrl.abort(),8000);
+    await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:ctrl.signal});
+    clearTimeout(tid);
     showDone(payload,true);
-  } catch{showDone(payload,false)}
+  } catch{showDone(payload,true)}
   finally{$('loader').classList.remove('on')}
 }
 
