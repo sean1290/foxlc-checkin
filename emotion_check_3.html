@@ -514,7 +514,7 @@ const EQ = [
   },
   { id:'axis1_selfcontrol', axis:'축1 자기관리(①)', text:'오늘 내 감정을 잘 조절했나요?',
     type:'yesno',
-    sub:[{ id:'axis1_selfcontrol_type', text:'어떤 방법을 썼어요? (복수 선택 가능)',
+    sub:[{ id:'axis1_selfcontrol_type', text:'어떤 방법을 썼어요? (여러개 선택 가능)',
       type:'multi', max:5,
       opts:[
         {i:'📖',t:'책에 빠져보기'},
@@ -529,7 +529,7 @@ const EQ = [
   },
   { id:'axis3_conflict', axis:'축3+4 갈등빈도(②⑤)', text:'오늘 친구나 누군가와 갈등(다툼)이 있었나요?',
     type:'yesno',
-    sub:[{ id:'axis3_conflict_strategy', text:'어떻게 해결했나요? (복수 선택 가능)',
+    sub:[{ id:'axis3_conflict_strategy', text:'어떻게 해결했나요? (여러개 선택 가능)',
       type:'multi', max:5,
       opts:[
         {i:'🗣️',t:'서로 대화하기'},
@@ -1262,7 +1262,7 @@ function showWeekSnapshot(entries, p) {
     : '<div class="snap-empty">아직 데이터가 쌓이는 중이에요</div>';
 
   $('snapCard').innerHTML = `
-    <div class="snap-hdr">📊 주간 리플렉션 스냅샷 <span class="snap-range">(최근 7일 · ${entries.length}회 체크)</span></div>
+    <div class="snap-hdr">✨ 이번 주 나는! <span class="snap-range">(최근 7일 · ${entries.length}회 체크)</span></div>
     <div class="snap-sec">
       <div class="snap-sh">🪞 이번 주 나는 이런 사람이었어요</div>
       <div class="snap-tags">${emoHTML}</div>
