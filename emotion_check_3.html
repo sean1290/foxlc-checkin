@@ -1039,7 +1039,22 @@ async function submit() {
     time:`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`,
     student_name:S.name, session:S.ses
   };
-  Object.entries(S.ans).forEach(([k,v])=>{ payload[k]=Array.isArray(v)?v.join(' / '):v });
+  const CUSTOM_LABELS = ['기타: 직접 써봐요','직접 적기'];
+  Object.entries(S.ans).forEach(([k,v]) => {
+    if (k.endsWith('_custom')) return; // 커스텀 입력은 아래에서 병합
+    const customText = (S.ans[k+'_custom']||'').trim();
+    if (Array.isArray(v)) {
+      const arr = v.map(item => {
+        if (CUSTOM_LABELS.includes(item)) return customText || item;
+        if (item === '해결하고 싶지 않아요') return customText ? '해결하고 싶지 않아요: ' + customText : item;
+        return item;
+      });
+      payload[k] = arr.join(' / ');
+    } else {
+      if (CUSTOM_LABELS.includes(v)) payload[k] = customText || v;
+      else payload[k] = v;
+    }
+  });
   const url=localStorage.getItem(K_SCRIPT)||DEFAULT_SCRIPT_URL;
   setP(100);
   if(!url){showDone(payload,false);return}
