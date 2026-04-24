@@ -483,6 +483,18 @@ const MQ = [
   }
 ];
 
+// 오늘(4/24)만 표시되는 특별 질문
+if (new Date().toISOString().slice(0,10) === '2026-04-24') {
+  MQ.push({
+    id:'childrens_day',
+    axis:'🎈 오늘의 특별 질문',
+    text:'어린이날이 다가오고 있어요! 폭스에서 어린이날에 하고 싶은게 있나요?',
+    type:'text',
+    placeholder:'자유롭게 적어봐요 🎉',
+    opt: true
+  });
+}
+
 // ── 퇴실 문항 ─────────────────────────────────────
 const EQ = [
   { id:'axis1_emotion_change', axis:'축1 정서변화(①)',
