@@ -4,8 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>감정체크 · Fox Learning Center</title>
-<link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript>
+  <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
+</noscript>
 <style>
 :root {
   --bg: #FFF8F0;
@@ -24,7 +30,7 @@
   --rs: 16px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh;color:var(--t);overflow-x:hidden}
+body{font-family:'Pretendard','Noto Sans KR',Apple SD Gothic Neo,sans-serif;background:var(--bg);min-height:100vh;color:var(--t);overflow-x:hidden}
 
 /* ── HEADER ── */
 .hdr{background:rgba(255,255,255,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding:0 24px;border-bottom:2px solid rgba(255,107,53,.1);position:sticky;top:0;z-index:100;box-shadow:0 2px 20px rgba(0,0,0,.06)}
@@ -40,7 +46,8 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 
 /* ── SCREENS ── */
 .scr{display:none;min-height:calc(100vh - 74px);padding:0 0 110px}
-.scr.on{display:block;animation:slideIn .32s cubic-bezier(.25,.46,.45,.94)}
+.scr.on{display:block}
+.scr.on.anim{animation:slideIn .32s cubic-bezier(.25,.46,.45,.94)}
 @keyframes slideIn{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:translateX(0)}}
 .scr.back{animation:slideBack .32s cubic-bezier(.25,.46,.45,.94)}
 @keyframes slideBack{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:translateX(0)}}
@@ -887,7 +894,7 @@ addEventListener('DOMContentLoaded', async () => {
 });
 
 const $ = id => document.getElementById(id);
-const show = id => { document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on')); $(id).classList.add('on') };
+const show = id => { document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on','anim')); const t=$(id); t.classList.add('on'); requestAnimationFrame(()=>t.classList.add('anim')); };
 const toast = msg => { const t=$('toast'); t.textContent=msg; t.classList.add('on'); setTimeout(()=>t.classList.remove('on'),2200) };
 const setP = pct => { $('prog').style.width = pct+'%' };
 const el = (tag,cls) => { const e=document.createElement(tag); e.className=cls; return e };
