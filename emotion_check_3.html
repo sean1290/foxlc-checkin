@@ -656,6 +656,7 @@ function startSurvey() {
   S.pages=[]; S.page=0; S.ans={};
   if (S.ses==='morning') {
     S.pages = [[qs[0],qs[1]], [qs[2],qs[3],qs[4]], [qs[5]], [qs[6]]];
+    for (let i=7; i<qs.length; i++) S.pages.push([qs[i]]);
   } else {
     for (let i=0; i<qs.length; i+=2) S.pages.push(qs.slice(i,i+2));
   }
