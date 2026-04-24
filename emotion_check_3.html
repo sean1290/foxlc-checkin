@@ -35,8 +35,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 
 /* ── PROGRESS ── */
 .prog{height:10px;background:var(--b);overflow:hidden;position:sticky;top:66px;z-index:99;border-radius:0 0 8px 8px}
-.pf{height:100%;background:linear-gradient(90deg,var(--a),var(--p),#FF8C42);background-size:200% 100%;transition:width .5s cubic-bezier(.34,1.56,.64,1);animation:shimmerProg 2s linear infinite}
-@keyframes shimmerProg{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.pf{height:100%;background:linear-gradient(90deg,var(--a),var(--p),#FF8C42);transition:width .5s cubic-bezier(.34,1.56,.64,1)}
 
 /* ── SCREENS ── */
 .scr{display:none;min-height:calc(100vh - 76px);padding:0 0 110px}
@@ -521,7 +520,7 @@ const MQ = [
     type:'choice',
     opts:[
       {i:'🤝',t:'친구들과 사이좋게 지내기'},
-      {i:'📚',t:'활동 수업에 집중해서 끝내기'},
+      {i:'📚',t:'활동에 집중해서 끝내기'},
       {i:'🧘',t:'감정 조절 잘하기'},
       {i:'📋',t:'연구소 규칙을 잘 지키기'},
     ]
@@ -535,7 +534,7 @@ const MQ = [
         {i:'👂',t:'친구의 이야기를 끝까지 들어요'},
         {i:'🗣️',t:'기분이 상해도 말로 표현해요'},
       ],
-      '활동 수업에 집중해서 끝내기':[
+      '활동에 집중해서 끝내기':[
         {i:'👀',t:'연구원님을 보고 귀 기울여요'},
         {i:'✋',t:'말하고 싶을 때 손을 들어요'},
         {i:'🎯',t:'딴 생각이 나면 다시 집중해요'},
@@ -1460,7 +1459,7 @@ async function genWeekMsg(entries, p, emoRank, copeRank) {
     const data = await res.json();
     const msg = data.content?.[0]?.text || fallback;
     const el = $('snap-msg');
-    if(el){ el.className='snap-msg'; el.innerHTML=msg.replace(/\n/g,'<br>'); }
+    if(el){ el.className='snap-msg'; el.innerHTML=msg.replace(/\n/g,'<br>').replace(/([.!?]) /g,'$1<br>'); }
   } catch(e) {
     const el = $('snap-msg');
     if(el){ el.className='snap-msg'; el.innerHTML=fallback; }
