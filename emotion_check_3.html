@@ -484,7 +484,8 @@ const MQ = [
 ];
 
 // 오늘(4/24)만 표시되는 특별 질문
-if (new Date().toISOString().slice(0,10) === '2026-04-24') {
+const _t=new Date(),_td=_t.getFullYear()+'-'+String(_t.getMonth()+1).padStart(2,'0')+'-'+String(_t.getDate()).padStart(2,'0');
+if (_td === '2026-04-24') {
   MQ.push({
     id:'childrens_day',
     axis:'🎈 오늘의 특별 질문',
