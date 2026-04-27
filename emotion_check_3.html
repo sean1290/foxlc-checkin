@@ -857,7 +857,6 @@ function startSurvey() {
   }
   renderPage();
   show('s-q');
-  $('botNav').style.display='flex';
   updateNav();
 }
 
@@ -867,7 +866,7 @@ function renderPage() {
   const bdg=$('badge');
   bdg.className='bdg '+(am?'bam':'bpm');
   bdg.textContent=am?'🌅 입실 체크':'🌙 퇴실 체크';
-  $('navNx').className='nnx '+(am?'am':'pm');
+  $('navNxDsk').className='nnx '+(am?'am':'pm');
   $('qName').textContent=S.name+' 학생을 응원해요!';
   let total=0, gi=0;
   S.pages.forEach((p,i)=>{ total+=p.length; if(i<S.page) gi+=p.length; });
@@ -1288,8 +1287,8 @@ function refreshLinked(goalId) {
 
 // ── NAV ───────────────────────────────────────────
 function updateNav() {
-  $('navBk').style.visibility=S.page===0?'hidden':'visible';
-  $('navNx').textContent=S.page===S.pages.length-1?'제출하기 🎉':'다음 →';
+  $('navBkDsk').style.visibility=S.page===0?'hidden':'visible';
+  $('navNxDsk').textContent=S.page===S.pages.length-1?'제출하기 🎉':'다음 →';
 }
 function go(dir) {
   if(dir===1){
@@ -1336,7 +1335,6 @@ async function submit() {
   setP(100);
   if(!url){showDone(payload,false);return}
   $('loader').classList.add('on');
-  $('botNav').style.display='none';
   try {
     const ctrl=new AbortController();
     const tid=setTimeout(()=>ctrl.abort(),8000);
@@ -1448,7 +1446,6 @@ function showDone(p, saved) {
   }
 
   show('s-done');
-  $('botNav').style.display='none';
   window.scrollTo({top:0, behavior:'instant'});
   const doneEl=$('s-done');
   doneEl.classList.remove('done-seq');
@@ -1636,7 +1633,6 @@ function reset() {
   const sel=$('nameSel');sel.value='';sel.classList.remove('on');
   $('c-am').classList.remove('on');$('c-pm').classList.remove('on');
   $('startBtn').disabled=true;setP(0);
-  $('botNav').style.display='none';
   show('s-land');scrollTo({top:0});
 }
 
