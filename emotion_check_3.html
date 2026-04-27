@@ -64,7 +64,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 
 /* ── SCREEN BACKGROUNDS (Figma redesign) ── */
 #s-land{background:linear-gradient(135deg,#FFF5E1 0%,#FFE5CC 100%)}
-#s-q{background:linear-gradient(180deg,#F3F4F6 0%,#E5E7EB 100%);position:relative;transition:background 0.8s cubic-bezier(.34,1.56,.64,1)}
+#s-q{background:linear-gradient(135deg, #F59E0Bdd 0%, #F59E0B99 100%);position:relative;transition:background 0.8s cubic-bezier(.34,1.56,.64,1)}
 #s-done{background:linear-gradient(135deg,#F3F4F6 0%,#E5E7EB 100%);transition:background 0.8s cubic-bezier(.34,1.56,.64,1)}
 
 /* Mascot positioning for question page */
@@ -725,7 +725,7 @@ const EQ = [
 ];
 
 // ── STATE ─────────────────────────────────────────
-const S = { name:'', ses:'', page:0, ans:{}, pages:[] };
+const S = { name:'', ses:'', page:0, ans:{}, pages:[], emotionColor:'#F59E0B' };
 
 // ── INIT ──────────────────────────────────────────
 addEventListener('DOMContentLoaded', async () => {
