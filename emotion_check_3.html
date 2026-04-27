@@ -12,6 +12,11 @@
 <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet"></noscript>
 <style>
+@font-face {
+  font-family: 'Griun';
+  src: url('Griun_Mongtori-Rg.ttf') format('truetype');
+  font-display: swap;
+}
 :root {
   --bg: #FFF8F0;
   --p: #FF6B35;
@@ -308,6 +313,16 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 #qhBanner::after{content:'';position:absolute;right:-20px;bottom:-10px;width:120px;height:120px;background:rgba(255,255,255,.07);border-radius:50%}
 #qhBanner::before{content:'';position:absolute;right:30px;bottom:20px;width:60px;height:60px;background:rgba(255,255,255,.06);border-radius:50%}
 #qhBanner:has(.bpm){background:linear-gradient(135deg,var(--v),#9B72E8)}
+
+/* ── GRIUN FONT ── */
+.hero-title,
+.sl2,
+.qnl, .qn,
+.bdg,
+.done-title, .done-sub,
+.eb .etxt,
+.nnx, .nbk,
+.btn.bp, .btn.done-back { font-family:'Griun','Noto Sans KR',sans-serif }
 </style>
 </head>
 <body>
@@ -409,7 +424,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
   <div class="done-banner">
     <span class="done-fox">🦊</span>
     <div class="done-title">다 했어요! 🎉</div>
-    <div class="done-sub">오늘도 스스로를 돌아봤어요</div>
+    <div class="done-sub" id="doneSub">오늘도 스스로를 돌아봤어요</div>
   </div>
   <div class="done-body">
     <div class="scard" id="sumCard"></div>
@@ -1258,6 +1273,7 @@ function launchConfetti() {
 
 function showDone(p, saved) {
   const am=p.session==='morning';
+  $('doneSub').textContent=`오늘도 멋지게 성장중인 ${p.student_name} 학생을 응원해요!`;
   $('sumCard').innerHTML = `<div style="text-align:center;padding:20px;color:var(--m);font-size:14px">✨ ${am?'오늘 하루를 위한':'오늘 하루 수고를 담은'} 응원 문구를 만들고 있어요...</div>`;
   generateEncouragement(p);
 
