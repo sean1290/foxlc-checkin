@@ -866,7 +866,7 @@ function renderPage() {
   const bdg=$('badge');
   bdg.className='bdg '+(am?'bam':'bpm');
   bdg.textContent=am?'🌅 입실 체크':'🌙 퇴실 체크';
-  $('navNxDsk').className='nnx '+(am?'am':'pm');
+  $('navNxDsk').className='nnx nav-side right '+(am?'am':'pm');
   $('qName').textContent=S.name+' 학생을 응원해요!';
   let total=0, gi=0;
   S.pages.forEach((p,i)=>{ total+=p.length; if(i<S.page) gi+=p.length; });
