@@ -47,7 +47,8 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 @keyframes slideIn{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:translateX(0)}}
 .scr.back{animation:slideBack .32s cubic-bezier(.25,.46,.45,.94)}
 @keyframes slideBack{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:translateX(0)}}
-@media(min-width:560px){.scr{max-width:560px;margin:0 auto}}
+@media(min-width:560px){.scr{max-width:900px;margin:0 auto}}
+@media(min-width:900px){.bnav{padding-left:calc((100vw - 900px)/2 + 20px);padding-right:calc((100vw - 900px)/2 + 20px)}}
 
 /* ── LANDING HERO ── */
 .hero-wrap{position:relative;overflow:hidden;background:linear-gradient(160deg,#FFF0E6 0%,#FFF8F0 60%,#F0F4FF 100%);padding:32px 20px 28px;margin-bottom:0;border-radius:0 0 40px 40px;text-align:center}
@@ -928,8 +929,8 @@ function renderIn(q, zone, isSub, pid) {
     const defBox = el('div','edef');
     defBox.id = 'edef-'+id;
     if(cur) { defBox.textContent=EMOTION_DEF[cur.id]||''; defBox.classList.add('on'); }
-    const scrW = Math.min(window.innerWidth, 640);
-    const SIZE = Math.min(360, Math.max(240, scrW - 76));
+    const scrW = Math.min(window.innerWidth, 900);
+    const SIZE = Math.min(440, Math.max(240, scrW - 76));
     const CX=SIZE/2, CY=SIZE/2, R=Math.round(SIZE*0.365);
     wrap.style.width=wrap.style.height=SIZE+'px';
     EMOTIONS.forEach((em,i) => {
