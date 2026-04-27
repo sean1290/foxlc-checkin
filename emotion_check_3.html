@@ -97,7 +97,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 .hero-sub{font-size:15px;color:var(--m);font-weight:600;line-height:1.6;position:relative;z-index:2}
 
 /* ── NAME CARD ── */
-.land-body{padding:20px 20px 0}
+.land-body{padding:20px 20px 40px}
 .name-card{background:#fff;border-radius:var(--r);padding:20px;margin-bottom:14px;box-shadow:0 4px 20px rgba(0,0,0,.07);border:2px solid var(--b)}
 .name-lbl{font-size:13px;font-weight:800;color:var(--t);margin-bottom:12px;display:flex;align-items:center;gap:6px}
 .sw{position:relative}
@@ -252,9 +252,10 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 .done-fox{font-size:80px;display:block;animation:foxBob 2s ease-in-out infinite;margin-bottom:8px}
 .done-title{font-size:32px;font-weight:900;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.15)}
 .done-sub{font-size:17px;color:rgba(255,255,255,.85);font-weight:600;margin-top:4px}
-.done-body{padding:0 20px}
+.done-body{padding:0 20px 40px;display:flex;flex-direction:column;gap:20px}
+#missionCard:empty{display:none}
 @keyframes up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-.scard{background:#fff;border-radius:32px;padding:28px 24px;margin:0 0 18px;box-shadow:0 12px 40px rgba(0,0,0,.12);border:none}
+.scard{background:#fff;border-radius:32px;padding:28px 24px;margin:0;box-shadow:0 12px 40px rgba(0,0,0,.12);border:none}
 .done-seq #sumCard{animation:up .5s cubic-bezier(.25,.46,.45,.94) .2s both}
 .done-seq #missionCard{animation:up .5s cubic-bezier(.25,.46,.45,.94) .35s both}
 .done-seq #snapCard{animation:up .5s cubic-bezier(.25,.46,.45,.94) .5s both}
@@ -353,12 +354,12 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 /* ── SIDE NAVIGATION ── */
 #s-q{position:relative;padding:16px 20px 20px}
 #qBox{max-width:900px;margin:0 auto;padding:0}
-.nav-side{position:absolute;width:96px;bottom:20px}
+.nav-side{position:absolute;width:120px;bottom:12px}
 .nav-side.left{left:20px}
 .nav-side.right{right:20px}
-@media(min-width:960px){
-  .nav-side.left{left:calc(50% - 506px)}
-  .nav-side.right{right:calc(50% - 506px)}
+@media(min-width:1200px){
+  .nav-side.left{left:calc(50% - 582px)}
+  .nav-side.right{right:calc(50% - 582px)}
 }
 
 /* ── GRIUN FONT ── */
@@ -479,7 +480,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
     <div class="scard" id="sumCard"></div>
     <div id="missionCard"></div>
     <div class="scard" id="snapCard"></div>
-    <button class="btn bp done-back" onclick="reset()" style="margin-top:4px">처음으로 돌아가기</button>
+    <button class="btn bp done-back" onclick="reset()">처음으로 돌아가기</button>
   </div>
 </div>
 
