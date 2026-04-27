@@ -320,6 +320,15 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 .eq-fopt:hover{border-color:var(--p);background:var(--pl)}
 .eq-fopt.on{border-color:var(--p);background:linear-gradient(135deg,var(--p),#FF8C42);color:#fff;box-shadow:0 4px 14px rgba(255,107,53,.3)}
 
+/* ── CHOICE FOLLOW-UP (Memory Activity) ── */
+.follow-panel{margin-top:14px;padding:14px;background:#E8DCC840;border-radius:var(--rs);display:none;animation:fadeUp .25s ease;border:1.5px solid rgba(232,220,196,.3)}
+.follow-panel.on{display:block}
+.follow-q{font-size:13px;font-weight:800;color:var(--t);margin-bottom:10px;line-height:1.5}
+.follow-opts{display:flex;flex-direction:column;gap:8px}
+.follow-opt{padding:12px 14px;border:2px solid rgba(0,0,0,.08);border-radius:var(--rs);background:#fff;font-size:13px;font-weight:600;cursor:pointer;text-align:left;transition:all .18s;font-family:'Noto Sans KR',sans-serif;color:var(--t);display:flex;align-items:center;gap:8px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.follow-opt:hover{border-color:#E8DCC8;background:#E8DCC820}
+.follow-opt.on{border-color:#E8DCC8;background:linear-gradient(135deg,#E8DCC8,#D9C5B3);color:#5D4E47;box-shadow:0 4px 14px rgba(232,220,196,.4)}
+
 /* ── MISSION PULSE ── */
 @keyframes mPulse{0%,100%{box-shadow:0 4px 14px rgba(124,92,191,.35)}50%{box-shadow:0 4px 28px rgba(124,92,191,.65),0 0 0 4px rgba(124,92,191,.15)}}
 
@@ -645,11 +654,28 @@ const EQ = [
     text:'지금 이 순간 나의 감정은 어때요?',
     type:'emotion-wheel'
   },
-  { id:'axis2_goal_score', axis:'축2 목표달성(④)', text:'오늘 폭스에서 활동하면서 어땠나요?',
-    type:'scale', slider:true,
-    emojis:['😞','😕','😐','😊','🤩'],
-    tickLabels:['별로였어요','조금 아쉬웠어요','그냥 그랬어요','괜찮았어요','정말 즐거웠어요'],
-    labels:['별로였어요','정말 즐거웠어요'] },
+  { id:'memory_activity', axis:'축2 목표달성(④)',
+    text:'오늘 가장 기억에 남는 활동은?',
+    type:'choice',
+    opts:[
+      {i:'🤖', t:'인공지능'},
+      {i:'🌍', t:'영어'},
+      {i:'🎨', t:'미술'},
+      {i:'❤️', t:'SEL'}
+    ],
+    followUp:{
+      id:'memory_reason',
+      text:'활동이 왜 기억에 남나요?',
+      type:'choice',
+      opts:[
+        {i:'😄', t:'재밌었어요!'},
+        {i:'💡', t:'새로운 걸 배웠어요!'},
+        {i:'😊', t:'뿌듯했어요!'},
+        {i:'💪', t:'어렵지만 해냈어요!'},
+        {i:'✏️', t:'직접 입력', custom:true}
+      ]
+    }
+  },
   { id:'axis3_relation', axis:'축3 관계(②)', text:'오늘 친구들과의 관계는 어땠어요?',
     type:'scale', emojis:['😤','😕','😐','😊','🥰'], labels:['별로 좋지 않았어요','아주 좋았어요'],
     lowSub: { id:'axis3_relation_reason', text:'어떤 점이 어려웠나요? (선택)', type:'text', placeholder:'짧게 적어도 괜찮아요', opt:true }
@@ -1141,6 +1167,33 @@ function renderIn(q, zone, isSub, pid) {
           }
           if(o.custom) addCustomInput(id, grid);
           else hideCustomInput(id);
+          // Handle follow-up for this choice
+          if(q.followUp) {
+            const fp=document.getElementById('followup-'+id);
+            if(fp) {
+              const fq=fp.querySelector('.follow-q');
+              const fo=fp.querySelector('.follow-opts');
+              fq.innerHTML = `<strong>${o.t}</strong> ${q.followUp.text}`;
+              fo.innerHTML='';
+              q.followUp.opts.forEach(opt=>{
+                const btn = el('button','follow-opt');
+                btn.innerHTML = `<span>${opt.i}</span>${opt.t}`;
+                btn.className = 'follow-opt' + (S.ans[q.followUp.id]===opt.t?' on':'');
+                btn.onclick = () => {
+                  if(opt.custom) {
+                    addCustomInput(q.followUp.id, fo);
+                  } else {
+                    save(q.followUp.id, opt.t);
+                    hideCustomInput(q.followUp.id);
+                    fo.querySelectorAll('.follow-opt').forEach(x=>x.classList.remove('on'));
+                    btn.classList.add('on');
+                  }
+                };
+                fo.appendChild(btn);
+              });
+              fp.classList.add('on');
+            }
+          }
         } else {
           let arr=[...cur()];
           if(arr.includes(o.t)){arr=arr.filter(x=>x!==o.t);b.classList.remove('on')}
@@ -1160,6 +1213,13 @@ function renderIn(q, zone, isSub, pid) {
       grid.appendChild(b);
     });
     zone.appendChild(grid);
+    // Add follow-up panel if exists
+    if (q.followUp) {
+      const fp = el('div','follow-panel');
+      fp.id = 'followup-'+id;
+      fp.innerHTML = '<div class="follow-q"></div><div class="follow-opts"></div>';
+      zone.appendChild(fp);
+    }
     if (q.pledge) {
       const pp = el('div','q6-pledge');
       pp.id = 'pledge-'+id;
@@ -1402,7 +1462,7 @@ async function generateEncouragement(p) {
     p.axis3_relation_intent ? `오늘 보여줄 태도: ${p.axis3_relation_intent}` : '',
   ] : [
     p.axis1_emotion_change ? `마음 변화: ${p.axis1_emotion_change}` : '',
-    p.axis2_goal_score     ? `목표 달성도: ${p.axis2_goal_score}` : '',
+    p.memory_activity      ? `기억에 남는 활동: ${p.memory_activity}${p.memory_reason ? ' - ' + p.memory_reason : ''}` : '',
     p.axis3_relation       ? `친구 관계: ${p.axis3_relation}` : '',
     p.axis3_prosocial      ? `배려 행동: ${p.axis3_prosocial}` : '',
     p.axis1_selfcontrol==='예' ? `감정 조절 성공${p.axis1_selfcontrol_type?': '+p.axis1_selfcontrol_type:''}` : '',
