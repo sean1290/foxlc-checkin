@@ -53,7 +53,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 .pf{height:100%;background:linear-gradient(90deg,var(--a),var(--p),#FF8C42);transition:width .5s cubic-bezier(.34,1.56,.64,1)}
 
 /* ── SCREENS ── */
-.scr{display:none;min-height:calc(100vh - 76px);padding:0 0 110px;width:100%}
+.scr{display:none;min-height:calc(100vh - 76px);padding:0;width:100%}
 .scr.on{display:block;animation:slideIn .32s cubic-bezier(.25,.46,.45,.94)}
 @keyframes slideIn{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:translateX(0)}}
 .scr.back{animation:slideBack .32s cubic-bezier(.25,.46,.45,.94)}
@@ -350,6 +350,17 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 #qhBanner:has(.bpm){background:transparent}
 #qhBanner .bdg{background:rgba(255,255,255,.35);color:#fff;border:1.5px solid rgba(255,255,255,.5);font-family:'Pretendard','Noto Sans KR',sans-serif;font-size:14px}
 
+/* ── SIDE NAVIGATION ── */
+#s-q{position:relative;padding-bottom:20px}
+#qBox{max-width:900px;margin:0 auto;padding:16px 20px 0}
+.nav-side{position:absolute;width:96px;bottom:20px;z-index:50}
+.nav-side.left{left:20px}
+.nav-side.right{right:20px}
+@media(min-width:560px){
+  .nav-side.left{left:calc((100% - 900px)/2 - 116px)}
+  .nav-side.right{right:calc((100% - 900px)/2 - 116px)}
+}
+
 /* ── GRIUN FONT ── */
 .hero-title,
 .sl2,
@@ -452,7 +463,9 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
     <div class="qnl">오늘도 멋지게 성장중인</div>
     <div class="qn" id="qName"></div>
   </div>
-  <div id="qBox" style="padding:16px 20px 0"></div>
+  <div id="qBox"></div>
+  <button class="nbk nav-side left" id="navBkDsk" onclick="go(-1)">← 이전</button>
+  <button class="nnx am nav-side right" id="navNxDsk" onclick="go(1)">다음 →</button>
 </div>
 
 <!-- COMPLETE -->
@@ -470,11 +483,6 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
   </div>
 </div>
 
-<!-- NAV -->
-<div class="bnav" id="botNav" style="display:none">
-  <button class="nbk" id="navBk" onclick="go(-1)">← 이전</button>
-  <button class="nnx am" id="navNx" onclick="go(1)">다음 →</button>
-</div>
 
 <div class="ldr" id="loader">
   <div class="ldr-fox">🦊</div>
