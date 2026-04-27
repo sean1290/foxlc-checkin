@@ -272,10 +272,10 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 .ewheel-wrap{position:relative;margin:16px auto}
 .edef{margin-top:12px;padding:13px 16px;background:var(--vl);border-radius:var(--rs);font-size:13px;font-weight:700;color:#5B21B6;line-height:1.7;text-align:center;animation:fadeUp .25s ease;display:none;border:1.5px solid rgba(124,92,191,.15)}
 .edef.on{display:block}
-.ewheel-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:112px;height:112px;background:linear-gradient(135deg,var(--vl),var(--al));border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-size:12px;font-weight:900;color:var(--t);line-height:1.5;padding:12px;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.1);transition:transform .12s ease}
-.eb{position:absolute;width:66px;height:66px;border-radius:50%;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transform:translate(-50%,-50%);transition:transform .18s,box-shadow .18s;box-shadow:0 4px 12px rgba(0,0,0,.2);padding:0;font-family:'Noto Sans KR',sans-serif}
-.eb .eico{font-size:24px;line-height:1;display:block}
-.eb .etxt{font-size:8.5px;font-weight:800;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.4);letter-spacing:-.3px;white-space:nowrap}
+.ewheel-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:128px;height:128px;background:linear-gradient(135deg,var(--vl),var(--al));border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-size:13px;font-weight:900;color:var(--t);line-height:1.5;padding:12px;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.1);transition:transform .12s ease}
+.eb{position:absolute;width:78px;height:78px;border-radius:50%;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transform:translate(-50%,-50%);transition:transform .18s,box-shadow .18s;box-shadow:0 4px 12px rgba(0,0,0,.2);padding:0;font-family:'Noto Sans KR',sans-serif}
+.eb .eico{font-size:29px;line-height:1;display:block}
+.eb .etxt{font-size:10.5px;font-weight:800;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.4);letter-spacing:-.3px;white-space:nowrap}
 .eb.on{transform:translate(-50%,-50%) scale(1.22);box-shadow:0 0 0 4px #fff,0 0 0 7px rgba(0,0,0,.12),0 8px 24px rgba(0,0,0,.22)}
 .eb:active{transform:translate(-50%,-50%) scale(.9)!important}
 .ewheel-wrap.selected .eb:not(.on){opacity:0.4;transform:translate(-50%,-50%) scale(0.88)}
@@ -924,15 +924,15 @@ function renderIn(q, zone, isSub, pid) {
     const center = el('div','ewheel-center');
     const cur = EMOTIONS.find(e=>e.id===S.ans[id]);
     center.innerHTML = cur
-      ? `<span style="font-size:36px;display:block;line-height:1">${cur.emoji}</span><span style="font-size:13px;font-weight:800;margin-top:4px;display:block">${cur.id}</span>`
-      : `<span style="font-size:30px;display:block;line-height:1">😶</span><span style="font-size:11px;color:var(--m);margin-top:4px;display:block">골라봐요!</span>`;
+      ? `<span style="font-size:42px;display:block;line-height:1">${cur.emoji}</span><span style="font-size:14px;font-weight:800;margin-top:4px;display:block">${cur.id}</span>`
+      : `<span style="font-size:36px;display:block;line-height:1">😶</span><span style="font-size:12px;color:var(--m);margin-top:4px;display:block">골라봐요!</span>`;
     wrap.appendChild(center);
     const defBox = el('div','edef');
     defBox.id = 'edef-'+id;
     if(cur) { defBox.textContent=EMOTION_DEF[cur.id]||''; defBox.classList.add('on'); }
     const scrW = Math.min(window.innerWidth, 900);
     const SIZE = Math.min(440, Math.max(240, scrW - 76));
-    const CX=SIZE/2, CY=SIZE/2, R=Math.round(SIZE*0.365);
+    const CX=SIZE/2, CY=SIZE/2, R=Math.round(SIZE*0.375);
     wrap.style.width=wrap.style.height=SIZE+'px';
     EMOTIONS.forEach((em,i) => {
       const angle = (i*30 - 90) * Math.PI / 180;
