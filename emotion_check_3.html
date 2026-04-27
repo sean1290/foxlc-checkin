@@ -207,18 +207,6 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 .nnx.am{background:linear-gradient(135deg,var(--p),#FF8C42);box-shadow:0 4px 18px rgba(255,107,53,.35)}
 .nnx.pm{background:linear-gradient(135deg,var(--v),#9B72E8);box-shadow:0 4px 18px rgba(124,92,191,.35)}
 .nnx:hover{transform:translateY(-2px)}
-
-/* ── DESKTOP NAV (Side buttons) ── */
-.q-nav-wrap{display:none;gap:40px;align-items:flex-end;max-width:900px;margin:0 auto}
-.q-nav-wrap .navBtn{flex:0 0 auto;font-size:18px;font-weight:800;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:all .2s cubic-bezier(.34,1.56,.64,1)}
-.q-nav-wrap .navPrev{padding:14px;border:2.5px solid var(--b);border-radius:var(--r);background:#fff;color:var(--m);box-shadow:0 2px 8px rgba(0,0,0,.05)}
-.q-nav-wrap .navNext{padding:14px;border:none;border-radius:var(--r);color:#fff;box-shadow:0 4px 18px rgba(255,107,53,.35)}
-.q-nav-wrap .navPrev:hover,.q-nav-wrap .navNext:hover{transform:translateY(-2px)}
-
-@media(min-width:560px){
-  .q-nav-wrap{display:flex}
-  .bnav{display:none}
-}
 .nnx:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
 
 /* ── LOADER ── */
@@ -464,11 +452,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
     <div class="qnl">오늘도 멋지게 성장중인</div>
     <div class="qn" id="qName"></div>
   </div>
-  <div class="q-nav-wrap">
-    <button class="nbk navBtn navPrev" id="navBkDsk" onclick="go(-1)">← 이전</button>
-    <div id="qBox" style="padding:16px 20px 0"></div>
-    <button class="nnx navBtn navNext am" id="navNxDsk" onclick="go(1)">다음 →</button>
-  </div>
+  <div id="qBox" style="padding:16px 20px 0"></div>
 </div>
 
 <!-- COMPLETE -->
