@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>감정체크 · Fox Learning Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet" media="print" onload="this.media='all'">
 <style>
 :root {
   --bg: #FFF8F0;
@@ -22,12 +26,12 @@
   --rs: 16px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,'Apple SD Gothic Neo','Malgun Gothic','나눔고딕',sans-serif;background:var(--bg);min-height:100vh;color:var(--t);overflow-x:hidden}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh;color:var(--t);overflow-x:hidden}
 
 /* ── HEADER ── */
-.hdr{background:#fff;padding:0 24px;border-bottom:2px solid rgba(255,107,53,.1);position:sticky;top:0;z-index:100;box-shadow:0 2px 20px rgba(0,0,0,.06)}
+.hdr{background:rgba(255,255,255,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding:0 24px;border-bottom:2px solid rgba(255,107,53,.1);position:sticky;top:0;z-index:100;box-shadow:0 2px 20px rgba(0,0,0,.06)}
 .hdr-inner{max-width:1060px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:14px 0}
-.logo{font-family:-apple-system,'Apple SD Gothic Neo','Malgun Gothic',cursive;font-size:24px;font-weight:700;color:var(--p)}.logo span{color:var(--v)}
+.logo{font-family:'Gaegu',cursive;font-size:24px;font-weight:700;color:var(--p)}.logo span{color:var(--v)}
 .hd{font-size:12px;color:var(--m);font-weight:700;background:var(--pl);padding:5px 14px;border-radius:99px;letter-spacing:.02em}
 .gear{background:#fff;border:2px solid var(--b);border-radius:50%;width:38px;height:38px;font-size:18px;cursor:pointer;transition:transform .2s;box-shadow:0 2px 8px rgba(0,0,0,.06)}
 .gear:active{transform:rotate(45deg)}
@@ -38,16 +42,11 @@ body{font-family:-apple-system,'Apple SD Gothic Neo','Malgun Gothic','나눔고�
 
 /* ── SCREENS ── */
 .scr{display:none;min-height:calc(100vh - 74px);padding:0 0 110px}
-.scr.on{display:block}
-.scr.on.anim{animation:slideIn .32s cubic-bezier(.25,.46,.45,.94)}
+.scr.on{display:block;animation:slideIn .32s cubic-bezier(.25,.46,.45,.94)}
 @keyframes slideIn{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:translateX(0)}}
 .scr.back{animation:slideBack .32s cubic-bezier(.25,.46,.45,.94)}
 @keyframes slideBack{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:translateX(0)}}
 @media(min-width:560px){.scr{max-width:700px;margin:0 auto}}
-
-/* ── FOX FLOAT ANIMATION ── */
-@keyframes foxFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
-@keyframes foxFloatSlow{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
 
 /* ── LANDING HERO ── */
 .hero-wrap{position:relative;overflow:hidden;background:linear-gradient(160deg,#FFF0E6 0%,#FFF8F0 60%,#F0F4FF 100%);padding:32px 20px 28px;margin-bottom:0;border-radius:0 0 40px 40px;text-align:center}
@@ -57,60 +56,10 @@ body{font-family:-apple-system,'Apple SD Gothic Neo','Malgun Gothic','나눔고�
 .hb3{width:80px;height:80px;background:radial-gradient(circle,#5BAD8A,#4ECDC4);top:50%;right:10%;animation-delay:4s;opacity:.3}
 @keyframes blobFloat{0%,100%{transform:scale(1) translate(0,0)}50%{transform:scale(1.08) translate(4px,-8px)}}
 .hbtn{position:absolute;top:14px;right:16px;background:rgba(255,255,255,.8);border:1.5px solid var(--b);border-radius:99px;padding:6px 14px;font-size:12px;font-weight:700;color:var(--m);cursor:pointer;font-family:'Noto Sans KR',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.06);z-index:5}
-/* fox images – shared base */
-.fox-img,
-.fox-q,
-.done-fox-img,
-.help-fox-img,
-.ldr-fox-img{
-  display:block;
-  width:auto;
-  object-fit:contain;
-  filter:drop-shadow(0 10px 20px rgba(0,0,0,.13));
-}
-
-/* ── Landing hero fox ── */
-.fox-img{
-  height:200px;
-  margin:0 auto 14px;
-  animation:foxFloat 3s ease-in-out infinite;
-  position:relative;z-index:2
-}
-
-/* ── Question banner foxes ── */
-.fox-q{
-  height:150px;
-  flex-shrink:0;
-  align-self:flex-end;
-  margin-bottom:-24px;   /* hang below banner edge */
-  animation:foxFloat 3.5s ease-in-out infinite;
-  display:none
-}
-.fox-q-am{display:block}
-#qhBanner:has(.bpm) .fox-q-am{display:none}
-#qhBanner:has(.bpm) .fox-q-pm{display:block}
-
-/* ── Completion fox ── */
-.done-fox-img{
-  height:200px;
-  margin:0 auto 12px;
-  animation:foxFloat 2.6s ease-in-out infinite
-}
-
-/* ── Help modal fox ── */
-.help-fox-img{
-  height:120px;
-  margin:0 auto 20px;
-  animation:foxFloatSlow 4s ease-in-out infinite
-}
-
-/* ── Loader fox ── */
-.ldr-fox-img{
-  height:160px;
-  margin-bottom:20px;
-  animation:foxFloat 2s ease-in-out infinite
-}
-.hero-title{font-family:-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;font-size:52px;font-weight:900;color:var(--p);letter-spacing:-2px;line-height:1;display:block;margin-bottom:8px;text-shadow:3px 3px 0 rgba(255,107,53,.15);position:relative;z-index:2}
+.fox-char{font-size:110px;line-height:1;display:block;margin:0 auto 12px;animation:foxBob 2.8s ease-in-out infinite;filter:drop-shadow(0 12px 20px rgba(0,0,0,.12));position:relative;z-index:2}
+.fox-img{height:180px;width:auto;object-fit:contain;display:block;margin:0 auto 12px;animation:foxBob 2.8s ease-in-out infinite;filter:drop-shadow(0 12px 20px rgba(0,0,0,.12));position:relative;z-index:2}
+@keyframes foxBob{0%,100%{transform:translateY(0) rotate(0deg)}40%{transform:translateY(-14px) rotate(-3deg)}70%{transform:translateY(-8px) rotate(2deg)}}
+.hero-title{font-family:'Pretendard','Noto Sans KR',sans-serif;font-size:52px;font-weight:900;color:var(--p);letter-spacing:-2px;line-height:1;display:block;margin-bottom:8px;text-shadow:3px 3px 0 rgba(255,107,53,.15);position:relative;z-index:2}
 .hero-sub{font-size:15px;color:var(--m);font-weight:600;line-height:1.6;position:relative;z-index:2}
 
 /* ── NAME CARD ── */
@@ -218,7 +167,7 @@ body{font-family:-apple-system,'Apple SD Gothic Neo','Malgun Gothic','나눔고�
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
 /* ── BOTTOM NAV ── */
-.bnav{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.95);border-top:2px solid var(--b);padding:12px 20px 28px;display:flex;gap:12px;z-index:200;border-radius:28px 28px 0 0;box-shadow:0 -8px 32px rgba(0,0,0,.08)}
+.bnav{position:fixed;bottom:0;left:0;right:0;background:rgba(255,255,255,.95);backdrop-filter:blur(20px);border-top:2px solid var(--b);padding:12px 20px 28px;display:flex;gap:12px;z-index:200;border-radius:28px 28px 0 0;box-shadow:0 -8px 32px rgba(0,0,0,.08)}
 .nbk{flex:0 0 96px;padding:14px;border:2.5px solid var(--b);border-radius:var(--r);background:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:'Noto Sans KR',sans-serif;color:var(--m);box-shadow:0 2px 8px rgba(0,0,0,.05)}
 .nnx{flex:1;padding:14px;border:none;border-radius:var(--r);font-size:16px;font-weight:800;cursor:pointer;font-family:'Noto Sans KR',sans-serif;color:#fff;transition:all .2s cubic-bezier(.34,1.56,.64,1)}
 .nnx.am{background:linear-gradient(135deg,var(--p),#FF8C42);box-shadow:0 4px 18px rgba(255,107,53,.35)}
@@ -227,7 +176,7 @@ body{font-family:-apple-system,'Apple SD Gothic Neo','Malgun Gothic','나눔고�
 .nnx:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
 
 /* ── LOADER ── */
-.ldr{position:fixed;inset:0;background:rgba(255,248,240,.96);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:999;}
+.ldr{position:fixed;inset:0;background:rgba(255,248,240,.96);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:999;backdrop-filter:blur(4px)}
 .ldr.on{display:flex}
 .ldr-fox{font-size:72px;animation:foxBob 1.2s ease-in-out infinite;margin-bottom:16px}
 .spin{width:52px;height:52px;border:5px solid var(--b);border-top-color:var(--p);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:16px}
@@ -238,7 +187,7 @@ body{font-family:-apple-system,'Apple SD Gothic Neo','Malgun Gothic','나눔고�
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 
 /* ── SETTINGS MODAL ── */
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:none;align-items:flex-end;}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:none;align-items:flex-end;backdrop-filter:blur(4px)}
 .modal.on{display:flex}
 .sht{background:#fff;border-radius:28px 28px 0 0;padding:28px 22px 40px;width:100%;max-height:80vh;overflow-y:auto}
 .sht h3{font-size:18px;font-weight:900;margin-bottom:20px}
@@ -252,7 +201,7 @@ body{font-family:-apple-system,'Apple SD Gothic Neo','Malgun Gothic','나눔고�
 .hbtn:hover{border-color:var(--v);color:var(--v);transform:translateY(-1px)}
 
 /* ── HELP MODAL ── */
-.hmodal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:600;display:none;align-items:center;justify-content:center;padding:24px;}
+.hmodal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:600;display:none;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(8px)}
 .hmodal-bg.on{display:flex}
 .hmodal{background:#fff;border-radius:28px;padding:30px 24px 22px;width:100%;max-width:380px;animation:hmIn .32s cubic-bezier(.34,1.56,.64,1);box-shadow:0 24px 64px rgba(0,0,0,.15)}
 @keyframes hmIn{from{opacity:0;transform:scale(.88) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
@@ -264,7 +213,7 @@ body{font-family:-apple-system,'Apple SD Gothic Neo','Malgun Gothic','나눔고�
 .hm-note{text-align:center;font-size:13px;color:var(--m);font-weight:600;margin-bottom:20px;line-height:1.7;background:var(--vl);padding:12px;border-radius:var(--rs)}
 
 /* ── COMPLETE SCREEN ── */
-.done-banner{background:linear-gradient(135deg,#FF8C42,var(--p));padding:36px 20px 32px;text-align:center;border-radius:0 0 36px 36px;margin-bottom:20px;position:relative;overflow:visible}
+.done-banner{background:linear-gradient(135deg,#FF8C42,var(--p));padding:28px 20px 32px;text-align:center;border-radius:0 0 36px 36px;margin-bottom:20px;position:relative;overflow:hidden}
 .done-banner::after{content:'';position:absolute;right:-20px;top:-20px;width:150px;height:150px;background:rgba(255,255,255,.06);border-radius:50%}
 .done-fox{font-size:80px;display:block;animation:foxBob 2s ease-in-out infinite;margin-bottom:8px}
 .done-title{font-size:24px;font-weight:900;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.15)}
@@ -352,8 +301,7 @@ body{font-family:-apple-system,'Apple SD Gothic Neo','Malgun Gothic','나눔고�
 .lbl{font-size:13px;font-weight:800;color:var(--t);margin-bottom:12px;display:flex;align-items:center;gap:6px}
 
 /* ── QUESTION BANNER COLOR (switches via :has on badge class) ── */
-#qhBanner{background:linear-gradient(135deg,var(--p),#FF8C42);padding:22px 24px 0;border-radius:0 0 32px 32px;margin-bottom:0;position:relative;overflow:visible;display:flex;align-items:flex-end;gap:8px}
-.qhb-text{flex:1;min-width:0;padding-bottom:28px}
+#qhBanner{background:linear-gradient(135deg,var(--p),#FF8C42);padding:22px 24px 30px;border-radius:0 0 32px 32px;margin-bottom:0;position:relative;overflow:hidden}
 #qhBanner::after{content:'';position:absolute;right:-20px;bottom:-10px;width:120px;height:120px;background:rgba(255,255,255,.07);border-radius:50%}
 #qhBanner::before{content:'';position:absolute;right:30px;bottom:20px;width:60px;height:60px;background:rgba(255,255,255,.06);border-radius:50%}
 #qhBanner:has(.bpm){background:linear-gradient(135deg,var(--v),#9B72E8)}
@@ -425,15 +373,13 @@ body{font-family:-apple-system,'Apple SD Gothic Neo','Malgun Gothic','나눔고�
 
   /* ══ QUESTION SCREEN ══ */
   #s-q.on{display:block !important}
-  #qhBanner{padding:28px 44px 0;border-radius:0 0 36px 36px}
-  .qhb-text{padding-bottom:36px}
+  #qhBanner{padding:28px 44px 36px;border-radius:0 0 36px 36px}
   #qhBanner::after{width:180px;height:180px;right:-30px;bottom:-20px}
   #qhBanner::before{width:90px;height:90px;right:50px;bottom:30px}
-  .fox-q{height:190px;margin-bottom:-32px}
   .bdg{font-size:13px;padding:6px 16px;margin-bottom:12px}
   .qnl{font-size:13px}
   .qn{font-size:26px}
-  #qBox{padding:44px 44px 0 !important}
+  #qBox{padding:28px 44px 0 !important}
   .qc{padding:24px 28px;margin-bottom:16px;border-radius:22px}
   .qnum{font-size:12px;margin-bottom:8px}
   .qt{font-size:18px;line-height:1.6;margin-bottom:16px}
@@ -449,8 +395,7 @@ body{font-family:-apple-system,'Apple SD Gothic Neo','Malgun Gothic','나눔고�
 
   /* ══ COMPLETION SCREEN ══ */
   #s-done.on{display:block !important}
-  .done-banner{padding:52px 44px 44px;border-radius:0 0 40px 40px}
-  .done-fox-img{height:220px;margin-bottom:16px}
+  .done-banner{padding:44px 44px 52px;border-radius:0 0 40px 40px}
   .done-fox{font-size:96px;margin-bottom:12px}
   .done-title{font-size:30px}
   .done-sub{font-size:14px;margin-top:6px}
@@ -505,7 +450,6 @@ body{font-family:-apple-system,'Apple SD Gothic Neo','Malgun Gothic','나눔고�
 <!-- HELP MODAL -->
 <div class="hmodal-bg" id="helpModal" onclick="if(event.target===this)closeHelp()">
   <div class="hmodal">
-    <img class="help-fox-img" src="assets/fox/fox_pointing.png" alt="Fox pointing to guide you">
     <div class="hm-title">처음이라면 이렇게 해보세요 👋</div>
     <div class="hm-steps">
       <div class="hm-step"><div class="hm-num">1</div><div class="hm-txt">내 이름을 선택하고 입실 또는 퇴실을 눌러요</div></div>
@@ -526,7 +470,9 @@ body{font-family:-apple-system,'Apple SD Gothic Neo','Malgun Gothic','나눔고�
     <div class="hblob hb2"></div>
     <div class="hblob hb3"></div>
     <button class="hbtn" onclick="openHelp()">처음이에요 ?</button>
-    <img class="fox-img" src="assets/fox/fox_wave.png" alt="Fox waving hello">
+    <!-- Fox character: swap src to images/fox-wave.png once uploaded -->
+    <img class="fox-img" id="foxImg" src="" alt="" style="display:none" onerror="this.style.display='none'">
+    <span class="fox-char" id="foxChar">🦊</span>
     <span class="hero-title">감정체크!</span>
     <p class="hero-sub">오늘의 나를 기록하는 시간 🌱</p>
   </div>
@@ -579,21 +525,17 @@ body{font-family:-apple-system,'Apple SD Gothic Neo','Malgun Gothic','나눔고�
 <!-- QUESTIONS -->
 <div id="s-q" class="scr">
   <div class="qh-banner" id="qhBanner">
-    <div class="qhb-text">
-      <div class="bdg bam" id="badge">🌅 입실 체크</div>
-      <div class="qnl">오늘도 멋지게 성장중인</div>
-      <div class="qn" id="qName"></div>
-    </div>
-    <img class="fox-q fox-q-am" src="assets/fox/fox_reading.png" alt="Fox reading">
-    <img class="fox-q fox-q-pm" src="assets/fox/fox_thinking.png" alt="Fox thinking">
+    <div class="bdg bam" id="badge">🌅 입실 체크</div>
+    <div class="qnl">오늘도 멋지게 성장중인</div>
+    <div class="qn" id="qName"></div>
   </div>
-  <div id="qBox" style="padding:32px 20px 0"></div>
+  <div id="qBox" style="padding:16px 20px 0"></div>
 </div>
 
 <!-- COMPLETE -->
 <div id="s-done" class="scr">
   <div class="done-banner">
-    <img class="done-fox-img" src="assets/fox/fox_jumping.png" alt="Fox jumping with joy">
+    <span class="done-fox">🦊</span>
     <div class="done-title">다 했어요! 🎉</div>
     <div class="done-sub">오늘도 스스로를 돌아봤어요</div>
   </div>
@@ -612,7 +554,7 @@ body{font-family:-apple-system,'Apple SD Gothic Neo','Malgun Gothic','나눔고�
 </div>
 
 <div class="ldr" id="loader">
-  <img class="ldr-fox-img" src="assets/fox/fox_neutral.png" alt="Fox waiting">
+  <div class="ldr-fox">🦊</div>
   <div class="spin"></div>
   <div style="font-size:15px;font-weight:800;color:var(--m)">저장 중이에요...</div>
 </div>
@@ -883,10 +825,18 @@ addEventListener('DOMContentLoaded', async () => {
   await buildNameSel();
   const rq = EQ.find(q=>q.rot);
   if (rq) rq.text = ROT[((d.getDay()+6)%7) % ROT.length];
+  // Try to load the real fox PNG; fall back to emoji
+  const img = $('foxImg'), emoji = $('foxChar');
+  if (img) {
+    const testImg = new Image();
+    testImg.onload = () => { img.src = 'images/fox-wave.png'; img.style.display = 'block'; if(emoji) emoji.style.display = 'none'; };
+    testImg.onerror = () => {};
+    testImg.src = 'images/fox-wave.png';
+  }
 });
 
 const $ = id => document.getElementById(id);
-const show = id => { document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on','anim')); const t=$(id); t.classList.add('on'); requestAnimationFrame(()=>t.classList.add('anim')); };
+const show = id => { document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on')); $(id).classList.add('on') };
 const toast = msg => { const t=$('toast'); t.textContent=msg; t.classList.add('on'); setTimeout(()=>t.classList.remove('on'),2200) };
 const setP = pct => { $('prog').style.width = pct+'%' };
 const el = (tag,cls) => { const e=document.createElement(tag); e.className=cls; return e };
