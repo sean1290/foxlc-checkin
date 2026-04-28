@@ -177,6 +177,8 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 /* ── CHOICE / MULTI ── */
 .cg{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .cg.single{grid-template-columns:1fr}
+.cg.compact{grid-template-columns:repeat(2,auto);justify-content:center}
+.cg.compact .cb{justify-content:center;text-align:center;min-width:120px;padding:18px 24px}
 .cb{padding:18px 16px;border:none;border-radius:24px;background:#fff;font-size:14px;font-weight:700;cursor:pointer;text-align:left;transition:all .22s cubic-bezier(.34,1.56,.64,1);font-family:'Noto Sans KR',sans-serif;color:var(--t);display:flex;align-items:center;gap:12px;height:100%;box-shadow:0 8px 24px rgba(0,0,0,.1);min-height:80px}
 .cb .ico{font-size:22px;flex-shrink:0;background:var(--bg);padding:6px;border-radius:12px;transition:transform .18s}
 .cb:hover{border-color:var(--v);background:var(--vl);transform:translateY(-2px);box-shadow:0 4px 12px rgba(124,92,191,.15)}
@@ -316,7 +318,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 .eq-follow{margin-top:14px;padding:14px;background:var(--al);border-radius:var(--rs);display:none;animation:fadeUp .25s ease;border:1.5px solid rgba(255,206,0,.2)}
 .eq-follow.on{display:block}
 .eq-follow-q{font-size:13px;font-weight:800;color:var(--t);margin-bottom:10px;line-height:1.5}
-.eq-fopts{display:flex;flex-direction:column;gap:8px}
+.eq-fopts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .eq-fopt{padding:12px 14px;border:2px solid rgba(0,0,0,.08);border-radius:var(--rs);background:#fff;font-size:13px;font-weight:600;cursor:pointer;text-align:left;transition:all .18s;font-family:'Noto Sans KR',sans-serif;color:var(--t);display:flex;align-items:center;gap:8px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
 .eq-fopt:hover{border-color:var(--p);background:var(--pl)}
 .eq-fopt.on{border-color:var(--p);background:linear-gradient(135deg,var(--p),#FF8C42);color:#fff;box-shadow:0 4px 14px rgba(255,107,53,.3)}
@@ -669,7 +671,7 @@ const EQ = [
   },
   { id:'memory_activity', axis:'축2 목표달성(④)',
     text:'오늘 가장 기억에 남는 활동은?',
-    type:'choice',
+    type:'choice', compact:true,
     opts:[
       {i:'🤖', t:'인공지능'},
       {i:'🌍', t:'영어'},
@@ -1093,7 +1095,7 @@ function renderIn(q, zone, isSub, pid) {
           delete S.ans[id+'_followup'];
           const fopts = isNeg
             ? [{i:'😔',t:'마음대로 되지 않았어요'},{i:'😣',t:'친구와 다퉜어요'},{i:'😓',t:'공부나 활동이 어려웠어요'},{i:'😶',t:'잘 모르겠어요'}]
-            : [{i:'🌟',t:'친구들과 사이좋게 지내기'},{i:'💪',t:'오늘처럼 열심히 하기'},{i:'😊',t:'즐거운 마음으로 활동하기'}];
+            : [{i:'🌟',t:'친구들과 사이좋게 지내기'},{i:'💪',t:'오늘처럼 열심히 하기'},{i:'😊',t:'즐거운 마음으로 활동하기'},{i:'🤝',t:'도움이 필요한 친구를 먼저 도와주기'}];
           fopts.forEach(o => {
             const btn = el('button','eq-fopt');
             btn.innerHTML = `<span>${o.i}</span>${o.t}`;
@@ -1162,7 +1164,7 @@ function renderIn(q, zone, isSub, pid) {
     }
     if (q.helper) { const h=el('div','mh'); h.textContent=q.helper; zone.appendChild(h); }
     const opts = q.goalMap ? (q.goalMap[S.ans[q.linkedGoal]]||[]) : q.opts;
-    const grid=el('div','cg'+(q.single?' single':''));
+    const grid=el('div','cg'+(q.single?' single':q.compact?' compact':''));
     const cur=()=>Array.isArray(S.ans[id])?S.ans[id]:[];
     opts.forEach(o=>{
       const b=el('button','cb'+((type==='choice'?S.ans[id]===o.t:cur().includes(o.t))?' on':''));
