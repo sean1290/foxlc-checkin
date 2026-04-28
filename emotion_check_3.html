@@ -76,6 +76,10 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 
 /* ── LANDING HERO ── */
 .hero-wrap{position:relative;overflow:hidden;background:linear-gradient(160deg,#FFF0E6 0%,#FFF8F0 60%,#F0F4FF 100%);padding:32px 20px 28px;margin-bottom:0;border-radius:0 0 40px 40px;text-align:center}
+.hblob{position:absolute;border-radius:50%;pointer-events:none}
+.hb1{width:180px;height:180px;background:radial-gradient(circle,#FFCE00,#FF8C42);top:-60px;right:-40px;opacity:.45}
+.hb2{width:120px;height:120px;background:radial-gradient(circle,#A78BFA,#7C5CBF);bottom:-30px;left:-30px;opacity:.4}
+.hb3{width:80px;height:80px;background:radial-gradient(circle,#5BAD8A,#4ECDC4);top:50%;right:10%;opacity:.25}
 .hbtn{position:absolute;top:14px;right:16px;background:rgba(255,255,255,.8);border:1.5px solid var(--b);border-radius:99px;padding:6px 14px;font-size:12px;font-weight:700;color:var(--m);cursor:pointer;font-family:'Noto Sans KR',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.06);z-index:5}
 .fox-char{font-size:110px;line-height:1;display:block;margin:0 auto 12px;animation:foxBob 2.8s ease-in-out infinite;filter:drop-shadow(0 12px 20px rgba(0,0,0,.12));position:relative;z-index:2}
 .fox-img{height:180px;width:auto;object-fit:contain;display:block;margin:0 auto 12px;animation:foxBob 2.8s ease-in-out infinite;filter:drop-shadow(0 12px 20px rgba(0,0,0,.12));position:relative;z-index:2}
@@ -390,6 +394,9 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 
   <!-- ── Hero ── -->
   <div class="hero-wrap">
+    <div class="hblob hb1"></div>
+    <div class="hblob hb2"></div>
+    <div class="hblob hb3"></div>
     <button class="hbtn" onclick="openHelp()">처음이에요 ?</button>
     <!-- Fox character: swap src to images/fox-wave.png once uploaded -->
     <img class="fox-img" id="foxImg" src="" alt="" style="display:none" onerror="this.style.display='none'">
