@@ -70,25 +70,12 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 /* Mascot positioning for question page */
 #s-q::before{content:'';position:absolute;top:100px;left:20px;width:80px;height:80px;background:#A583D6;border-radius:50% 50% 45% 55%;opacity:.15;pointer-events:none;z-index:0}
 
-/* Emotion-based blob animation */
-.emotion-blob{position:absolute;border-radius:45% 55% 52% 48% / 48% 45% 55% 52%;pointer-events:none;z-index:1;animation:emotionBlobFloat 8s ease-in-out infinite;opacity:.6}
-.emotion-blob.b1{width:500px;height:500px;top:5%;right:-15%;animation-delay:0s}
-.emotion-blob.b2{width:380px;height:380px;top:35%;left:-12%;animation-delay:2s;animation-duration:10s}
-.emotion-blob.b3{width:280px;height:280px;bottom:10%;right:5%;animation-delay:4s;animation-duration:9s}
-.emotion-blob.b4{width:320px;height:320px;top:45%;right:8%;animation-delay:1s;animation-duration:12s}
-.emotion-blob::after{content:'';position:absolute;width:inherit;height:inherit;background:inherit;border-radius:38% 62% 58% 42% / 58% 38% 62% 42%;top:0;left:0;animation:emotionBlobFloat 10s ease-in-out infinite reverse;animation-delay:1s;opacity:.7}
 
-@keyframes emotionBlobFloat{0%,100%{transform:translate(0,0) rotate(0deg);border-radius:45% 55% 52% 48% / 48% 45% 55% 52%}25%{transform:translate(20px,-30px) rotate(90deg);border-radius:70% 30% 66% 34% / 33% 70% 30% 70%}50%{transform:translate(-20px,20px) rotate(180deg);border-radius:100% 60% 30% 70% / 28% 0% 70% 100%}75%{transform:translate(30px,10px) rotate(270deg);border-radius:20% 80% 16% 84% / 55% 44% 56% 45%}}
 
 .qc{position:relative;z-index:10}
 
 /* ── LANDING HERO ── */
 .hero-wrap{position:relative;overflow:hidden;background:linear-gradient(160deg,#FFF0E6 0%,#FFF8F0 60%,#F0F4FF 100%);padding:32px 20px 28px;margin-bottom:0;border-radius:0 0 40px 40px;text-align:center}
-.hblob{position:absolute;border-radius:50%;pointer-events:none;opacity:.5;animation:blobFloat 6s ease-in-out infinite}
-.hb1{width:180px;height:180px;background:radial-gradient(circle,#FFCE00,#FF8C42);top:-60px;right:-40px;animation-delay:0s}
-.hb2{width:120px;height:120px;background:radial-gradient(circle,#A78BFA,#7C5CBF);bottom:-30px;left:-30px;animation-delay:2s}
-.hb3{width:80px;height:80px;background:radial-gradient(circle,#5BAD8A,#4ECDC4);top:50%;right:10%;animation-delay:4s;opacity:.3}
-@keyframes blobFloat{0%,100%{transform:scale(1) translate(0,0)}50%{transform:scale(1.08) translate(4px,-8px)}}
 .hbtn{position:absolute;top:14px;right:16px;background:rgba(255,255,255,.8);border:1.5px solid var(--b);border-radius:99px;padding:6px 14px;font-size:12px;font-weight:700;color:var(--m);cursor:pointer;font-family:'Noto Sans KR',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.06);z-index:5}
 .fox-char{font-size:110px;line-height:1;display:block;margin:0 auto 12px;animation:foxBob 2.8s ease-in-out infinite;filter:drop-shadow(0 12px 20px rgba(0,0,0,.12));position:relative;z-index:2}
 .fox-img{height:180px;width:auto;object-fit:contain;display:block;margin:0 auto 12px;animation:foxBob 2.8s ease-in-out infinite;filter:drop-shadow(0 12px 20px rgba(0,0,0,.12));position:relative;z-index:2}
@@ -403,9 +390,6 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 
   <!-- ── Hero ── -->
   <div class="hero-wrap">
-    <div class="hblob hb1"></div>
-    <div class="hblob hb2"></div>
-    <div class="hblob hb3"></div>
     <button class="hbtn" onclick="openHelp()">처음이에요 ?</button>
     <!-- Fox character: swap src to images/fox-wave.png once uploaded -->
     <img class="fox-img" id="foxImg" src="" alt="" style="display:none" onerror="this.style.display='none'">
@@ -794,13 +778,6 @@ const $ = id => document.getElementById(id);
 const show = id => {
   document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
   $(id).classList.add('on');
-  if (id === 's-q') {
-    // Initialize beige blobs on question screen
-    const sQ = $(id);
-    if (sQ && !sQ.querySelector('.emotion-blob')) {
-      setTimeout(() => addEmotionBlobs(S.emotionColor || '#E8D5C4'), 50);
-    }
-  }
 };
 const toast = msg => { const t=$('toast'); t.textContent=msg; t.classList.add('on'); setTimeout(()=>t.classList.remove('on'),2200) };
 const setP = pct => { $('prog').style.width = pct+'%' };
@@ -924,30 +901,6 @@ function updateBackgroundColor(color) {
   const sDone = document.getElementById('s-done');
   if (sQ) sQ.style.background = `linear-gradient(135deg, ${color}dd 0%, ${color}99 100%)`;
   if (sDone) sDone.style.background = `linear-gradient(135deg, ${color}dd 0%, ${color}99 100%)`;
-  // Add blobs to background
-  addEmotionBlobs(color);
-}
-
-function addEmotionBlobs(color) {
-  const sQ = document.getElementById('s-q');
-  if (!sQ) return;
-  // Remove existing blobs
-  sQ.querySelectorAll('.emotion-blob').forEach(b => b.remove());
-
-  const beigeColor = '#E8D5C4';
-  const blobConfigs = [
-    {className:'emotion-blob b1', bg:`radial-gradient(circle, ${beigeColor}50, ${beigeColor}15)`},
-    {className:'emotion-blob b2', bg:`radial-gradient(circle, ${beigeColor}45, ${beigeColor}10)`},
-    {className:'emotion-blob b3', bg:`radial-gradient(circle, ${beigeColor}40, ${beigeColor}08)`},
-    {className:'emotion-blob b4', bg:`radial-gradient(circle, ${beigeColor}35, ${beigeColor}05)`}
-  ];
-
-  blobConfigs.forEach(cfg => {
-    const blob = document.createElement('div');
-    blob.className = cfg.className;
-    blob.style.background = cfg.bg;
-    sQ.appendChild(blob);
-  });
 }
 
 // ── INPUT RENDERERS ───────────────────────────────
