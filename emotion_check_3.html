@@ -75,7 +75,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 .qc{position:relative;z-index:10}
 
 /* ── LANDING HERO ── */
-.hero-wrap{position:relative;overflow:hidden;background:linear-gradient(160deg,#FFF0E6 0%,#FFF8F0 60%,#F0F4FF 100%);padding:32px 20px 28px;margin-bottom:0;border-radius:0 0 40px 40px;text-align:center}
+.hero-wrap{position:relative;overflow:visible;background:linear-gradient(160deg,#FFF0E6 0%,#FFF8F0 60%,#F0F4FF 100%);padding:32px 20px 28px;margin-bottom:0;border-radius:0 0 40px 40px;text-align:center}
 .hblob{position:absolute;border-radius:50%;pointer-events:none}
 .hb1{width:180px;height:180px;background:radial-gradient(circle,#FFCE00,#FF8C42);top:-60px;right:-40px;opacity:.45}
 .hb2{width:120px;height:120px;background:radial-gradient(circle,#A78BFA,#7C5CBF);bottom:-30px;left:-30px;opacity:.4}
@@ -774,14 +774,6 @@ addEventListener('DOMContentLoaded', async () => {
   await buildNameSel();
   const rq = EQ.find(q=>q.rot);
   if (rq) rq.text = ROT[((d.getDay()+6)%7) % ROT.length];
-  // Try to load the real fox PNG; fall back to emoji
-  const img = $('foxImg'), emoji = $('foxChar');
-  if (img) {
-    const testImg = new Image();
-    testImg.onload = () => { img.src = 'images/fox-wave.png'; img.style.display = 'block'; if(emoji) emoji.style.display = 'none'; };
-    testImg.onerror = () => {};
-    testImg.src = 'images/fox-wave.png';
-  }
 });
 
 const $ = id => document.getElementById(id);
