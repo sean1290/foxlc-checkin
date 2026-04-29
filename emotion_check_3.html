@@ -244,11 +244,11 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 .hm-note{text-align:center;font-size:13px;color:var(--m);font-weight:600;margin-bottom:20px;line-height:1.7;background:var(--vl);padding:12px;border-radius:var(--rs)}
 
 /* ── COMPLETE SCREEN ── */
-.done-banner{background:linear-gradient(135deg,#9D84B7,#8B7BA8);padding:40px 20px 48px;text-align:center;border-radius:0 0 48px 48px;margin-bottom:20px;position:relative;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.2)}
+.done-banner{background-color:#e8ddd0;background-image:url('images/landing-bg.png');background-size:cover;background-position:center top;padding:40px 20px 48px;text-align:center;border-radius:0 0 48px 48px;margin-bottom:20px;position:relative;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.2)}
 .done-banner::after{content:'';position:absolute;right:-20px;top:-20px;width:150px;height:150px;background:rgba(255,255,255,.06);border-radius:50%}
 .done-fox{font-size:80px;display:block;animation:foxBob 2s ease-in-out infinite;margin-bottom:8px}
-.done-title{font-size:32px;font-weight:900;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.15)}
-.done-sub{font-size:17px;color:rgba(255,255,255,.85);font-weight:600;margin-top:4px}
+.done-title{font-size:32px;font-weight:900;color:var(--t);text-shadow:0 2px 8px rgba(255,255,255,.4)}
+.done-sub{font-size:17px;color:var(--m);font-weight:600;margin-top:4px}
 .done-body{padding:0 20px 40px;display:flex;flex-direction:column;gap:20px}
 #missionCard:empty{display:none}
 @keyframes up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
@@ -260,16 +260,15 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 .done-seq .done-back{animation:up .5s cubic-bezier(.25,.46,.45,.94) .65s both}
 
 /* ── WEEKLY SNAPSHOT ── */
-.snap-hdr{font-size:15px;font-weight:900;color:var(--t);margin-bottom:14px;display:flex;align-items:center;gap:6px}
-.snap-range{font-size:11px;font-weight:600;color:var(--m)}
-.snap-sec{margin-bottom:14px}
+.snap-hdr{font-size:22px;font-weight:900;color:var(--t);margin-bottom:16px;display:flex;align-items:center;gap:6px}
+.snap-sec{margin-bottom:18px}
 .snap-sec:last-child{margin-bottom:0}
-.snap-sh{font-size:12px;font-weight:800;color:var(--m);margin-bottom:8px}
-.snap-tags{display:flex;flex-wrap:wrap;gap:8px}
-.snap-tag{background:var(--vl);border-radius:99px;padding:6px 14px;font-size:13px;font-weight:700;color:var(--v);display:flex;align-items:center;gap:5px}
-.snap-cnt{font-size:11px;font-weight:700;background:rgba(124,92,191,.15);border-radius:99px;padding:1px 7px;color:var(--v)}
-.snap-empty{font-size:12px;color:var(--m);font-style:italic}
-.snap-msg{font-size:14px;font-weight:700;line-height:1.8;color:var(--t);background:linear-gradient(135deg,var(--vl),var(--al));border-radius:var(--rs);padding:16px;text-align:center;word-break:keep-all}
+.snap-sh{font-size:16px;font-weight:800;color:var(--m);margin-bottom:10px}
+.snap-tags{display:flex;flex-wrap:wrap;gap:10px}
+.snap-tag{background:var(--vl);border-radius:99px;padding:8px 18px;font-size:17px;font-weight:700;color:var(--v);display:flex;align-items:center;gap:6px}
+.snap-cnt{font-size:14px;font-weight:700;background:rgba(124,92,191,.15);border-radius:99px;padding:2px 9px;color:var(--v)}
+.snap-empty{font-size:15px;color:var(--m);font-style:italic}
+.snap-msg{font-size:18px;font-weight:700;line-height:1.8;color:var(--t);background:linear-gradient(135deg,var(--vl),var(--al));border-radius:var(--rs);padding:20px;text-align:center;word-break:keep-all}
 .snap-loading{font-size:13px;color:var(--m);font-style:italic}
 
 /* ── RIPPLE ── */
@@ -1426,6 +1425,14 @@ function showDone(p, saved) {
     const lmc  = parseInt(localStorage.getItem(kLMC) || '0');
     const unlocked = ci >= 5 && ci % 5 === 0 && lmc !== ci;
     const remaining = 5 - (ci % 5 || 5);
+    const amDates = weekEntries.filter(e=>e.session==='morning').map(e=>{
+      const [y,m,d]=e.date.split('-').map(Number);
+      const dt=new Date(y,m-1,d);
+      return `${m}월 ${d}일(${'일월화수목금토'[dt.getDay()]})`;
+    });
+    const datesHTML = amDates.length
+      ? `<div style="margin-top:8px;font-size:11px;color:var(--m);line-height:1.8">📅 ${amDates.join(' · ')}</div>`
+      : '';
     $('missionCard').innerHTML = unlocked
       ? `<div style="background:linear-gradient(135deg,#EDE9FE,#FFF5D6);border-radius:20px;padding:18px 18px 14px;text-align:center;border:2px solid rgba(167,139,250,.35)">
           <div style="font-size:26px;margin-bottom:6px">🎉</div>
@@ -1433,12 +1440,15 @@ function showDone(p, saved) {
           <div style="font-size:12px;color:#6B7280;margin-bottom:14px;line-height:1.6">감정체크 기록이 쌓였어요.<br>이번 주 특별 미션에 도전해봐요 🌟</div>
           <a href="special-mission.html" style="display:block;padding:13px;border-radius:12px;background:linear-gradient(135deg,#A78BFA,#8B5CF6);color:#fff;font-size:15px;font-weight:700;text-decoration:none;font-family:'Noto Sans KR',sans-serif;animation:mPulse 2s ease-in-out infinite">✨ 미션 하러 가기</a>
          </div>`
-      : `<div style="background:#fff;border-radius:16px;padding:14px 18px;border:1.5px solid var(--b);display:flex;align-items:center;gap:14px">
-          <span style="font-size:28px">🎯</span>
-          <div>
-            <div style="font-size:12px;font-weight:700;color:var(--t);margin-bottom:2px">특별 미션까지 <strong style="color:var(--v)">${remaining}회</strong> 남았어요!</div>
-            <div style="font-size:11px;color:var(--m)">5회 체크마다 특별 미션이 열려요 🌟</div>
+      : `<div style="background:#fff;border-radius:16px;padding:14px 18px;border:1.5px solid var(--b);">
+          <div style="display:flex;align-items:center;gap:14px">
+            <span style="font-size:28px">🎯</span>
+            <div>
+              <div style="font-size:12px;font-weight:700;color:var(--t);margin-bottom:2px">특별 미션까지 <strong style="color:var(--v)">${remaining}회</strong> 남았어요!</div>
+              <div style="font-size:11px;color:var(--m)">5회 체크마다 특별 미션이 열려요 🌟</div>
+            </div>
           </div>
+          ${datesHTML}
          </div>`;
   } else {
     $('missionCard').innerHTML = '';
@@ -1555,7 +1565,7 @@ function showWeekSnapshot(entries, p) {
 
   $('snapCard').innerHTML = `
     <img src="images/sitting-fox.png" class="snap-fox" alt="">
-    <div class="snap-hdr">✨ 이번 주 나는! <span class="snap-range">(최근 7일 · ${entries.length}회 체크)</span></div>
+    <div class="snap-hdr">✨ 이번 주 나는!</div>
     <div class="snap-sec">
       <div class="snap-sh">🪞 이번 주 나는 이런 사람이었어요</div>
       <div class="snap-tags">${emoHTML}</div>
