@@ -9,18 +9,16 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet"></noscript>
-<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet" media="print" onload="this.media='all'">
-<noscript><link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet"></noscript>
 <style>
 @font-face {
   font-family: 'Griun';
   src: url('Griun_Mongtori-Rg.ttf') format('truetype');
-  font-display: swap;
+  font-display: block;
 }
 @font-face {
   font-family: 'Jalnan2';
   src: url('Jalnan2.ttf') format('truetype');
-  font-display: swap;
+  font-display: block;
 }
 :root {
   --bg: #FFF8F0;
@@ -66,7 +64,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 @media(min-width:900px){.bnav{padding-left:calc((100vw - 900px)/2 + 20px);padding-right:calc((100vw - 900px)/2 + 20px)}}
 
 /* ── SCREEN BACKGROUNDS (Figma redesign) ── */
-#s-land{background:url('images/landing-bg.png') center top / cover no-repeat scroll}
+#s-land{background-color:#e8ddd0;background-image:url('images/landing-bg.png');background-size:cover;background-position:center top;background-repeat:no-repeat;background-attachment:scroll}
 #s-land::before{content:'';position:fixed;inset:0;background:rgba(255,248,230,0.45);pointer-events:none;z-index:0}
 #s-land > *{position:relative;z-index:1}
 #s-q{background:linear-gradient(135deg, #F59E0Bdd 0%, #F59E0B99 100%);position:relative;transition:background 0.8s cubic-bezier(.34,1.56,.64,1)}
@@ -91,7 +89,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 .fox-char{font-size:110px;line-height:1;display:block;margin:0 auto 28px;animation:foxBob 2.8s ease-in-out infinite;filter:drop-shadow(0 12px 20px rgba(0,0,0,.12));position:relative;z-index:2}
 .fox-img{height:180px;width:auto;object-fit:contain;display:block;margin:0 auto 12px;animation:foxBob 2.8s ease-in-out infinite;filter:drop-shadow(0 12px 20px rgba(0,0,0,.12));position:relative;z-index:2}
 @keyframes foxBob{0%,100%{transform:translateY(0) rotate(0deg)}40%{transform:translateY(-14px) rotate(-3deg)}70%{transform:translateY(-8px) rotate(2deg)}}
-.hero-title{font-family:'Pretendard','Noto Sans KR',sans-serif;font-size:64px;font-weight:900;color:var(--p);letter-spacing:-2px;line-height:1;display:block;margin-bottom:20px;text-shadow:3px 3px 0 rgba(255,107,53,.15);position:relative;z-index:2}
+.hero-title{font-family:'Griun','Noto Sans KR',sans-serif;font-size:64px;font-weight:900;color:var(--p);letter-spacing:-2px;line-height:1;display:block;margin-bottom:20px;text-shadow:3px 3px 0 rgba(255,107,53,.15);position:relative;z-index:2}
 .hero-sub{font-size:15px;color:var(--m);font-weight:600;line-height:1.6;position:relative;z-index:2}
 
 /* ── NAME CARD ── */
