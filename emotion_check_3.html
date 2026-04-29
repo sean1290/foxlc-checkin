@@ -75,17 +75,17 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 .qc{position:relative;z-index:10}
 
 /* ── LANDING HERO ── */
-.hero-wrap{position:relative;overflow:visible;background:linear-gradient(160deg,#FFF0E6 0%,#FFF8F0 60%,#F0F4FF 100%);padding:32px 20px 28px;margin-bottom:0;border-radius:0 0 40px 40px;text-align:center;min-height:420px}
+.hero-wrap{position:relative;overflow:visible;background:linear-gradient(160deg,#FFF0E6 0%,#FFF8F0 60%,#F0F4FF 100%);padding:32px 20px 28px;margin-bottom:0;border-radius:0 0 40px 40px;text-align:center;min-height:340px}
 .hblob{position:absolute;border-radius:50%;pointer-events:none}
 .hb1{width:180px;height:180px;background:radial-gradient(circle,#FFCE00,#FF8C42);top:-60px;right:-40px;opacity:.45}
 .hb2{width:120px;height:120px;background:radial-gradient(circle,#A78BFA,#7C5CBF);bottom:-30px;left:-30px;opacity:.4}
-.hero-fox{position:absolute;bottom:0;left:-10px;height:405px;width:auto;pointer-events:none;z-index:3}
+.hero-fox{position:absolute;bottom:-38px;left:-10px;height:405px;width:auto;pointer-events:none;z-index:3}
 .hb3{width:80px;height:80px;background:radial-gradient(circle,#5BAD8A,#4ECDC4);top:50%;right:10%;opacity:.25}
 .hbtn{position:absolute;top:14px;right:16px;background:rgba(255,255,255,.8);border:1.5px solid var(--b);border-radius:99px;padding:6px 14px;font-size:12px;font-weight:700;color:var(--m);cursor:pointer;font-family:'Noto Sans KR',sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.06);z-index:5}
-.fox-char{font-size:110px;line-height:1;display:block;margin:0 auto 12px;animation:foxBob 2.8s ease-in-out infinite;filter:drop-shadow(0 12px 20px rgba(0,0,0,.12));position:relative;z-index:2}
+.fox-char{font-size:110px;line-height:1;display:block;margin:0 auto 28px;animation:foxBob 2.8s ease-in-out infinite;filter:drop-shadow(0 12px 20px rgba(0,0,0,.12));position:relative;z-index:2}
 .fox-img{height:180px;width:auto;object-fit:contain;display:block;margin:0 auto 12px;animation:foxBob 2.8s ease-in-out infinite;filter:drop-shadow(0 12px 20px rgba(0,0,0,.12));position:relative;z-index:2}
 @keyframes foxBob{0%,100%{transform:translateY(0) rotate(0deg)}40%{transform:translateY(-14px) rotate(-3deg)}70%{transform:translateY(-8px) rotate(2deg)}}
-.hero-title{font-family:'Pretendard','Noto Sans KR',sans-serif;font-size:64px;font-weight:900;color:var(--p);letter-spacing:-2px;line-height:1;display:block;margin-bottom:8px;text-shadow:3px 3px 0 rgba(255,107,53,.15);position:relative;z-index:2}
+.hero-title{font-family:'Pretendard','Noto Sans KR',sans-serif;font-size:64px;font-weight:900;color:var(--p);letter-spacing:-2px;line-height:1;display:block;margin-bottom:20px;text-shadow:3px 3px 0 rgba(255,107,53,.15);position:relative;z-index:2}
 .hero-sub{font-size:15px;color:var(--m);font-weight:600;line-height:1.6;position:relative;z-index:2}
 
 /* ── NAME CARD ── */
@@ -157,8 +157,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 .sb:hover{transform:scale(1.08);border-color:var(--p)}
 .sb.on{border-color:var(--p);background:var(--pl);box-shadow:0 0 0 3px rgba(255,107,53,.2),0 6px 16px rgba(255,107,53,.2);transform:scale(1.14) translateY(-3px)}
 .sb.on .n{color:var(--p)}
-.slb{display:flex;gap:10px;justify-content:center;margin-top:6px}
-.slb span{flex:1;max-width:62px;font-size:10px;color:var(--m);text-align:center;font-weight:600}
+.sb-lbl{font-size:9px;color:var(--m);font-weight:700;display:block;white-space:nowrap;margin-top:2px;text-align:center;line-height:1.2}
 
 /* ── YES/NO ── */
 .yr{display:flex;gap:14px}
@@ -249,7 +248,8 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 .done-body{padding:0 20px 40px;display:flex;flex-direction:column;gap:20px}
 #missionCard:empty{display:none}
 @keyframes up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-.scard{background:#fff;border-radius:32px;padding:28px 24px;margin:0;box-shadow:0 12px 40px rgba(0,0,0,.12);border:none}
+.scard{background:#fff;border-radius:32px;padding:28px 24px;margin:0;box-shadow:0 12px 40px rgba(0,0,0,.12);border:none;position:relative;overflow:hidden}
+#snapCard .snap-fox{position:absolute;right:0;bottom:-38px;height:450px;width:auto;pointer-events:none;opacity:.9}
 .done-seq #sumCard{animation:up .5s cubic-bezier(.25,.46,.45,.94) .2s both}
 .done-seq #missionCard{animation:up .5s cubic-bezier(.25,.46,.45,.94) .35s both}
 .done-seq #snapCard{animation:up .5s cubic-bezier(.25,.46,.45,.94) .5s both}
@@ -666,11 +666,11 @@ const EQ = [
     text:'오늘 가장 기억에 남는 활동은?',
     type:'choice', compact:true,
     opts:[
-      {i:'🤖', t:'인공지능'},
-      {i:'🌍', t:'영어'},
-      {i:'🎨', t:'미술'},
-      {i:'❤️', t:'SEL'},
-      {i:'🔢', t:'수리'}
+      {i:'🤖', t:'인공지능 연구소'},
+      {i:'🌍', t:'영어 연구소'},
+      {i:'🎨', t:'미술 연구소'},
+      {i:'❤️', t:'SEL 연구소'},
+      {i:'🔢', t:'수리 연구소'}
     ],
     followUp:{
       id:'memory_reason',
@@ -686,7 +686,7 @@ const EQ = [
     }
   },
   { id:'axis3_relation', axis:'축3 관계(②)', text:'오늘 친구들과의 관계는 어땠어요?',
-    type:'scale', emojis:['😤','😕','😐','😊','🥰'], labels:['별로 좋지 않았어요','아주 좋았어요'],
+    type:'scale', emojis:['😤','😕','😐','😊','🥰'], labels:['어려웠어요','아주 좋았어요'],
     lowSub: { id:'axis3_relation_reason', text:'어떤 점이 어려웠나요? (선택)', type:'text', placeholder:'짧게 적어도 괜찮아요', opt:true }
   },
   { id:'axis3_prosocial', axis:'축3 친사회성(③)',
@@ -1078,7 +1078,8 @@ function renderIn(q, zone, isSub, pid) {
     const row=el('div','sr');
     for (let i=1;i<=5;i++) {
       const b=el('button','sb'+(S.ans[id]===i?' on':''));
-      b.innerHTML=`<span>${q.emojis[i-1]}</span><span class="n">${i}</span>`;
+      const edgeLbl = (i===1&&q.labels?.[0]) ? `<span class="sb-lbl">${q.labels[0]}</span>` : (i===5&&q.labels?.[1]) ? `<span class="sb-lbl">${q.labels[1]}</span>` : '';
+      b.innerHTML=`<span>${q.emojis[i-1]}</span><span class="n">${i}</span>${edgeLbl}`;
       b.onclick=()=>{
         save(id,i);
         selectOnly(row, '.sb', b);
@@ -1090,9 +1091,7 @@ function renderIn(q, zone, isSub, pid) {
       };
       row.appendChild(b);
     }
-    const lbl=el('div','slb');
-    lbl.innerHTML=[q.labels[0],'','','',q.labels[1]].map(t=>`<span>${t}</span>`).join('');
-    zone.append(row,lbl);
+    zone.append(row);
 
   } else if (type==='yesno') {
     const row=el('div','yr');
@@ -1517,6 +1516,7 @@ function showWeekSnapshot(entries, p) {
     : '<div class="snap-empty">아직 데이터가 쌓이는 중이에요</div>';
 
   $('snapCard').innerHTML = `
+    <img src="images/sitting-fox.png" class="snap-fox" alt="">
     <div class="snap-hdr">✨ 이번 주 나는! <span class="snap-range">(최근 7일 · ${entries.length}회 체크)</span></div>
     <div class="snap-sec">
       <div class="snap-sh">🪞 이번 주 나는 이런 사람이었어요</div>
