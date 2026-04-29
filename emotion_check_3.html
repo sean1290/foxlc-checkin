@@ -68,7 +68,9 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 #s-land::before{content:'';position:fixed;inset:0;background:rgba(255,248,230,0.45);pointer-events:none;z-index:0}
 #s-land > *{position:relative;z-index:1}
 #s-q{background:linear-gradient(135deg, #F59E0Bdd 0%, #F59E0B99 100%);position:relative;transition:background 0.8s cubic-bezier(.34,1.56,.64,1)}
-#s-done{background:linear-gradient(135deg,#F3F4F6 0%,#E5E7EB 100%);transition:background 0.8s cubic-bezier(.34,1.56,.64,1)}
+#s-done{background-color:#e8ddd0;background-image:url('images/landing-bg.png');background-size:cover;background-position:center top;background-repeat:no-repeat;background-attachment:scroll}
+#s-done::before{content:'';position:fixed;inset:0;background:rgba(255,248,230,0.45);pointer-events:none;z-index:0}
+#s-done > *{position:relative;z-index:1}
 
 /* Mascot positioning for question page */
 #s-q::before{content:'';position:absolute;top:100px;left:20px;width:80px;height:80px;background:#A583D6;border-radius:50% 50% 45% 55%;opacity:.15;pointer-events:none;z-index:0}
@@ -257,10 +259,17 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 @keyframes up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 .scard{background:#fff;border-radius:32px;padding:28px 24px;margin:0;box-shadow:0 12px 40px rgba(0,0,0,.12);border:none;position:relative;overflow:hidden}
 #snapCard .snap-fox{position:absolute;right:0;bottom:-38px;height:450px;width:auto;pointer-events:none;opacity:.9}
-.done-seq #sumCard{animation:up .5s cubic-bezier(.25,.46,.45,.94) .2s both}
+.done-seq .done-top-row{animation:up .5s cubic-bezier(.25,.46,.45,.94) .05s both}
 .done-seq #missionCard{animation:up .5s cubic-bezier(.25,.46,.45,.94) .35s both}
 .done-seq #snapCard{animation:up .5s cubic-bezier(.25,.46,.45,.94) .5s both}
 .done-seq .done-back{animation:up .5s cubic-bezier(.25,.46,.45,.94) .65s both}
+
+.done-top-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+#doneQuoteCard{background:rgba(255,255,255,.78);border-radius:20px;padding:16px 14px;border:1.5px solid rgba(255,180,100,.3);box-shadow:0 4px 20px rgba(0,0,0,.08);display:flex;flex-direction:column;justify-content:space-between;min-height:160px}
+#doneQuoteCard .dq-fox{font-size:24px;display:block;margin-bottom:6px}
+#doneQuoteCard .dq-text{font-size:14px;font-weight:600;color:var(--t);line-height:1.7;word-break:keep-all;font-style:italic;flex:1}
+#doneQuoteCard .dq-author{font-size:11px;color:var(--m);margin-top:8px;font-weight:700;text-align:right}
+#sumCard.scard-sq{padding:10px;border-radius:20px;min-height:160px;display:flex;align-items:center;justify-content:center}
 
 /* ── WEEKLY SNAPSHOT ── */
 .snap-hdr{font-size:22px;font-weight:900;color:var(--t);margin-bottom:16px;display:flex;align-items:center;gap:6px}
@@ -488,12 +497,11 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 
 <!-- COMPLETE -->
 <div id="s-done" class="scr">
-  <div class="done-banner">
-    <span class="done-fox">🦊</span>
-    <div class="done-quote" id="doneDailyQuote"></div>
-  </div>
   <div class="done-body">
-    <div class="scard" id="sumCard"></div>
+    <div class="done-top-row">
+      <div id="doneQuoteCard"></div>
+      <div class="scard scard-sq" id="sumCard"></div>
+    </div>
     <div id="missionCard"></div>
     <div class="scard" id="snapCard"></div>
     <button class="btn bp done-back" onclick="reset()">처음으로 돌아가기</button>
@@ -931,7 +939,7 @@ function updateBackgroundColor(color) {
   const sQ = document.getElementById('s-q');
   const sDone = document.getElementById('s-done');
   if (sQ) sQ.style.background = `linear-gradient(135deg, ${color}dd 0%, ${color}99 100%)`;
-  if (sDone) sDone.style.background = `linear-gradient(135deg, ${color}dd 0%, ${color}99 100%)`;
+  // s-done keeps its wallpaper background
 }
 
 // ── INPUT RENDERERS ───────────────────────────────
@@ -1436,8 +1444,9 @@ function showDone(p, saved) {
   const _d=new Date();
   const _qi=(_d.getFullYear()*366+_d.getMonth()*31+_d.getDate())%QUOTES.length;
   const [_qt,_qa]=QUOTES[_qi];
-  $('doneDailyQuote').innerHTML=`<div class="dq-text">"${_qt}"</div>${_qa?`<div class="dq-author">— ${_qa}</div>`:''}`;
-  $('sumCard').innerHTML = `<div style="text-align:center;padding:20px;color:var(--m);font-size:14px">✨ ${am?'오늘 하루를 위한':'오늘 하루 수고를 담은'} 응원 문구를 만들고 있어요...</div>`;
+  const _qtBr=_qt.replace(/([\uAC00-\uD7A3][.!?])\s+/g,'$1<br>');
+  $('doneQuoteCard').innerHTML=`<span class="dq-fox">🦊</span><div class="dq-text">"${_qtBr}"</div>${_qa?`<div class="dq-author">— ${_qa}</div>`:''}`;
+  $('sumCard').innerHTML = `<div style="padding:10px;color:var(--m);font-size:12px;text-align:center">✨ 응원 문구를 만들고 있어요...</div>`;
   generateEncouragement(p);
 
   const weekEntries = saveWeekEntry(p);
@@ -1554,7 +1563,7 @@ async function callAIAndShow(prompt, p, fallbacks) {
 
 function showEncouragementCard(msg) {
   $('sumCard').innerHTML = `
-    <div style="background:linear-gradient(135deg,var(--vl),var(--al));border-radius:var(--rs);padding:22px 20px;text-align:center;line-height:2;font-size:15px;font-weight:600;color:var(--t);word-break:keep-all;word-wrap:break-word">
+    <div style="background:linear-gradient(135deg,var(--vl),var(--al));border-radius:var(--rs);padding:14px 12px;text-align:center;line-height:1.8;font-size:14px;font-weight:600;color:var(--t);word-break:keep-all;width:100%">
       ${msg.replace(/\n/g,'<br>')}
     </div>`;
 }
