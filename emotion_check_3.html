@@ -47,6 +47,9 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 .hd{font-size:12px;color:var(--m);font-weight:700;background:var(--pl);padding:5px 12px;border-radius:99px}
 .gear{background:#fff;border:2px solid var(--b);border-radius:50%;width:38px;height:38px;font-size:18px;cursor:pointer;transition:transform .2s;box-shadow:0 2px 8px rgba(0,0,0,.06)}
 .gear:active{transform:rotate(45deg)}
+.snack-btn{background:linear-gradient(135deg,var(--s),#4ECDC4);color:#fff;border:none;border-radius:99px;padding:8px 16px;font-size:13px;font-weight:800;cursor:pointer;font-family:'Noto Sans KR',sans-serif;box-shadow:0 3px 10px rgba(91,173,138,.4);transition:all .2s;white-space:nowrap}
+.snack-btn:hover{transform:translateY(-2px);box-shadow:0 5px 14px rgba(91,173,138,.5)}
+.snack-btn:active{transform:scale(.96)}
 
 /* ── PROGRESS ── */
 .prog{height:10px;background:var(--b);overflow:hidden;position:sticky;top:66px;z-index:99;border-radius:0 0 8px 8px}
@@ -375,7 +378,10 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 <header class="hdr">
   <div class="logo" onclick="show('s-land')" style="cursor:pointer">🦊 Fox<span>LC</span></div>
   <div class="hd" id="hdrDate"></div>
-  <button class="gear" onclick="openModal()">⚙️</button>
+  <div style="display:flex;align-items:center;gap:8px">
+    <button class="snack-btn" onclick="openSnackForm()">🍪 간식 신청</button>
+    <button class="gear" onclick="openModal()">⚙️</button>
+  </div>
 </header>
 <div class="prog"><div class="pf" id="prog" style="width:0%"></div></div>
 
@@ -390,6 +396,17 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
     </div>
     <div class="hm-note">정답은 없어요. 솔직함이 제일 중요해요 🙂</div>
     <button class="btn bp" onclick="closeHelp()">시작해볼게요!</button>
+  </div>
+</div>
+
+<!-- SNACK FORM MODAL -->
+<div id="snackModal" style="display:none;position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.6);flex-direction:column;align-items:center;justify-content:center;padding:16px">
+  <div style="background:#fff;border-radius:24px;width:100%;max-width:900px;height:85vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.3)">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:2px solid var(--b);flex-shrink:0">
+      <span style="font-size:15px;font-weight:800;color:var(--t)">🍪 간식 신청</span>
+      <button onclick="closeSnackForm()" style="background:var(--b);border:none;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1">✕</button>
+    </div>
+    <iframe id="snackFrame" src="" style="flex:1;border:none;width:100%" allow="autoplay"></iframe>
   </div>
 </div>
 
@@ -1613,6 +1630,17 @@ function saveModal(){
   buildNameSel();closeModal();toast('설정이 저장됐어요 ✅');
 }
 $('modal').addEventListener('click',e=>{if(e.target===$('modal'))closeModal()});
+
+function openSnackForm() {
+  const m = document.getElementById('snackModal');
+  document.getElementById('snackFrame').src = 'https://docs.google.com/forms/d/e/1FAIpQLScaHLq4dyg4aYftzU5p5OoH2ijvDy-OA9dJAAzUHFH4fG7Nig/viewform?embedded=true';
+  m.style.display = 'flex';
+}
+function closeSnackForm() {
+  const m = document.getElementById('snackModal');
+  m.style.display = 'none';
+  document.getElementById('snackFrame').src = '';
+}
 
 // script is at end of body, so DOM is ready
 populateSel($('nameSel'), localStorage.getItem(K_NAMES)
