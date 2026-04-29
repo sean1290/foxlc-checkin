@@ -244,7 +244,10 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 .hm-note{text-align:center;font-size:13px;color:var(--m);font-weight:600;margin-bottom:20px;line-height:1.7;background:var(--vl);padding:12px;border-radius:var(--rs)}
 
 /* ── COMPLETE SCREEN ── */
-.done-banner{background-color:#e8ddd0;background-image:url('images/landing-bg.png');background-size:cover;background-position:center top;padding:40px 20px 48px;text-align:center;border-radius:0 0 48px 48px;margin-bottom:20px;position:relative;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.2)}
+.done-banner{background-color:#e8ddd0;background-image:url('images/landing-bg.png');background-size:cover;background-position:center 65%;padding:40px 20px 48px;text-align:center;border-radius:0 0 48px 48px;margin-bottom:20px;position:relative;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.2)}
+.done-quote{padding:6px 4px}
+.dq-text{font-size:14px;font-weight:600;color:var(--t);line-height:1.75;word-break:keep-all;font-style:italic}
+.dq-author{font-size:12px;color:var(--m);margin-top:6px;font-weight:700}
 .done-banner::after{content:'';position:absolute;right:-20px;top:-20px;width:150px;height:150px;background:rgba(255,255,255,.06);border-radius:50%}
 .done-fox{font-size:80px;display:block;animation:foxBob 2s ease-in-out infinite;margin-bottom:8px}
 .done-title{font-size:32px;font-weight:900;color:var(--t);text-shadow:0 2px 8px rgba(255,255,255,.4)}
@@ -487,8 +490,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 <div id="s-done" class="scr">
   <div class="done-banner">
     <span class="done-fox">🦊</span>
-    <div class="done-title">다 했어요! 🎉</div>
-    <div class="done-sub" id="doneSub">오늘도 스스로를 돌아봤어요</div>
+    <div class="done-quote" id="doneDailyQuote"></div>
   </div>
   <div class="done-body">
     <div class="scard" id="sumCard"></div>
@@ -1408,7 +1410,33 @@ function launchConfetti() {
 
 function showDone(p, saved) {
   const am=p.session==='morning';
-  $('doneSub').textContent=`오늘도 멋지게 성장중인 ${p.student_name} 학생을 응원해요!`;
+  const QUOTES=[
+    ['아이들에게 조언하는 가장 좋은 방법은 그들이 무엇을 원하는지 알아낸 다음 그것을 하라고 조언하는 것임을 깨달았다.','해리 S. 트루먼'],
+    ['사회가 아이들을 대하는 방식보다 그 사회의 영혼을 더 예리하게 보여주는 것은 없다.','넬슨 만델라'],
+    ['아이들은 색칠 공부 책이 아닙니다. 당신이 좋아하는 색으로 그들을 채울 수는 없습니다.','할레드 호세이니'],
+    ['아이들은 우리가 보지 못할 미래의 시간으로 보내는 살아있는 메시지이다.','존 F. 케네디'],
+    ['망가진 어른을 고치는 것보다 튼튼하고 강한 아이로 키우는 것이 더 쉽다.','프레더릭 더글러스'],
+    ['세상에 예쁜 아이는 단 한 명뿐이고, 모든 어머니가 그 아이를 가졌다.',''],
+    ['아이들은 타고난 선(禪)의 대가이다. 그들의 세상은 매 순간 완전히 새롭다.','존 브래드쇼'],
+    ['영혼은 아이들과 함께 있을 때 치유된다.','표도르 도스토옙스키'],
+    ['우리는 아이가 내일 어떤 사람이 될지 걱정하지만, 오늘 그 아이가 누군가라는 사실은 잊어버린다.','스타시아 타우셔'],
+    ['아이들은 당신이 믿어주는 대로 자라날 가능성이 높다.','레이디 버드 존슨'],
+    ['아이들의 삶을 너무 편하게 만들어주어 그들의 능력을 꺾지 마라.','로버트 A. 하인라인'],
+    ['모든 아이는 각기 다른 종류의 꽃이며, 다 함께 모여 이 세상을 아름다운 정원으로 만든다.',''],
+    ['아이들은 아무것도 없는 것에서 모든 것을 찾지만, 어른들은 모든 것에서 아무것도 찾지 못한다.','자코모 레오파르디'],
+    ['우리는 매일 아이들의 기억 은행에 예금을 하고 있다.','찰스 R. 스윈돌'],
+    ['세상에 존재하는 정직하고 진실된 말의 대부분은 아이들이 하는 것이다.','올리버 웬델 홈즈'],
+    ['아이의 눈에는 세계 7대 불가사의란 없다. 7백만 개의 불가사의가 있을 뿐이다.','월트 스트라이티프'],
+    ['당신이 아이들에게 줄 수 있는 가장 큰 선물은 책임감이라는 뿌리와 독립심이라는 날개이다.','데니스 웨이틀리'],
+    ['아이들은 어른들의 말을 경청하는 데는 결코 소질이 없었지만, 어른들을 모방하는 데는 한 번도 실패한 적이 없다.','제임스 볼드윈'],
+    ['아이들의 놀이는 단순한 장난이 아니다. 아이들은 놀 때 그 어느 때보다 진지하다.','몽테뉴'],
+    ['우리가 아이들에게 삶에 대한 모든 것을 가르치려 노력하는 동안, 아이들은 우리에게 삶이 무엇인지 가르쳐준다.','안젤라 슈빈트'],
+    ['당신은 아이들로부터 많은 것을 배울 수 있다. 예를 들어, 당신에게 인내심이 얼마나 있는지 말이다.','프랭클린 P. 존스'],
+  ];
+  const _d=new Date();
+  const _qi=(_d.getFullYear()*366+_d.getMonth()*31+_d.getDate())%QUOTES.length;
+  const [_qt,_qa]=QUOTES[_qi];
+  $('doneDailyQuote').innerHTML=`<div class="dq-text">"${_qt}"</div>${_qa?`<div class="dq-author">— ${_qa}</div>`:''}`;
   $('sumCard').innerHTML = `<div style="text-align:center;padding:20px;color:var(--m);font-size:14px">✨ ${am?'오늘 하루를 위한':'오늘 하루 수고를 담은'} 응원 문구를 만들고 있어요...</div>`;
   generateEncouragement(p);
 
