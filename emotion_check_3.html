@@ -269,7 +269,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 #doneQuoteCard .dq-fox{font-size:24px;display:block;margin-bottom:6px}
 #doneQuoteCard .dq-text{font-size:14px;font-weight:600;color:var(--t);line-height:1.7;word-break:keep-all;font-style:italic;flex:1}
 #doneQuoteCard .dq-author{font-size:11px;color:var(--m);margin-top:8px;font-weight:700;text-align:right}
-#sumCard.scard-sq{padding:10px;border-radius:20px;min-height:160px;display:flex;align-items:center;justify-content:center}
+#sumCard.scard-sq{background:rgba(255,255,255,.78);border-radius:20px;padding:16px 14px;border:1.5px solid rgba(255,180,100,.3);box-shadow:0 4px 20px rgba(0,0,0,.08);min-height:160px;display:flex;align-items:center;justify-content:center}
 
 /* ── WEEKLY SNAPSHOT ── */
 .snap-hdr{font-size:22px;font-weight:900;color:var(--t);margin-bottom:16px;display:flex;align-items:center;gap:6px}
@@ -1446,7 +1446,7 @@ function showDone(p, saved) {
   const [_qt,_qa]=QUOTES[_qi];
   const _qtBr=_qt.replace(/([\uAC00-\uD7A3][.!?])\s+/g,'$1<br>');
   $('doneQuoteCard').innerHTML=`<span class="dq-fox">🦊</span><div class="dq-text">"${_qtBr}"</div>${_qa?`<div class="dq-author">— ${_qa}</div>`:''}`;
-  $('sumCard').innerHTML = `<div style="padding:10px;color:var(--m);font-size:12px;text-align:center">✨ 응원 문구를 만들고 있어요...</div>`;
+  $('sumCard').innerHTML = `<div style="color:var(--m);font-size:12px;text-align:center">✨ 응원 문구를 만들고 있어요...</div>`;
   generateEncouragement(p);
 
   const weekEntries = saveWeekEntry(p);
@@ -1562,10 +1562,7 @@ async function callAIAndShow(prompt, p, fallbacks) {
 }
 
 function showEncouragementCard(msg) {
-  $('sumCard').innerHTML = `
-    <div style="background:linear-gradient(135deg,var(--vl),var(--al));border-radius:var(--rs);padding:14px 12px;text-align:center;line-height:1.8;font-size:14px;font-weight:600;color:var(--t);word-break:keep-all;width:100%">
-      ${msg.replace(/\n/g,'<br>')}
-    </div>`;
+  $('sumCard').innerHTML = `<div style="text-align:center;line-height:1.8;font-size:14px;font-weight:600;color:var(--t);word-break:keep-all">${msg.replace(/\n/g,'<br>')}</div>`;
 }
 
 // ── WEEKLY SNAPSHOT ───────────────────────────────
