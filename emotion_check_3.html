@@ -802,6 +802,8 @@ const $ = id => document.getElementById(id);
 const show = id => {
   document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));
   $(id).classList.add('on');
+  const fox = document.querySelector('.hero-fox');
+  if (fox) fox.style.display = id === 's-land' ? '' : 'none';
 };
 const toast = msg => { const t=$('toast'); t.textContent=msg; t.classList.add('on'); setTimeout(()=>t.classList.remove('on'),2200) };
 const setP = pct => { $('prog').style.width = pct+'%' };
