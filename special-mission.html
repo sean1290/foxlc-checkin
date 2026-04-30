@@ -425,7 +425,7 @@ function submitMissionToSheet(name) {
       time:             String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'),
       student_name:     name || '',
       mission_id:       currentMission ? currentMission.id : '',
-      selected_option:  (selectedEmoOpt || '') + ' / ' + (selectedOpt || ''),
+      selected_option:  (currentMission ? '상황: ' + currentMission.scenario + '\n감정: ' + (selectedEmoOpt || '') + '\n선택: ' + (selectedOpt || '') : ''),
       reflection:       (document.getElementById('mission-input') || {}).value || '',
       selected_reward:  selectedReward || ''
     };
