@@ -216,7 +216,7 @@ function setupDashboard() {
     .setBorder(true, true, true, true, false, false, '#FF6B35', SpreadsheetApp.BorderStyle.SOLID_THICK);
 
   dash.getRange('C2:O2').merge()
-    .setValue('  ⬅ 셀에 이름을 입력하면 자동으로 모든 기록이 표시됩니다')
+    .setValue('  ⬅ 드롭다운에서 이름을 선택하면 자동으로 모든 기록이 표시됩니다')
     .setBackground('#FFF8F0')
     .setFontColor('#6B7280')
     .setFontStyle('italic')
@@ -232,9 +232,10 @@ function setupDashboard() {
   // ── Hide gridlines for cleaner look
   dash.setHiddenGridlines(true);
 
+  buildNameDropdown();
   refreshDashboard();
   try {
-    SpreadsheetApp.getUi().alert('Dashboard 준비 완료!\n\n' + SEARCH_CELL + ' 셀에 학생 이름을 입력해 보세요.');
+    SpreadsheetApp.getUi().alert('Dashboard 준비 완료!\n\nB2 셀의 드롭다운에서 학생 이름을 선택하세요.');
   } catch(e) {}
 }
 
@@ -260,9 +261,47 @@ function onOpen() {
   try {
     SpreadsheetApp.getUi().createMenu('🦊 FoxLC')
       .addItem('Dashboard 새로고침', 'refreshDashboard')
+      .addItem('학생 이름 드롭다운 갱신', 'buildNameDropdown')
       .addItem('Dashboard 초기 셋업', 'setupDashboard')
       .addToUi();
   } catch(e) {}
+}
+
+/**
+ * 입실체크·퇴실체크·특별미션 탭에서 고유 학생 이름을 수집해
+ * Dashboard B2 셀에 드롭다운(데이터 유효성 검사)으로 설정.
+ * 새 학생이 추가될 때마다 메뉴에서 다시 실행하면 됨.
+ */
+function buildNameDropdown() {
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var dash = ss.getSheetByName(DASHBOARD_NAME);
+  if (!dash) return;
+
+  var nameSet = {};
+  var tabs = ['입실체크', '퇴실체크', '특별미션'];
+
+  for (var t = 0; t < tabs.length; t++) {
+    var src = ss.getSheetByName(tabs[t]);
+    if (!src) continue;
+    var data = src.getDataRange().getValues();
+    if (data.length < 2) continue;
+    var nameIdx = findColumnIndex(data[0], ['이름', 'student_name', 'name']);
+    if (nameIdx === -1) continue;
+    for (var r = 1; r < data.length; r++) {
+      var nm = String(data[r][nameIdx] || '').trim();
+      if (nm) nameSet[nm] = true;
+    }
+  }
+
+  var names = Object.keys(nameSet).sort();
+  if (names.length === 0) return;
+
+  var rule = SpreadsheetApp.newDataValidation()
+    .requireValueInList(names, true)
+    .setAllowInvalid(true)   // 직접 입력도 허용
+    .build();
+
+  dash.getRange(SEARCH_CELL).setDataValidation(rule);
 }
 
 /**
