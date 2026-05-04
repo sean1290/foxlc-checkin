@@ -522,6 +522,37 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
     </div>
     <button class="btn bp" onclick="saveModal()">저장하기</button>
     <button class="btn bs" onclick="closeModal()">닫기</button>
+
+    <!-- ADMIN SECTION -->
+    <div style="margin-top:24px;border-top:1.5px solid var(--b);padding-top:20px">
+      <div style="font-size:12px;font-weight:800;color:var(--m);margin-bottom:10px;letter-spacing:.04em">🔐 관리자 모드</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input class="mi" id="adminCodeInput" type="password" placeholder="비밀번호 입력"
+          style="flex:1;margin-bottom:0"
+          onkeydown="if(event.key==='Enter')unlockAdmin()">
+        <button class="btn bp" style="margin:0;padding:0 18px;height:48px;flex-shrink:0" onclick="unlockAdmin()">열기</button>
+      </div>
+    </div>
+
+    <!-- Admin panel (hidden until passcode correct) -->
+    <div id="adminPanel" style="display:none;margin-top:16px">
+      <div style="background:var(--vl);border-radius:16px;padding:16px">
+        <div style="font-size:13px;font-weight:900;color:#5B21B6;margin-bottom:4px">🎯 특별미션 카운트 조정</div>
+        <div style="font-size:11px;color:var(--m);margin-bottom:14px;line-height:1.6">
+          입실체크 누적 횟수를 수동으로 수정합니다.<br>5회마다 특별미션이 열립니다.
+        </div>
+        <div id="adminCountList"></div>
+        <button class="btn bp" style="width:100%;margin-top:8px;background:linear-gradient(135deg,#7C3AED,#9B72E8)" onclick="saveAdminCounts()">💾 저장하기</button>
+        <div style="margin-top:16px;border-top:1px solid rgba(124,58,237,.15);padding-top:14px">
+          <div style="font-size:11px;font-weight:800;color:var(--m);margin-bottom:8px">🔑 비밀번호 변경</div>
+          <div style="display:flex;gap:8px">
+            <input class="mi" id="adminNewCode" type="password" placeholder="새 비밀번호"
+              style="flex:1;margin-bottom:0">
+            <button class="btn" style="margin:0;padding:0 14px;height:48px;flex-shrink:0;background:#F3F4F6;color:var(--t);border:2px solid var(--b)" onclick="changeAdminCode()">변경</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -564,8 +595,9 @@ function nameCall(fullName) {
   return firstName + ((code - 0xAC00) % 28 === 0 ? '야' : '아');
 }
 
-const K_NAMES  = 'foxlc_names';
-const K_SCRIPT = 'foxlc_script_url';
+const K_NAMES      = 'foxlc_names';
+const K_SCRIPT     = 'foxlc_script_url';
+const K_ADMIN_CODE = 'foxlc_admin_code';
 const DEFAULT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxTmT36oXlO3oEZPff8-hWkIkTBLiSL7UaW8jf8VSdoB4RtWHTs3fEEYXJus6K1TEpWRQ/exec';
 
 const NAMES = [
@@ -1675,7 +1707,13 @@ function reset() {
 }
 
 // ── SETTINGS ──────────────────────────────────────
-function openModal(){$('mNames').value=localStorage.getItem(K_NAMES)||'';$('mUrl').value=localStorage.getItem(K_SCRIPT)||'';$('modal').classList.add('on')}
+function openModal(){
+  $('mNames').value=localStorage.getItem(K_NAMES)||'';
+  $('mUrl').value=localStorage.getItem(K_SCRIPT)||'';
+  $('adminCodeInput').value='';
+  $('adminPanel').style.display='none';
+  $('modal').classList.add('on');
+}
 function closeModal(){$('modal').classList.remove('on')}
 function saveModal(){
   const n=$('mNames').value.trim(),u=$('mUrl').value.trim();
@@ -1684,6 +1722,63 @@ function saveModal(){
   buildNameSel();closeModal();toast('설정이 저장됐어요 ✅');
 }
 $('modal').addEventListener('click',e=>{if(e.target===$('modal'))closeModal()});
+
+// ── ADMIN ──────────────────────────────────────────
+function unlockAdmin() {
+  const entered = $('adminCodeInput').value;
+  const stored  = localStorage.getItem(K_ADMIN_CODE) || '0000';
+  if (entered !== stored) { toast('비밀번호가 틀렸어요 ❌'); return; }
+  renderAdminPanel();
+  $('adminPanel').style.display = 'block';
+}
+
+function renderAdminPanel() {
+  const names = (localStorage.getItem(K_NAMES) || '')
+    .split(',').map(n => n.trim()).filter(Boolean);
+  if (!names.length) {
+    $('adminCountList').innerHTML =
+      '<p style="color:var(--m);font-size:12px">학생 이름을 먼저 설정에서 등록해주세요.</p>';
+    return;
+  }
+  $('adminCountList').innerHTML = names.map(name => {
+    const ci = parseInt(localStorage.getItem(`foxlc_ci_${name}`) || '0');
+    const remaining = ci % 5 === 0 ? (ci > 0 ? 0 : 5) : 5 - (ci % 5);
+    const safe = name.replace(/[^a-zA-Z0-9가-힣]/g, '_');
+    return `
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;background:#fff;border-radius:12px;padding:10px 12px;border:1.5px solid rgba(124,58,237,.15)">
+        <span style="flex:1;font-size:13px;font-weight:700;color:#1A1A2E">${name}</span>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
+          <input type="number" min="0" max="999"
+            id="ci_${safe}" value="${ci}"
+            style="width:64px;padding:6px;border:2px solid #A78BFA;border-radius:8px;font-size:15px;font-weight:800;text-align:center;color:#5B21B6;font-family:'Noto Sans KR',sans-serif">
+          <span style="font-size:10px;color:var(--m)">→ ${remaining > 0 ? remaining+'회 남음' : '🎉 미션 가능'}</span>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function saveAdminCounts() {
+  const names = (localStorage.getItem(K_NAMES) || '')
+    .split(',').map(n => n.trim()).filter(Boolean);
+  names.forEach(name => {
+    const safe = name.replace(/[^a-zA-Z0-9가-힣]/g, '_');
+    const input = document.getElementById(`ci_${safe}`);
+    if (!input) return;
+    const val = Math.max(0, parseInt(input.value) || 0);
+    localStorage.setItem(`foxlc_ci_${name}`, String(val));
+  });
+  $('adminPanel').style.display = 'none';
+  $('adminCodeInput').value = '';
+  toast('카운트가 저장됐어요 ✅');
+}
+
+function changeAdminCode() {
+  const newCode = $('adminNewCode').value.trim();
+  if (!newCode) { toast('새 비밀번호를 입력해주세요'); return; }
+  localStorage.setItem(K_ADMIN_CODE, newCode);
+  $('adminNewCode').value = '';
+  toast('비밀번호가 변경됐어요 🔑');
+}
 
 function openSnackForm() {
   const m = document.getElementById('snackModal');
