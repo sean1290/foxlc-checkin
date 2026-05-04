@@ -1777,8 +1777,9 @@ function adminLogin() {
     toast('비밀번호가 틀렸어요 ❌');
     return;
   }
-  // Populate student dropdown
-  const names = (localStorage.getItem(K_NAMES) || '').split(',').map(n => n.trim()).filter(Boolean);
+  // Populate student dropdown (mirror buildNameSel fallback)
+  const stored = localStorage.getItem(K_NAMES);
+  const names = stored ? stored.split(',').map(n => n.trim()).filter(Boolean) : [...NAMES];
   const sel = $('adminStudentSel');
   sel.innerHTML = '<option value="">-- 학생을 선택하세요 --</option>';
   names.forEach(n => { const o = document.createElement('option'); o.value = o.textContent = n; sel.appendChild(o); });
