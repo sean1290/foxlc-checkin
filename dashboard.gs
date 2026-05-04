@@ -136,127 +136,44 @@ function out(obj) {
 
 
 /* ═══════════════════════════════════════════════════════════════
- * DASHBOARD  (신규)
- * - Dashboard 탭의 B2 셀에 학생 이름을 입력하면 자동으로 갱신
- * - 입실/퇴실/특별미션 기록을 별도 섹션으로 표시
+ * DASHBOARD
+ * - B2: 학생 이름 드롭다운 → 선택하면 자동 갱신
+ * - C2: 🔄 새로고침 버튼 (체크박스) → 클릭하면 즉시 갱신
  * - 첫 사용 시: setupDashboard() 한 번 실행
  * ═══════════════════════════════════════════════════════════════ */
 
 var DASHBOARD_NAME = 'Dashboard';
-var SEARCH_CELL = 'B2';
+var SEARCH_CELL    = 'B2';
+var REFRESH_CELL   = 'C2';
 
 var SECTIONS = [
-  {
-    key: 'morning',
-    tab: '입실체크',
-    label: '🌅 입실 체크',
-    titleBg: '#FF6B35',
-    headerBg: '#FFE8DF',
-    bandBg: '#FFF8F4'
-  },
-  {
-    key: 'evening',
-    tab: '퇴실체크',
-    label: '🌙 퇴실 체크',
-    titleBg: '#5BAD8A',
-    headerBg: '#E0F7F5',
-    bandBg: '#F4FBFA'
-  },
-  {
-    key: 'mission',
-    tab: '특별미션',
-    label: '✨ 특별 미션',
-    titleBg: '#A78BFA',
-    headerBg: '#EDE9FE',
-    bandBg: '#F8F5FF'
-  }
+  { key:'morning', tab:'입실체크', label:'🌅 입실 체크', titleBg:'#FF6B35', headerBg:'#FFE8DF', bandBg:'#FFF8F4' },
+  { key:'evening', tab:'퇴실체크', label:'🌙 퇴실 체크', titleBg:'#5BAD8A', headerBg:'#E0F7F5', bandBg:'#F4FBFA' },
+  { key:'mission', tab:'특별미션', label:'✨ 특별 미션', titleBg:'#A78BFA', headerBg:'#EDE9FE', bandBg:'#F8F5FF' }
 ];
 
-/**
- * Dashboard 탭을 처음 만들거나 초기화.
- * Apps Script 편집기에서 한 번 실행 후 권한 승인.
- */
-function setupDashboard() {
-  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  var dash = ss.getSheetByName(DASHBOARD_NAME);
-  if (!dash) {
-    dash = ss.insertSheet(DASHBOARD_NAME);
-  } else {
-    dash.clear();
-    dash.clearConditionalFormatRules();
-    var dataValidations = dash.getRange(1, 1, dash.getMaxRows(), dash.getMaxColumns());
-    dataValidations.clearDataValidations();
-  }
+/* ── Simple trigger ─────────────────────────────────────────── */
 
-  // ── Title bar (row 1)
-  dash.getRange('A1:O1').merge()
-    .setValue('🦊 Fox Learning Center · 학생 기록 대시보드')
-    .setBackground('#1A1A2E')
-    .setFontColor('#FFFFFF')
-    .setFontWeight('bold')
-    .setFontSize(16)
-    .setHorizontalAlignment('center')
-    .setVerticalAlignment('middle');
-  dash.setRowHeight(1, 44);
-
-  // ── Search row (row 2)
-  dash.getRange('A2').setValue('🔍 학생 이름 검색:')
-    .setBackground('#FFF8F0')
-    .setFontWeight('bold')
-    .setFontSize(13)
-    .setHorizontalAlignment('right')
-    .setVerticalAlignment('middle');
-
-  dash.getRange(SEARCH_CELL)
-    .setBackground('#FFFFFF')
-    .setFontSize(14)
-    .setFontWeight('bold')
-    .setHorizontalAlignment('center')
-    .setVerticalAlignment('middle')
-    .setBorder(true, true, true, true, false, false, '#FF6B35', SpreadsheetApp.BorderStyle.SOLID_THICK);
-
-  dash.getRange('C2:O2').merge()
-    .setValue('  ⬅ 드롭다운에서 이름을 선택하면 자동으로 모든 기록이 표시됩니다')
-    .setBackground('#FFF8F0')
-    .setFontColor('#6B7280')
-    .setFontStyle('italic')
-    .setFontSize(11)
-    .setVerticalAlignment('middle');
-
-  dash.setColumnWidth(1, 200);
-  dash.setColumnWidth(2, 240);
-  for (var i = 3; i <= 16; i++) dash.setColumnWidth(i, 170);
-  dash.setRowHeight(2, 38);
-  dash.setFrozenRows(2);
-
-  // ── Hide gridlines for cleaner look
-  dash.setHiddenGridlines(true);
-
-  buildNameDropdown();
-  refreshDashboard();
-  try {
-    SpreadsheetApp.getUi().alert('Dashboard 준비 완료!\n\nB2 셀의 드롭다운에서 학생 이름을 선택하세요.');
-  } catch(e) {}
-}
-
-/**
- * Simple trigger — Dashboard B2 편집 시 자동 갱신
- */
 function onEdit(e) {
   try {
     if (!e || !e.range) return;
     var sh = e.range.getSheet();
     if (sh.getName() !== DASHBOARD_NAME) return;
-    if (e.range.getA1Notation() !== SEARCH_CELL) return;
-    refreshDashboard();
+    var cell = e.range.getA1Notation();
+
+    if (cell === SEARCH_CELL) {
+      // Dropdown selection → auto-refresh
+      refreshDashboard(e.source);
+    } else if (cell === REFRESH_CELL && e.value === 'TRUE') {
+      // Refresh button checked → refresh then uncheck
+      refreshDashboard(e.source);
+      sh.getRange(REFRESH_CELL).setValue(false);
+    }
   } catch (err) {
     Logger.log('onEdit error: ' + err);
   }
 }
 
-/**
- * 메뉴 등록
- */
 function onOpen() {
   try {
     SpreadsheetApp.getUi().createMenu('🦊 FoxLC')
@@ -267,19 +184,76 @@ function onOpen() {
   } catch(e) {}
 }
 
-/**
- * 입실체크·퇴실체크·특별미션 탭에서 고유 학생 이름을 수집해
- * Dashboard B2 셀에 드롭다운(데이터 유효성 검사)으로 설정.
- * 새 학생이 추가될 때마다 메뉴에서 다시 실행하면 됨.
- */
-function buildNameDropdown() {
+/* ── Setup ──────────────────────────────────────────────────── */
+
+function setupDashboard() {
   var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var dash = ss.getSheetByName(DASHBOARD_NAME);
+  if (!dash) {
+    dash = ss.insertSheet(DASHBOARD_NAME);
+  } else {
+    dash.clear();
+    dash.clearConditionalFormatRules();
+    dash.getRange(1, 1, dash.getMaxRows(), dash.getMaxColumns()).clearDataValidations();
+  }
+
+  // Row 1 — title
+  dash.getRange('A1:O1').merge()
+    .setValue('🦊 Fox Learning Center · 학생 기록 대시보드')
+    .setBackground('#1A1A2E').setFontColor('#FFFFFF').setFontWeight('bold')
+    .setFontSize(16).setHorizontalAlignment('center').setVerticalAlignment('middle');
+  dash.setRowHeight(1, 44);
+
+  // Row 2 — search label
+  dash.getRange('A2')
+    .setValue('🔍 학생 이름:')
+    .setBackground('#FFF8F0').setFontWeight('bold').setFontSize(13)
+    .setHorizontalAlignment('right').setVerticalAlignment('middle');
+
+  // B2 — name dropdown (styled, validation added by buildNameDropdown)
+  dash.getRange(SEARCH_CELL)
+    .setBackground('#FFFFFF').setFontSize(14).setFontWeight('bold')
+    .setHorizontalAlignment('center').setVerticalAlignment('middle')
+    .setBorder(true, true, true, true, false, false, '#FF6B35', SpreadsheetApp.BorderStyle.SOLID_THICK);
+
+  // C2 — refresh checkbox button
+  dash.getRange(REFRESH_CELL)
+    .setValue(false)
+    .setBackground('#FF6B35').setFontColor('#FFFFFF')
+    .setHorizontalAlignment('center').setVerticalAlignment('middle')
+    .setNote('체크하면 즉시 새로고침')
+    .setDataValidation(SpreadsheetApp.newDataValidation().requireCheckbox().build());
+
+  // D2:O2 — hint text
+  dash.getRange('D2:O2').merge()
+    .setValue('🔄 새로고침     ← 이름 선택 후 C2 체크박스를 누르거나, 이름 선택만 해도 자동 갱신됩니다')
+    .setBackground('#FFF8F0').setFontColor('#6B7280').setFontStyle('italic')
+    .setFontSize(11).setVerticalAlignment('middle');
+
+  dash.setColumnWidth(1, 190);   // A
+  dash.setColumnWidth(2, 220);   // B dropdown
+  dash.setColumnWidth(3, 60);    // C button
+  for (var i = 4; i <= 16; i++) dash.setColumnWidth(i, 165);
+  dash.setRowHeight(2, 40);
+  dash.setFrozenRows(2);
+  dash.setHiddenGridlines(true);
+
+  buildNameDropdown(ss);
+  refreshDashboard(ss);
+  try {
+    SpreadsheetApp.getUi().alert('Dashboard 준비 완료!\n\nB2 드롭다운으로 이름 선택 → 자동 갱신\nC2 체크박스 클릭 → 수동 새로고침');
+  } catch(e) {}
+}
+
+/* ── Name dropdown ──────────────────────────────────────────── */
+
+function buildNameDropdown(ss) {
+  ss = ss || SpreadsheetApp.openById(SPREADSHEET_ID);
   var dash = ss.getSheetByName(DASHBOARD_NAME);
   if (!dash) return;
 
   var nameSet = {};
   var tabs = ['입실체크', '퇴실체크', '특별미션'];
-
   for (var t = 0; t < tabs.length; t++) {
     var src = ss.getSheetByName(tabs[t]);
     if (!src) continue;
@@ -296,44 +270,36 @@ function buildNameDropdown() {
   var names = Object.keys(nameSet).sort();
   if (names.length === 0) return;
 
-  var rule = SpreadsheetApp.newDataValidation()
-    .requireValueInList(names, true)
-    .setAllowInvalid(true)   // 직접 입력도 허용
-    .build();
-
-  dash.getRange(SEARCH_CELL).setDataValidation(rule);
+  dash.getRange(SEARCH_CELL).setDataValidation(
+    SpreadsheetApp.newDataValidation()
+      .requireValueInList(names, true)
+      .setAllowInvalid(true)   // 직접 입력도 허용
+      .build()
+  );
 }
 
-/**
- * 검색 결과를 그려 넣음
- */
-function refreshDashboard() {
-  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+/* ── Refresh ────────────────────────────────────────────────── */
+
+function refreshDashboard(ss) {
+  ss = ss || SpreadsheetApp.openById(SPREADSHEET_ID);
   var dash = ss.getSheetByName(DASHBOARD_NAME);
-  if (!dash) {
-    setupDashboard();
-    return;
-  }
+  if (!dash) { setupDashboard(); return; }
 
   var searchName = String(dash.getRange(SEARCH_CELL).getValue() || '').trim();
 
-  // 행 3 이하 모두 청소
+  // Clear rows 3+
   var lastRow = dash.getLastRow();
-  var maxCol  = dash.getMaxColumns();
   if (lastRow >= 3) {
-    var clearRange = dash.getRange(3, 1, lastRow - 2, maxCol);
-    clearRange.breakApart();
-    clearRange.clear();
+    var cr = dash.getRange(3, 1, lastRow - 2, dash.getMaxColumns());
+    cr.breakApart();
+    cr.clear();
   }
 
   if (!searchName) {
     dash.getRange('A4:O4').merge()
-      .setValue('👆 위의 ' + SEARCH_CELL + ' 셀에 학생 이름을 입력해주세요')
-      .setFontColor('#9CA3AF')
-      .setFontStyle('italic')
-      .setFontSize(13)
-      .setHorizontalAlignment('center')
-      .setVerticalAlignment('middle');
+      .setValue('👆 B2 드롭다운에서 학생 이름을 선택해주세요')
+      .setFontColor('#9CA3AF').setFontStyle('italic').setFontSize(13)
+      .setHorizontalAlignment('center').setVerticalAlignment('middle');
     dash.setRowHeight(4, 60);
     return;
   }
@@ -345,41 +311,32 @@ function refreshDashboard() {
     var sec = SECTIONS[s];
     var srcSheet = ss.getSheetByName(sec.tab);
 
-    // ── 섹션 타이틀 바
-    var titleRow = dash.getRange(row, 1, 1, 15);
-    titleRow.merge()
+    // Section title bar
+    dash.getRange(row, 1, 1, 15).merge()
       .setValue(sec.label + '  ·  ' + sec.tab)
-      .setBackground(sec.titleBg)
-      .setFontColor('#FFFFFF')
-      .setFontWeight('bold')
-      .setFontSize(14)
-      .setHorizontalAlignment('left')
-      .setVerticalAlignment('middle');
+      .setBackground(sec.titleBg).setFontColor('#FFFFFF').setFontWeight('bold')
+      .setFontSize(14).setHorizontalAlignment('left').setVerticalAlignment('middle');
     dash.setRowHeight(row, 34);
     row++;
 
     if (!srcSheet) {
       writeNoticeRow(dash, row, '⚠️ "' + sec.tab + '" 탭을 찾을 수 없습니다.', '#DC2626');
-      row += 2;
-      continue;
+      row += 2; continue;
     }
 
     var data = srcSheet.getDataRange().getValues();
     if (data.length < 2) {
       writeNoticeRow(dash, row, '기록 없음', '#9CA3AF');
-      row += 2;
-      continue;
+      row += 2; continue;
     }
 
     var headers = data[0];
     var nameIdx = findColumnIndex(headers, ['이름', 'student_name', 'name']);
     if (nameIdx === -1) {
       writeNoticeRow(dash, row, '⚠️ "' + sec.tab + '" 탭에서 이름 컬럼을 찾지 못했습니다.', '#DC2626');
-      row += 2;
-      continue;
+      row += 2; continue;
     }
 
-    // ── 학생별 필터 (정확 일치 + 부분 포함)
     var matches = [];
     for (var r = 1; r < data.length; r++) {
       var nm = String(data[r][nameIdx] || '').trim();
@@ -387,91 +344,60 @@ function refreshDashboard() {
         matches.push(data[r]);
       }
     }
+    matches.reverse(); // 최신순
 
-    // 최신순 (sheet에 append된 순서를 뒤집음)
-    matches.reverse();
-
-    // ── 카운트 배지
-    var countText = '총 ' + matches.length + '건';
+    // Count badge
     dash.getRange(row, 1, 1, 15).merge()
-      .setValue('  ' + countText)
-      .setBackground('#F9FAFB')
-      .setFontColor('#374151')
-      .setFontWeight('bold')
-      .setFontSize(11)
-      .setHorizontalAlignment('left')
-      .setVerticalAlignment('middle');
+      .setValue('  총 ' + matches.length + '건')
+      .setBackground('#F9FAFB').setFontColor('#374151').setFontWeight('bold')
+      .setFontSize(11).setHorizontalAlignment('left').setVerticalAlignment('middle');
     dash.setRowHeight(row, 22);
     row++;
 
     if (matches.length === 0) {
       writeNoticeRow(dash, row, '「' + searchName + '」 학생의 기록이 없습니다.', '#9CA3AF');
-      row += 2;
-      continue;
+      row += 2; continue;
     }
 
     totalRecords += matches.length;
 
-    // ── 헤더 행
-    var hdrRange = dash.getRange(row, 1, 1, headers.length);
-    hdrRange.setValues([headers])
-      .setFontWeight('bold')
-      .setBackground(sec.headerBg)
-      .setFontColor('#1A1A2E')
-      .setFontSize(11)
-      .setVerticalAlignment('middle')
-      .setHorizontalAlignment('center')
+    // Header row
+    dash.getRange(row, 1, 1, headers.length).setValues([headers])
+      .setFontWeight('bold').setBackground(sec.headerBg).setFontColor('#1A1A2E')
+      .setFontSize(11).setVerticalAlignment('middle').setHorizontalAlignment('center')
       .setBorder(true, true, true, true, true, true, '#9CA3AF', SpreadsheetApp.BorderStyle.SOLID);
     dash.setRowHeight(row, 32);
     row++;
 
-    // ── 데이터 행
-    var dataRange = dash.getRange(row, 1, matches.length, headers.length);
-    dataRange.setValues(matches)
-      .setFontSize(10)
-      .setVerticalAlignment('top')
-      .setWrap(true)
+    // Data rows
+    dash.getRange(row, 1, matches.length, headers.length).setValues(matches)
+      .setFontSize(10).setVerticalAlignment('top').setWrap(true)
       .setBorder(true, true, true, true, true, true, '#E5E7EB', SpreadsheetApp.BorderStyle.SOLID);
 
-    // 교차 줄무늬
     for (var i = 0; i < matches.length; i++) {
-      if (i % 2 === 1) {
-        dash.getRange(row + i, 1, 1, headers.length).setBackground(sec.bandBg);
-      } else {
-        dash.getRange(row + i, 1, 1, headers.length).setBackground('#FFFFFF');
-      }
+      dash.getRange(row + i, 1, 1, headers.length)
+        .setBackground(i % 2 === 1 ? sec.bandBg : '#FFFFFF');
       dash.setRowHeight(row + i, 32);
     }
 
-    row += matches.length;
-
-    // 섹션 사이 빈 줄
-    row += 1;
+    row += matches.length + 1; // +1 spacer
   }
 
-  // 전체 요약
+  // Summary bar
   var summary = dash.getRange(row, 1, 1, 15).merge();
   if (totalRecords > 0) {
     summary.setValue('🎉 「' + searchName + '」 학생의 전체 기록: ' + totalRecords + '건')
-      .setBackground('#1A1A2E')
-      .setFontColor('#FFFFFF')
-      .setFontWeight('bold')
-      .setFontSize(12)
-      .setHorizontalAlignment('center')
-      .setVerticalAlignment('middle');
+      .setBackground('#1A1A2E').setFontColor('#FFFFFF').setFontWeight('bold')
+      .setFontSize(12).setHorizontalAlignment('center').setVerticalAlignment('middle');
   } else {
     summary.setValue('「' + searchName + '」 학생의 기록이 전혀 없습니다. 이름을 다시 확인해 주세요.')
-      .setBackground('#FEF2F2')
-      .setFontColor('#991B1B')
-      .setFontWeight('bold')
-      .setFontSize(12)
-      .setHorizontalAlignment('center')
-      .setVerticalAlignment('middle');
+      .setBackground('#FEF2F2').setFontColor('#991B1B').setFontWeight('bold')
+      .setFontSize(12).setHorizontalAlignment('center').setVerticalAlignment('middle');
   }
   dash.setRowHeight(row, 36);
 }
 
-/* ── Helpers ───────────────────────────────────── */
+/* ── Helpers ────────────────────────────────────────────────── */
 
 function findColumnIndex(headers, candidates) {
   for (var i = 0; i < headers.length; i++) {
@@ -491,12 +417,8 @@ function findColumnIndex(headers, candidates) {
 
 function writeNoticeRow(dash, row, msg, color) {
   dash.getRange(row, 1, 1, 15).merge()
-    .setValue(msg)
-    .setFontColor(color || '#6B7280')
-    .setFontStyle('italic')
-    .setFontSize(11)
-    .setHorizontalAlignment('left')
-    .setVerticalAlignment('middle')
+    .setValue(msg).setFontColor(color || '#6B7280').setFontStyle('italic')
+    .setFontSize(11).setHorizontalAlignment('left').setVerticalAlignment('middle')
     .setBackground('#FFFFFF');
   dash.setRowHeight(row, 28);
 }
