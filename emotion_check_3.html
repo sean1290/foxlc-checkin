@@ -1778,8 +1778,8 @@ function adminLogin() {
     return;
   }
   // Populate student dropdown (mirror buildNameSel fallback)
-  const stored = localStorage.getItem(K_NAMES);
-  const names = stored ? stored.split(',').map(n => n.trim()).filter(Boolean) : [...NAMES];
+  const savedNames = localStorage.getItem(K_NAMES);
+  const names = savedNames ? savedNames.split(',').map(n => n.trim()).filter(Boolean) : [...NAMES];
   const sel = $('adminStudentSel');
   sel.innerHTML = '<option value="">-- 학생을 선택하세요 --</option>';
   names.forEach(n => { const o = document.createElement('option'); o.value = o.textContent = n; sel.appendChild(o); });
