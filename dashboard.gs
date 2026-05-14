@@ -24,7 +24,7 @@ function doPost(e) {
 function appendMorning(ss, d) {
   var sheet = getSheet(ss, '입실체크', [
     '날짜','이름','입실/퇴실',
-    '감정',
+    '감정','감정 신체부위','감정 원인/의도',
     '에너지 레벨',
     '걱정 혹은 불안한 일',
     '걱정의 크기 + 이유 (걱정 있을 때)',
@@ -48,7 +48,9 @@ function appendMorning(ss, d) {
     d.axis1_emotion_followup
       ? (d.axis1_emotion || '') + ' // ' + d.axis1_emotion_followup
       : (d.axis1_emotion  || ''),    // D 감정
-    d.axis1_energy          || '',   // E 에너지 레벨
+    d.axis1_emotion_body    || '',   // E 감정 신체부위
+    d.axis1_emotion_followup|| '',   // F 감정 원인/의도
+    d.axis1_energy          || '',   // G 에너지 레벨
     d.axis1_anxiety         || '',   // F 걱정 여부
     anx,                             // G 걱정 크기+이유
     d.axis2_goal            || '',   // H 오늘 목표

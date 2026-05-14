@@ -316,6 +316,14 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 .ewheel-wrap.selected .eb:not(.on){opacity:0.4;transform:translate(-50%,-50%) scale(0.88)}
 
 /* ── EMOTION FOLLOW-UP ── */
+.eq-body{margin-top:14px;padding:14px 14px 10px;background:var(--sl);border-radius:var(--rs);display:none;animation:fadeUp .25s ease;border:1.5px solid rgba(78,205,196,.25)}
+.eq-body.on{display:block}
+.eq-body-q{font-size:13px;font-weight:800;color:#0D9488;margin-bottom:10px;line-height:1.5}
+.eq-body-opts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.eq-bopt{padding:10px 4px;border:2px solid rgba(0,0,0,.08);border-radius:var(--rs);background:#fff;font-size:11px;font-weight:700;cursor:pointer;text-align:center;transition:all .18s;font-family:'Noto Sans KR',sans-serif;color:var(--t);display:flex;flex-direction:column;align-items:center;gap:4px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.eq-bopt span:first-child{font-size:22px;line-height:1}
+.eq-bopt:hover{border-color:#4ECDC4;background:var(--sl)}
+.eq-bopt.on{border-color:#0D9488;background:linear-gradient(135deg,#4ECDC4,#26A69A);color:#fff;box-shadow:0 4px 12px rgba(78,205,196,.35)}
 .eq-follow{margin-top:14px;padding:14px;background:var(--al);border-radius:var(--rs);display:none;animation:fadeUp .25s ease;border:1.5px solid rgba(255,206,0,.2)}
 .eq-follow.on{display:block}
 .eq-follow-q{font-size:13px;font-weight:800;color:var(--t);margin-bottom:10px;line-height:1.5}
@@ -605,6 +613,16 @@ const EMOTIONS = [
   { id:'화남',     emoji:'😠', bg:'#EF4444' },
 ];
 const NEG_EMOTIONS = new Set(['화남','슬픔','걱정','부끄러움','지루함','혼란']);
+const BODY_PARTS = [
+  {i:'🤕',t:'머리'},
+  {i:'😮‍💨',t:'목·어깨'},
+  {i:'🫀',t:'가슴'},
+  {i:'🫁',t:'배'},
+  {i:'💪',t:'팔·손'},
+  {i:'🦵',t:'다리·발'},
+  {i:'🌡️',t:'온몸'},
+  {i:'🤷',t:'잘 모르겠어요'},
+];
 const EMOTION_DEF = {
   '기쁨':    '기쁨이란, 좋은 일이 생겼을 때 마음이 환해지는 느낌이에요 😄',
   '만족':    '만족이란, 원하는 것을 이룬 것 같아 흐뭇한 느낌이에요 😊',
@@ -1134,6 +1152,25 @@ function renderIn(q, zone, isSub, pid) {
           const ls=document.getElementById('ls-'+id);
           if(ls) ls.classList.toggle('on', NEG_EMOTIONS.has(em.id));
         }
+        // body sensation panel
+        const bp = document.getElementById('eq-body-'+id);
+        if (bp) {
+          delete S.ans[id+'_body'];
+          bp.querySelector('.eq-body-q').textContent = `${em.id} 감정이 몸 어디에서 느껴지나요?`;
+          const bo = bp.querySelector('.eq-body-opts');
+          bo.innerHTML = '';
+          BODY_PARTS.forEach(part => {
+            const btn = el('button','eq-bopt');
+            btn.innerHTML = `<span>${part.i}</span><span>${part.t}</span>`;
+            btn.onclick = () => {
+              save(id+'_body', part.t);
+              bp.querySelectorAll('.eq-bopt').forEach(x=>x.classList.remove('on'));
+              btn.classList.add('on');
+            };
+            bo.appendChild(btn);
+          });
+          bp.classList.add('on');
+        }
         // follow-up panel
         const fp = document.getElementById('eq-follow-'+id);
         if (fp) {
@@ -1163,6 +1200,10 @@ function renderIn(q, zone, isSub, pid) {
     });
     zone.appendChild(wrap);
     zone.appendChild(defBox);
+    const bodyPanel = el('div','eq-body');
+    bodyPanel.id = 'eq-body-'+id;
+    bodyPanel.innerHTML = '<div class="eq-body-q"></div><div class="eq-body-opts"></div>';
+    zone.appendChild(bodyPanel);
     const followPanel = el('div','eq-follow');
     followPanel.id = 'eq-follow-'+id;
     followPanel.innerHTML = '<div class="eq-follow-q"></div><div class="eq-fopts"></div>';
@@ -1564,6 +1605,8 @@ async function generateEncouragement(p) {
   const nc = nameCall(p.student_name);
   const summary = (am ? [
     p.axis1_emotion    ? `현재 마음 상태: ${p.axis1_emotion}` : '',
+    p.axis1_emotion_body ? `감정이 느껴지는 신체 부위: ${p.axis1_emotion_body}` : '',
+    p.axis1_emotion_followup ? `감정 원인/의도: ${p.axis1_emotion_followup}` : '',
     p.axis1_energy     ? `에너지: ${p.axis1_energy}` : '',
     p.axis1_anxiety === '예' ? `걱정/불안이 있음${p.axis1_anxiety_reason?': '+p.axis1_anxiety_reason:''}` : '',
     p.axis2_goal       ? `오늘 목표: ${p.axis2_goal}` : '',
@@ -1584,7 +1627,7 @@ async function generateEncouragement(p) {
   ]).filter(Boolean).join('\n');
 
   const prompt = am
-    ? `너는 초등학생을 응원하는 따뜻한 선생님이야.\n아래는 ${p.student_name} 학생이 오늘 입실 체크에서 답한 내용이야:\n\n${summary}\n\n이 내용을 바탕으로 오늘 하루를 승리할 수 있도록 짧고 따뜻한 응원 문구를 써줘.\n조건:\n- 학생을 "${nc}"처럼 이름+야/아 형태로 한 번 부르기 (성 빼고 이름만, 존칭 없이)\n- 2~3문장으로 짧게\n- 구체적인 답변 내용을 1~2개 언급해서 "나를 잘 알고 있구나" 느낌이 들도록\n- 밝고 따뜻하고 힘이 나는 톤\n- 이모지 1~2개 포함\n- 존댓말 없이 친근하게`
+    ? `너는 초등학생을 응원하는 따뜻한 선생님이야.\n아래는 ${p.student_name} 학생이 오늘 입실 체크에서 답한 내용이야:\n\n${summary}\n\n이 내용을 바탕으로 오늘 하루를 승리할 수 있도록 짧고 따뜻한 응원 문구를 써줘.\n조건:\n- 학생을 "${nc}"처럼 이름+야/아 형태로 한 번 부르기 (성 빼고 이름만, 존칭 없이)\n- 2~3문장으로 짧게\n- 감정 상태와 신체 부위(있으면)를 자연스럽게 언급해서 "내 마음과 몸을 알아봐 주는구나" 느낌이 들도록\n- 밝고 따뜻하고 힘이 나는 톤\n- 이모지 1~2개 포함\n- 존댓말 없이 친근하게`
     : `너는 초등학생을 따뜻하게 격려하는 선생님이야.\n아래는 ${p.student_name} 학생이 오늘 퇴실 체크에서 답한 내용이야:\n\n${summary}\n\n이 내용을 바탕으로 오늘 하루의 수고와 성장을 인정하고 응원하는 따뜻한 문구를 써줘.\n조건:\n- 학생을 "${nc}"처럼 이름+야/아 형태로 한 번 부르기 (성 빼고 이름만, 존칭 없이)\n- 2~3문장으로 짧게\n- 구체적인 답변 내용(잘한 점, 노력한 점)을 1~2개 언급하기\n- "오늘 하루 수고했어", "성장했어" 느낌이 나도록\n- 내일 다짐과 연결해서 마무리해주면 좋아\n- 따뜻하고 포근한 톤, 이모지 1~2개\n- 존댓말 없이 친근하게`;
 
   const fallbacks = am ? [
