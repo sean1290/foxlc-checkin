@@ -316,16 +316,16 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 .ewheel-wrap.selected .eb:not(.on){opacity:0.4;transform:translate(-50%,-50%) scale(0.88)}
 
 /* ── EMOTION FOLLOW-UP ── */
-.eq-body{margin-top:14px;padding:14px 14px 10px;background:var(--sl);border-radius:var(--rs);display:none;animation:fadeUp .25s ease;border:1.5px solid rgba(78,205,196,.25)}
-.eq-body.on{display:block}
+.eq-body{margin-top:14px;padding:14px 14px 10px;background:var(--sl);border-radius:var(--rs);display:none;border:1.5px solid rgba(78,205,196,.25)}
+.eq-body.on{display:block;animation:fadeUp .25s ease}
 .eq-body-q{font-size:13px;font-weight:800;color:#0D9488;margin-bottom:10px;line-height:1.5}
 .eq-body-opts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .eq-bopt{padding:10px 4px;border:2px solid rgba(0,0,0,.08);border-radius:var(--rs);background:#fff;font-size:11px;font-weight:700;cursor:pointer;text-align:center;transition:all .18s;font-family:'Noto Sans KR',sans-serif;color:var(--t);display:flex;flex-direction:column;align-items:center;gap:4px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
 .eq-bopt span:first-child{font-size:22px;line-height:1}
 .eq-bopt:hover{border-color:#4ECDC4;background:var(--sl)}
 .eq-bopt.on{border-color:#0D9488;background:linear-gradient(135deg,#4ECDC4,#26A69A);color:#fff;box-shadow:0 4px 12px rgba(78,205,196,.35)}
-.eq-follow{margin-top:14px;padding:14px;background:var(--al);border-radius:var(--rs);display:none;animation:fadeUp .25s ease;border:1.5px solid rgba(255,206,0,.2)}
-.eq-follow.on{display:block}
+.eq-follow{margin-top:14px;padding:14px;background:var(--al);border-radius:var(--rs);display:none;border:1.5px solid rgba(255,206,0,.2)}
+.eq-follow.on{display:block;animation:fadeUp .25s ease}
 .eq-follow-q{font-size:13px;font-weight:800;color:var(--t);margin-bottom:10px;line-height:1.5}
 .eq-fopts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .eq-fopt{padding:12px 14px;border:2px solid rgba(0,0,0,.08);border-radius:var(--rs);background:#fff;font-size:13px;font-weight:600;cursor:pointer;text-align:left;transition:all .18s;font-family:'Noto Sans KR',sans-serif;color:var(--t);display:flex;align-items:center;gap:8px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
@@ -1153,7 +1153,7 @@ function renderIn(q, zone, isSub, pid) {
           if(ls) ls.classList.toggle('on', NEG_EMOTIONS.has(em.id));
         }
         // body sensation panel
-        const bp = document.getElementById('eq-body-'+id);
+        const bp = zone.querySelector('.eq-body');
         if (bp) {
           delete S.ans[id+'_body'];
           bp.querySelector('.eq-body-q').textContent = `${em.id} 감정이 몸 어디에서 느껴지나요?`;
@@ -1170,9 +1170,10 @@ function renderIn(q, zone, isSub, pid) {
             bo.appendChild(btn);
           });
           bp.classList.add('on');
+          setTimeout(() => bp.scrollIntoView({behavior:'smooth', block:'nearest'}), 50);
         }
         // follow-up panel
-        const fp = document.getElementById('eq-follow-'+id);
+        const fp = zone.querySelector('.eq-follow');
         if (fp) {
           const isNeg = NEG_EMOTIONS.has(em.id);
           const fq = fp.querySelector('.eq-follow-q');
