@@ -885,22 +885,28 @@ function populateSel(sel, names) {
 
 async function buildNameSel() {
   const sel = $('nameSel');
+
+  // 1. 즉시 로컬 목록으로 드롭다운 채우기 (빠른 초기화)
   const saved = localStorage.getItem(K_NAMES);
   let names = saved ? saved.split(',').map(n=>n.trim()).filter(Boolean) : [...NAMES];
-
   populateSel(sel, names);
 
+  // 2. 구글시트 '학생 관리' 탭에서 최신 목록 fetch
+  const scriptUrl = localStorage.getItem(K_SCRIPT) || DEFAULT_SCRIPT_URL;
   try {
     const ctrl = new AbortController();
-    const tid = setTimeout(()=>ctrl.abort(), 3000);
-    const res  = await fetch(DEFAULT_SCRIPT_URL + '?action=names', {signal:ctrl.signal});
+    const tid = setTimeout(() => ctrl.abort(), 5000);
+    const res  = await fetch(scriptUrl + '?action=getStudents', { signal: ctrl.signal });
     clearTimeout(tid);
     const json = await res.json();
     if (json.names && json.names.length > 0) {
-      names = [...new Set([...names, ...json.names])];
+      names = json.names;                  // 시트가 단일 진실 소스
+      localStorage.setItem(K_NAMES, names.join(','));
       populateSel(sel, names);
     }
-  } catch(e) { console.log('시트 연결 실패, 로컬 목록 사용') }
+  } catch(e) {
+    console.log('학생 목록 fetch 실패, 로컬 목록 사용:', e.message);
+  }
 }
 
 // ── LANDING ───────────────────────────────────────

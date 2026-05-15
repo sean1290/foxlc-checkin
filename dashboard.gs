@@ -5,6 +5,12 @@ var SPREADSHEET_ID = '17JJYwp1rHUSf2j7DXI2wKC84hXJ2ghOPDZdmQALeyo0';
  * ═══════════════════════════════════════════════════════════════ */
 
 function doGet(e) {
+  var action = e && e.parameter && e.parameter.action;
+  if (action === 'getStudents') {
+    var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    var names = getStudentList(ss);
+    return out({ status: 'ok', names: names });
+  }
   return out({ status: 'ok', message: 'FoxLC running' });
 }
 
@@ -160,16 +166,19 @@ function onEdit(e) {
   try {
     if (!e || !e.range) return;
     var sh = e.range.getSheet();
-    if (sh.getName() !== DASHBOARD_NAME) return;
-    var cell = e.range.getA1Notation();
+    var shName = sh.getName();
 
-    if (cell === SEARCH_CELL) {
-      // Dropdown selection → auto-refresh
-      refreshDashboard(e.source);
-    } else if (cell === REFRESH_CELL && e.value === 'TRUE') {
-      // Refresh button checked → refresh then uncheck
-      refreshDashboard(e.source);
-      sh.getRange(REFRESH_CELL).setValue(false);
+    if (shName === DASHBOARD_NAME) {
+      var cell = e.range.getA1Notation();
+      if (cell === SEARCH_CELL) {
+        refreshDashboard(e.source);
+      } else if (cell === REFRESH_CELL && e.value === 'TRUE') {
+        refreshDashboard(e.source);
+        sh.getRange(REFRESH_CELL).setValue(false);
+      }
+    } else if (shName === '학생 관리') {
+      // 학생 명단 변경 시 Dashboard 드롭다운 자동 갱신
+      buildNameDropdown(e.source);
     }
   } catch (err) {
     Logger.log('onEdit error: ' + err);
@@ -182,6 +191,8 @@ function onOpen() {
       .addItem('Dashboard 새로고침', 'refreshDashboard')
       .addItem('학생 이름 드롭다운 갱신', 'buildNameDropdown')
       .addItem('Dashboard 초기 셋업', 'setupDashboard')
+      .addSeparator()
+      .addItem('학생 관리 탭 초기 셋업 (최초 1회)', 'setupStudentSheet')
       .addToUi();
   } catch(e) {}
 }
@@ -247,6 +258,83 @@ function setupDashboard() {
   } catch(e) {}
 }
 
+/* ── Student list ───────────────────────────────────────────── */
+
+// '학생 관리' 탭에서 이름 목록 읽기 (없으면 체크인 탭에서 수집)
+function getStudentList(ss) {
+  ss = ss || SpreadsheetApp.openById(SPREADSHEET_ID);
+  var mgmt = ss.getSheetByName('학생 관리');
+  if (mgmt) {
+    var data = mgmt.getDataRange().getValues();
+    var names = [];
+    for (var r = 1; r < data.length; r++) {  // row 1부터 (0행은 헤더)
+      var nm = String(data[r][0] || '').trim();
+      if (nm) names.push(nm);
+    }
+    if (names.length > 0) return names;
+  }
+  // fallback: 체크인 탭에서 수집
+  var nameSet = {};
+  var tabs = ['입실체크', '퇴실체크', '특별미션'];
+  for (var t = 0; t < tabs.length; t++) {
+    var src = ss.getSheetByName(tabs[t]);
+    if (!src) continue;
+    var rows = src.getDataRange().getValues();
+    if (rows.length < 2) continue;
+    var nameIdx = findColumnIndex(rows[0], ['이름', 'student_name', 'name']);
+    if (nameIdx === -1) continue;
+    for (var r = 1; r < rows.length; r++) {
+      var nm = String(rows[r][nameIdx] || '').trim();
+      if (nm) nameSet[nm] = true;
+    }
+  }
+  return Object.keys(nameSet).sort();
+}
+
+// '학생 관리' 탭 최초 생성 + 현재 학생 목록 입력
+function setupStudentSheet() {
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var sheet = ss.getSheetByName('학생 관리');
+  if (!sheet) {
+    sheet = ss.insertSheet('학생 관리');
+  } else {
+    var ui = SpreadsheetApp.getUi();
+    var res = ui.alert('⚠️ 이미 존재합니다', '"학생 관리" 탭이 이미 있습니다. 덮어쓸까요?', ui.ButtonSet.YES_NO);
+    if (res !== ui.Button.YES) return;
+    sheet.clear();
+  }
+
+  // 헤더
+  sheet.getRange('A1').setValue('이름')
+    .setBackground('#1A73E8').setFontColor('#FFFFFF')
+    .setFontWeight('bold').setFontSize(13);
+  sheet.getRange('B1').setValue('메모')
+    .setBackground('#1A73E8').setFontColor('#FFFFFF')
+    .setFontWeight('bold').setFontSize(13);
+  sheet.setFrozenRows(1);
+  sheet.setColumnWidth(1, 160);
+  sheet.setColumnWidth(2, 280);
+
+  // 현재 학생 목록
+  var names = [
+    '강설현','고윤아','김민준','김소은','김승운','김윤성','김유진','김재윤','김재이',
+    '김제인','김태웅','김폭스','김현서','김현우','박래승','박영찬','서재현','성시윤',
+    '손아율','손태율','송서후','송예온','송지호','신연재','신유준','여소현','여승현',
+    '여창현','오엘리','오하성','유가영','이디아나','이서호','이시호','이윤호','이이린',
+    '이재이','이지오','이지호','이서호','정윤우','조아인','조윤재','조은혁','조유나',
+    '조이서','조하은','최서하','최윤서','최윤재','최주원','홍근준'
+  ];
+
+  var rows = names.map(function(n) { return [n, '']; });
+  sheet.getRange(2, 1, rows.length, 2).setValues(rows).setFontSize(12);
+
+  // 안내 메시지
+  sheet.getRange('D1').setValue('ℹ️  A열에 이름을 추가/삭제하면 앱에 자동 반영됩니다.');
+
+  buildNameDropdown(ss);
+  SpreadsheetApp.getUi().alert('완료! "학생 관리" 탭이 생성되었습니다.\n\n이제 이 탭에서 이름을 추가/삭제하면\n앱과 Dashboard 드롭다운에 자동 반영됩니다.');
+}
+
 /* ── Name dropdown ──────────────────────────────────────────── */
 
 function buildNameDropdown(ss) {
@@ -254,28 +342,13 @@ function buildNameDropdown(ss) {
   var dash = ss.getSheetByName(DASHBOARD_NAME);
   if (!dash) return;
 
-  var nameSet = {};
-  var tabs = ['입실체크', '퇴실체크', '특별미션'];
-  for (var t = 0; t < tabs.length; t++) {
-    var src = ss.getSheetByName(tabs[t]);
-    if (!src) continue;
-    var data = src.getDataRange().getValues();
-    if (data.length < 2) continue;
-    var nameIdx = findColumnIndex(data[0], ['이름', 'student_name', 'name']);
-    if (nameIdx === -1) continue;
-    for (var r = 1; r < data.length; r++) {
-      var nm = String(data[r][nameIdx] || '').trim();
-      if (nm) nameSet[nm] = true;
-    }
-  }
-
-  var names = Object.keys(nameSet).sort();
+  var names = getStudentList(ss);
   if (names.length === 0) return;
 
   dash.getRange(SEARCH_CELL).setDataValidation(
     SpreadsheetApp.newDataValidation()
       .requireValueInList(names, true)
-      .setAllowInvalid(true)   // 직접 입력도 허용
+      .setAllowInvalid(true)
       .build()
   );
 }
