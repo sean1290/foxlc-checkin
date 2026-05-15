@@ -323,6 +323,10 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 .eq-fopt{padding:12px 14px;border:2px solid rgba(0,0,0,.08);border-radius:var(--rs);background:#fff;font-size:13px;font-weight:600;cursor:pointer;text-align:left;transition:all .18s;font-family:'Noto Sans KR',sans-serif;color:var(--t);display:flex;align-items:center;gap:8px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
 .eq-fopt:hover{border-color:var(--p);background:var(--pl)}
 .eq-fopt.on{border-color:var(--p);background:linear-gradient(135deg,var(--p),#FF8C42);color:#fff;box-shadow:0 4px 14px rgba(255,107,53,.3)}
+.eq-follow-custom{display:none;margin-top:10px}
+.eq-follow-custom.on{display:block;animation:fadeUp .2s ease}
+.eq-follow-input{width:100%;padding:11px 14px;border:2px solid var(--p);border-radius:var(--rs);font-size:14px;font-family:'Noto Sans KR',sans-serif;color:var(--t);background:#fff;outline:none;box-shadow:0 2px 8px rgba(255,107,53,.12)}
+.eq-follow-input:focus{border-color:#FF8C42;box-shadow:0 2px 12px rgba(255,107,53,.25)}
 
 /* ── CHOICE FOLLOW-UP (Memory Activity) ── */
 .follow-panel{margin-top:14px;padding:14px;background:#E8DCC840;border-radius:var(--rs);display:none;animation:fadeUp .25s ease;border:1.5px solid rgba(232,220,196,.3)}
@@ -1141,27 +1145,45 @@ function renderIn(q, zone, isSub, pid) {
           if(ls) ls.classList.toggle('on', NEG_EMOTIONS.has(em.id));
         }
         // follow-up panel
-        const fp = document.getElementById('eq-follow-'+id);
+        const fp = zone.querySelector('.eq-follow');
         if (fp) {
           const isNeg = NEG_EMOTIONS.has(em.id);
           const fq = fp.querySelector('.eq-follow-q');
           const fo = fp.querySelector('.eq-fopts');
+          const customDiv = fp.querySelector('.eq-follow-custom');
+          const customInput = fp.querySelector('.eq-follow-input');
           fq.textContent = isNeg ? '이 기분이 든 이유는 무엇일까요?' : '이 기분을 계속 이어가려면 어떻게 할까요?';
           fo.innerHTML = '';
+          customDiv.classList.remove('on');
+          if (customInput) customInput.value = '';
           delete S.ans[id+'_followup'];
           const fopts = isNeg
-            ? [{i:'😔',t:'마음대로 되지 않았어요'},{i:'😣',t:'친구와 다퉜어요'},{i:'😓',t:'공부나 활동이 어려웠어요'},{i:'😶',t:'잘 모르겠어요'}]
+            ? [{i:'😔',t:'마음대로 되지 않았어요'},{i:'😣',t:'친구와 다퉜어요'},{i:'😓',t:'공부나 활동이 어려웠어요'},{i:'✏️',t:'직접 써봐요'}]
             : [{i:'🌟',t:'친구들과 사이좋게 지내기'},{i:'💪',t:'오늘처럼 열심히 하기'},{i:'😊',t:'즐거운 마음으로 활동하기'},{i:'🤝',t:'도움이 필요한 친구를 먼저 도와주기'}];
           fopts.forEach(o => {
             const btn = el('button','eq-fopt');
             btn.innerHTML = `<span>${o.i}</span>${o.t}`;
             btn.onclick = () => {
-              save(id+'_followup', o.t);
               fp.querySelectorAll('.eq-fopt').forEach(x=>x.classList.remove('on'));
               btn.classList.add('on');
+              if (o.t === '직접 써봐요') {
+                delete S.ans[id+'_followup'];
+                customDiv.classList.add('on');
+                if (customInput) { customInput.value = ''; customInput.focus(); }
+              } else {
+                save(id+'_followup', o.t);
+                customDiv.classList.remove('on');
+                if (customInput) customInput.value = '';
+              }
             };
             fo.appendChild(btn);
           });
+          if (customInput) {
+            customInput.oninput = () => {
+              if (customInput.value.trim()) save(id+'_followup', customInput.value.trim());
+              else delete S.ans[id+'_followup'];
+            };
+          }
           fp.classList.add('on');
         }
       };
@@ -1171,7 +1193,7 @@ function renderIn(q, zone, isSub, pid) {
     zone.appendChild(defBox);
     const followPanel = el('div','eq-follow');
     followPanel.id = 'eq-follow-'+id;
-    followPanel.innerHTML = '<div class="eq-follow-q"></div><div class="eq-fopts"></div>';
+    followPanel.innerHTML = '<div class="eq-follow-q"></div><div class="eq-fopts"></div><div class="eq-follow-custom"><input class="eq-follow-input" type="text" placeholder="여기에 직접 써봐요 ✏️" maxlength="80"></div>';
     zone.appendChild(followPanel);
 
   } else if (type==='scale') {

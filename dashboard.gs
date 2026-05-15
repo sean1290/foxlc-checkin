@@ -69,7 +69,7 @@ function appendMorning(ss, d) {
 
 function appendEvening(ss, d) {
   var sheet = getSheet(ss, '퇴실체크', [
-    '날짜','이름','마음',
+    '날짜','이름','마음','감정 원인/의도',
     '활동 만족도 (1~5)',
     '오늘 친구들과의 관계',
     '어떤 점이 어려웠나요? (관계 1~2점 시)',
@@ -85,9 +85,10 @@ function appendEvening(ss, d) {
   ]);
   sheet.appendRow([
     formatDate(d.date),
-    d.student_name            || '',
-    d.axis1_emotion_change    || '',
-    d.axis2_goal_score        || '',
+    d.student_name                    || '',
+    d.axis1_emotion_change            || '',
+    d.axis1_emotion_change_followup   || '',
+    d.axis2_goal_score                || '',
     d.axis3_relation          || '',
     d.axis3_relation_reason   || '',
     d.axis3_prosocial         || '',
