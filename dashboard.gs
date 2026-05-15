@@ -69,9 +69,9 @@ function appendMorning(ss, d) {
 
 function appendEvening(ss, d) {
   var sheet = getSheet(ss, '퇴실체크', [
-    '날짜','이름','마음','감정 원인/의도',
-    '기억에 남는 활동','기억에 남는 이유',
-    '오늘 친구들과의 관계',
+    '날짜','이름','마음',
+    '기억에 남는 활동',           // D (기존 D열 재사용 — 항상 비어있던 열)
+    '오늘 친구들과의 관계',       // E 기존 위치 유지
     '어떤 점이 어려웠나요? (관계 1~2점 시)',
     '오늘 보인 좋은 태도',
     '감정 조절을 잘 했나요?',
@@ -81,26 +81,28 @@ function appendEvening(ss, d) {
     '오늘 활동 집중도 (1~5)',
     '오늘 가장 자랑스러운 것',
     '내일 실천할 한 가지',
-    '오늘의 질문'
+    '오늘의 질문',
+    '기억에 남는 이유',           // P 새 컬럼 (맨 뒤 추가)
+    '감정 원인/의도'              // Q 새 컬럼 (맨 뒤 추가)
   ]);
   sheet.appendRow([
     formatDate(d.date),                       // A 날짜
     d.student_name                    || '',  // B 이름
     d.axis1_emotion_change            || '',  // C 마음
-    d.axis1_emotion_change_followup   || '',  // D 감정 원인/의도
-    d.memory_activity                 || '',  // E 기억에 남는 활동
-    d.memory_reason                   || '',  // F 기억에 남는 이유
-    d.axis3_relation                  || '',  // G 오늘 친구들과의 관계
-    d.axis3_relation_reason           || '',  // H 어떤 점이 어려웠나요
-    d.axis3_prosocial                 || '',  // I 오늘 보인 좋은 태도
-    d.axis1_selfcontrol               || '',  // J 감정 조절을 잘 했나요
-    d.axis1_selfcontrol_type          || '',  // K 어떤 방법을 썼는지
-    d.axis3_conflict                  || '',  // L 갈등이 있었나요
-    d.axis3_conflict_strategy         || '',  // M 어떻게 해결했나요
-    d.axis4_focus                     || '',  // N 오늘 활동 집중도
-    d.self_praise                     || '',  // O 오늘 가장 자랑스러운 것
-    d.next_action                     || '',  // P 내일 실천할 한 가지
-    d.daily_rotation                  || ''   // Q 오늘의 질문
+    d.memory_activity                 || '',  // D 기억에 남는 활동
+    d.axis3_relation                  || '',  // E 오늘 친구들과의 관계
+    d.axis3_relation_reason           || '',  // F 어떤 점이 어려웠나요
+    d.axis3_prosocial                 || '',  // G 오늘 보인 좋은 태도
+    d.axis1_selfcontrol               || '',  // H 감정 조절을 잘 했나요
+    d.axis1_selfcontrol_type          || '',  // I 어떤 방법을 썼는지
+    d.axis3_conflict                  || '',  // J 갈등이 있었나요
+    d.axis3_conflict_strategy         || '',  // K 어떻게 해결했나요
+    d.axis4_focus                     || '',  // L 오늘 활동 집중도
+    d.self_praise                     || '',  // M 오늘 가장 자랑스러운 것
+    d.next_action                     || '',  // N 내일 실천할 한 가지
+    d.daily_rotation                  || '',  // O 오늘의 질문
+    d.memory_reason                   || '',  // P 기억에 남는 이유 (새 컬럼)
+    d.axis1_emotion_change_followup   || ''   // Q 감정 원인/의도 (새 컬럼)
   ]);
 }
 
