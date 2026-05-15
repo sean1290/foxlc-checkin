@@ -70,7 +70,7 @@ function appendMorning(ss, d) {
 function appendEvening(ss, d) {
   var sheet = getSheet(ss, '퇴실체크', [
     '날짜','이름','마음','감정 원인/의도',
-    '활동 만족도 (1~5)',
+    '기억에 남는 활동','기억에 남는 이유',
     '오늘 친구들과의 관계',
     '어떤 점이 어려웠나요? (관계 1~2점 시)',
     '오늘 보인 좋은 태도',
@@ -84,22 +84,23 @@ function appendEvening(ss, d) {
     '오늘의 질문'
   ]);
   sheet.appendRow([
-    formatDate(d.date),
-    d.student_name                    || '',
-    d.axis1_emotion_change            || '',
-    d.axis1_emotion_change_followup   || '',
-    d.axis2_goal_score                || '',
-    d.axis3_relation          || '',
-    d.axis3_relation_reason   || '',
-    d.axis3_prosocial         || '',
-    d.axis1_selfcontrol       || '',
-    d.axis1_selfcontrol_type  || '',
-    d.axis3_conflict          || '',
-    d.axis3_conflict_strategy || '',
-    d.axis4_focus             || '',
-    d.self_praise             || '',
-    d.next_action             || '',
-    d.daily_rotation          || ''
+    formatDate(d.date),                       // A 날짜
+    d.student_name                    || '',  // B 이름
+    d.axis1_emotion_change            || '',  // C 마음
+    d.axis1_emotion_change_followup   || '',  // D 감정 원인/의도
+    d.memory_activity                 || '',  // E 기억에 남는 활동
+    d.memory_reason                   || '',  // F 기억에 남는 이유
+    d.axis3_relation                  || '',  // G 오늘 친구들과의 관계
+    d.axis3_relation_reason           || '',  // H 어떤 점이 어려웠나요
+    d.axis3_prosocial                 || '',  // I 오늘 보인 좋은 태도
+    d.axis1_selfcontrol               || '',  // J 감정 조절을 잘 했나요
+    d.axis1_selfcontrol_type          || '',  // K 어떤 방법을 썼는지
+    d.axis3_conflict                  || '',  // L 갈등이 있었나요
+    d.axis3_conflict_strategy         || '',  // M 어떻게 해결했나요
+    d.axis4_focus                     || '',  // N 오늘 활동 집중도
+    d.self_praise                     || '',  // O 오늘 가장 자랑스러운 것
+    d.next_action                     || '',  // P 내일 실천할 한 가지
+    d.daily_rotation                  || ''   // Q 오늘의 질문
   ]);
 }
 
