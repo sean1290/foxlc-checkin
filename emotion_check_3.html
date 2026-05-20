@@ -1817,13 +1817,25 @@ function adminLogin() {
   $('adminStep2').style.display = 'block';
 }
 
-function adminSelectStudent() {
+async function adminSelectStudent() {
   const name = $('adminStudentSel').value;
   if (!name) { $('adminCountBox').style.display = 'none'; return; }
-  _adminName  = name;
+  _adminName = name;
+  // Show panel with local value while sheet fetch is in progress
   _adminCount = parseInt(localStorage.getItem(`foxlc_ci_${name}`) || '0');
-  adminRefreshDisplay();
   $('adminCountBox').style.display = 'block';
+  $('adminCountNum').textContent = '…';
+  // Fetch actual cumulative count from Google Sheets
+  try {
+    const scriptUrl = localStorage.getItem(K_SCRIPT) || DEFAULT_SCRIPT_URL;
+    const res = await fetch(`${scriptUrl}?action=getCheckinCount&name=${encodeURIComponent(name)}`);
+    const data = await res.json();
+    if (data.status === 'ok' && typeof data.count === 'number') {
+      _adminCount = data.count;
+      localStorage.setItem(`foxlc_ci_${name}`, String(_adminCount)); // keep local in sync
+    }
+  } catch(e) { /* offline — keep local value */ }
+  adminRefreshDisplay();
 }
 
 function adminRefreshDisplay() {

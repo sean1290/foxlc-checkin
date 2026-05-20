@@ -6,12 +6,31 @@ var SPREADSHEET_ID = '17JJYwp1rHUSf2j7DXI2wKC84hXJ2ghOPDZdmQALeyo0';
 
 function doGet(e) {
   var action = e && e.parameter && e.parameter.action;
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   if (action === 'getStudents') {
-    var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    var names = getStudentList(ss);
-    return out({ status: 'ok', names: names });
+    return out({ status: 'ok', names: getStudentList(ss) });
+  }
+  if (action === 'getCheckinCount') {
+    var name = e.parameter.name || '';
+    return out({ status: 'ok', count: getCheckinCountForStudent(ss, name) });
   }
   return out({ status: 'ok', message: 'FoxLC running' });
+}
+
+// 입실체크 탭에서 특정 학생의 제출 횟수를 집계
+function getCheckinCountForStudent(ss, name) {
+  if (!name) return 0;
+  var sheet = ss.getSheetByName('입실체크');
+  if (!sheet) return 0;
+  var data = sheet.getDataRange().getValues();
+  if (data.length < 2) return 0;
+  var nameIdx = findColumnIndex(data[0], ['이름', 'student_name', 'name']);
+  if (nameIdx === -1) return 0;
+  var count = 0;
+  for (var r = 1; r < data.length; r++) {
+    if (String(data[r][nameIdx] || '').trim() === name) count++;
+  }
+  return count;
 }
 
 function doPost(e) {
