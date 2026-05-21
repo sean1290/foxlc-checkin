@@ -197,13 +197,9 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 .oh{font-size:11px;color:var(--m);font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:4px}
 
 /* ── HINT CHIPS ── */
-.hint-wrap{display:flex;gap:10px;align-items:flex-start;margin-top:2px}
-.hint-wrap .ti{flex:1;min-width:0}
-.hint-list{display:flex;flex-direction:column;gap:5px;flex-shrink:0;width:160px}
-.hint-chip{padding:7px 10px;background:#f5f3ff;border:1.5px solid #e0d9ff;border-radius:10px;font-size:12px;font-family:'Noto Sans KR',sans-serif;color:#5b4fcf;cursor:pointer;line-height:1.3;text-align:left;transition:background .15s,transform .1s;word-break:keep-all}
-.hint-chip:hover{background:#ede9fe;transform:translateX(-2px)}
-.hint-chip.picked{background:#7c5cbf;color:#fff;border-color:#7c5cbf}
-@media(max-width:520px){.hint-list{width:130px}.hint-chip{font-size:11px;padding:6px 8px}}
+.hint-label{font-size:11px;font-weight:700;color:var(--m);margin-bottom:6px;margin-top:14px}
+.hint-list{display:flex;flex-wrap:wrap;gap:6px}
+.hint-chip{padding:6px 11px;background:#f5f3ff;border:1.5px solid #e0d9ff;border-radius:20px;font-size:12px;font-family:'Noto Sans KR',sans-serif;color:#5b4fcf;line-height:1.3;word-break:keep-all;pointer-events:none;user-select:none}
 
 /* ── COMFORT MESSAGE ── */
 .comfort{background:linear-gradient(135deg,var(--sl),var(--al));border-radius:var(--rs);padding:14px 16px;font-size:13px;color:#1A5C3E;font-weight:700;margin-top:12px;line-height:1.7;display:none;border:1.5px solid rgba(91,173,138,.2)}
@@ -1337,30 +1333,18 @@ function renderIn(q, zone, isSub, pid) {
     const ta=document.createElement('textarea');
     ta.className='ti';ta.rows=3;ta.placeholder=q.placeholder||'';ta.value=S.ans[id]||'';
     ta.oninput=()=>{save(id,ta.value);if(!isSub) mark(pid||id)};
+    zone.appendChild(ta);
     if (q.hints && q.hints.length) {
-      const wrap = el('div','hint-wrap');
-      wrap.appendChild(ta);
+      const lbl = el('div','hint-label');
+      lbl.textContent = '✏️ 예시를 보고 따라 써봐요';
+      zone.appendChild(lbl);
       const list = el('div','hint-list');
       q.hints.forEach(txt => {
-        const chip = el('button','hint-chip');
-        chip.type = 'button';
+        const chip = el('span','hint-chip');
         chip.textContent = txt;
-        chip.onclick = () => {
-          ta.value = txt;
-          save(id, txt);
-          if (!isSub) mark(pid||id);
-          list.querySelectorAll('.hint-chip').forEach(c=>c.classList.remove('picked'));
-          chip.classList.add('picked');
-          ta.focus();
-        };
-        // restore picked state on re-render
-        if (S.ans[id] === txt) chip.classList.add('picked');
         list.appendChild(chip);
       });
-      wrap.appendChild(list);
-      zone.appendChild(wrap);
-    } else {
-      zone.appendChild(ta);
+      zone.appendChild(list);
     }
   }
 }
