@@ -196,6 +196,15 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 .ti:focus{border-color:var(--v);box-shadow:0 0 0 4px rgba(124,92,191,.1),inset 0 2px 4px rgba(0,0,0,.03)}
 .oh{font-size:11px;color:var(--m);font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:4px}
 
+/* ── HINT CHIPS ── */
+.hint-wrap{display:flex;gap:10px;align-items:flex-start;margin-top:2px}
+.hint-wrap .ti{flex:1;min-width:0}
+.hint-list{display:flex;flex-direction:column;gap:5px;flex-shrink:0;width:160px}
+.hint-chip{padding:7px 10px;background:#f5f3ff;border:1.5px solid #e0d9ff;border-radius:10px;font-size:12px;font-family:'Noto Sans KR',sans-serif;color:#5b4fcf;cursor:pointer;line-height:1.3;text-align:left;transition:background .15s,transform .1s;word-break:keep-all}
+.hint-chip:hover{background:#ede9fe;transform:translateX(-2px)}
+.hint-chip.picked{background:#7c5cbf;color:#fff;border-color:#7c5cbf}
+@media(max-width:520px){.hint-list{width:130px}.hint-chip{font-size:11px;padding:6px 8px}}
+
 /* ── COMFORT MESSAGE ── */
 .comfort{background:linear-gradient(135deg,var(--sl),var(--al));border-radius:var(--rs);padding:14px 16px;font-size:13px;color:#1A5C3E;font-weight:700;margin-top:12px;line-height:1.7;display:none;border:1.5px solid rgba(91,173,138,.2)}
 .comfort.on{display:block;animation:fadeUp .25s ease}
@@ -731,7 +740,12 @@ const MQ = [
   },
   { id:'오늘_기대되는_것', axis:'🌟 기대',
     text:'오늘은 무엇이 가장 기대되나요?',
-    type:'text', placeholder:'자유롭게 적어봐요' }
+    type:'text', placeholder:'자유롭게 적어봐요',
+    hints:[
+      '😊 친구랑 대화하기','🎮 재미있는 활동 하기','⚽ 몸 움직이며 놀기',
+      '📚 새로운 걸 배우기','🎨 만들기 활동 하기','🏆 포인트 받기',
+      '🧪 연구소 활동 하기','🍱 간식 시간','🙌 연구원님 만나기','🌟 아직 모르겠어요'
+    ] }
 ];
 
 // 오늘(4/24)만 표시되는 특별 질문
@@ -1321,9 +1335,33 @@ function renderIn(q, zone, isSub, pid) {
   } else if (type==='text') {
     if(q.opt){const h=el('div','oh');h.textContent='✏️ 선택 사항 — 쓰고 싶은 것만 적어요';zone.appendChild(h)}
     const ta=document.createElement('textarea');
-    ta.className='ti';ta.rows=2;ta.placeholder=q.placeholder||'';ta.value=S.ans[id]||'';
+    ta.className='ti';ta.rows=3;ta.placeholder=q.placeholder||'';ta.value=S.ans[id]||'';
     ta.oninput=()=>{save(id,ta.value);if(!isSub) mark(pid||id)};
-    zone.appendChild(ta);
+    if (q.hints && q.hints.length) {
+      const wrap = el('div','hint-wrap');
+      wrap.appendChild(ta);
+      const list = el('div','hint-list');
+      q.hints.forEach(txt => {
+        const chip = el('button','hint-chip');
+        chip.type = 'button';
+        chip.textContent = txt;
+        chip.onclick = () => {
+          ta.value = txt;
+          save(id, txt);
+          if (!isSub) mark(pid||id);
+          list.querySelectorAll('.hint-chip').forEach(c=>c.classList.remove('picked'));
+          chip.classList.add('picked');
+          ta.focus();
+        };
+        // restore picked state on re-render
+        if (S.ans[id] === txt) chip.classList.add('picked');
+        list.appendChild(chip);
+      });
+      wrap.appendChild(list);
+      zone.appendChild(wrap);
+    } else {
+      zone.appendChild(ta);
+    }
   }
 }
 
