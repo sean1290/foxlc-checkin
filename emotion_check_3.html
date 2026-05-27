@@ -1566,11 +1566,6 @@ function showDone(p, saved) {
   const kLMC = `foxlc_lmc_${p.student_name}`;
   localStorage.setItem('foxlc_current', p.student_name);
   if (am) {
-    const ci   = (parseInt(localStorage.getItem(kCI) || '0')) + 1;
-    localStorage.setItem(kCI, String(ci));
-    const lmc  = parseInt(localStorage.getItem(kLMC) || '0');
-    const unlocked = ci >= 5 && ci % 5 === 0 && lmc !== ci;
-    const remaining = 5 - (ci % 5 || 5);
     const amDates = weekEntries.filter(e=>e.session==='morning').map(e=>{
       const [y,m,d]=e.date.split('-').map(Number);
       const dt=new Date(y,m-1,d);
@@ -1579,23 +1574,48 @@ function showDone(p, saved) {
     const datesHTML = amDates.length
       ? `<div style="margin-top:8px;font-size:11px;color:var(--m);line-height:1.8">📅 ${amDates.join(' · ')}</div>`
       : '';
-    $('missionCard').innerHTML = unlocked
-      ? `<div style="background:linear-gradient(135deg,#EDE9FE,#FFF5D6);border-radius:20px;padding:18px 18px 14px;text-align:center;border:2px solid rgba(167,139,250,.35)">
-          <div style="font-size:26px;margin-bottom:6px">🎉</div>
-          <div style="font-size:15px;font-weight:900;color:#1A1A2E;margin-bottom:4px">특별 미션이 열렸어요!</div>
-          <div style="font-size:12px;color:#6B7280;margin-bottom:14px;line-height:1.6">감정체크 기록이 쌓였어요.<br>이번 주 특별 미션에 도전해봐요 🌟</div>
-          <a href="special-mission.html" style="display:block;padding:13px;border-radius:12px;background:linear-gradient(135deg,#A78BFA,#8B5CF6);color:#fff;font-size:15px;font-weight:700;text-decoration:none;font-family:'Noto Sans KR',sans-serif;animation:mPulse 2s ease-in-out infinite">✨ 미션 하러 가기</a>
-         </div>`
-      : `<div style="background:#fff;border-radius:16px;padding:14px 18px;border:1.5px solid var(--b);">
-          <div style="display:flex;align-items:center;gap:14px">
-            <span style="font-size:28px">🎯</span>
-            <div>
-              <div style="font-size:12px;font-weight:700;color:var(--t);margin-bottom:2px">특별 미션까지 <strong style="color:var(--v)">${remaining}회</strong> 남았어요!</div>
-              <div style="font-size:11px;color:var(--m)">5회 체크마다 특별 미션이 열려요 🌟</div>
+
+    const renderMissionCard = (ci) => {
+      const lmc = parseInt(localStorage.getItem(kLMC) || '0');
+      const unlocked = ci >= 5 && ci % 5 === 0 && lmc !== ci;
+      const remaining = 5 - (ci % 5 || 5);
+      $('missionCard').innerHTML = unlocked
+        ? `<div style="background:linear-gradient(135deg,#EDE9FE,#FFF5D6);border-radius:20px;padding:18px 18px 14px;text-align:center;border:2px solid rgba(167,139,250,.35)">
+            <div style="font-size:26px;margin-bottom:6px">🎉</div>
+            <div style="font-size:15px;font-weight:900;color:#1A1A2E;margin-bottom:4px">특별 미션이 열렸어요!</div>
+            <div style="font-size:12px;color:#6B7280;margin-bottom:14px;line-height:1.6">감정체크 기록이 쌓였어요.<br>이번 주 특별 미션에 도전해봐요 🌟</div>
+            <a href="special-mission.html" style="display:block;padding:13px;border-radius:12px;background:linear-gradient(135deg,#A78BFA,#8B5CF6);color:#fff;font-size:15px;font-weight:700;text-decoration:none;font-family:'Noto Sans KR',sans-serif;animation:mPulse 2s ease-in-out infinite">✨ 미션 하러 가기</a>
+           </div>`
+        : `<div style="background:#fff;border-radius:16px;padding:14px 18px;border:1.5px solid var(--b);">
+            <div style="display:flex;align-items:center;gap:14px">
+              <span style="font-size:28px">🎯</span>
+              <div>
+                <div style="font-size:12px;font-weight:700;color:var(--t);margin-bottom:2px">특별 미션까지 <strong style="color:var(--v)">${remaining}회</strong> 남았어요!</div>
+                <div style="font-size:11px;color:var(--m)">5회 체크마다 특별 미션이 열려요 🌟</div>
+              </div>
             </div>
-          </div>
-          ${datesHTML}
-         </div>`;
+            ${datesHTML}
+           </div>`;
+    };
+
+    // 1) 우선 로컬값+1로 즉시 표시 (오프라인 대비)
+    let ci = (parseInt(localStorage.getItem(kCI) || '0')) + 1;
+    localStorage.setItem(kCI, String(ci));
+    renderMissionCard(ci);
+
+    // 2) 구글시트 실제 누적값으로 덮어쓰기 (관리자 패널과 동일 소스)
+    (async () => {
+      try {
+        const scriptUrl = localStorage.getItem(K_SCRIPT) || DEFAULT_SCRIPT_URL;
+        if (!scriptUrl) return;
+        const res = await fetch(`${scriptUrl}?action=getCheckinCount&name=${encodeURIComponent(p.student_name)}`);
+        const data = await res.json();
+        if (data.status === 'ok' && typeof data.count === 'number') {
+          localStorage.setItem(kCI, String(data.count));
+          renderMissionCard(data.count);
+        }
+      } catch(e) { /* offline — keep local value */ }
+    })();
   } else {
     $('missionCard').innerHTML = '';
   }
