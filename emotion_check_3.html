@@ -866,7 +866,7 @@ const EQ = [
 ];
 
 // ── STATE ─────────────────────────────────────────
-const S = { name:'', ses:'', page:0, ans:{}, pages:[], emotionColor:'#F59E0B' };
+const S = { name:'', ses:'', page:0, ans:{}, pages:[] };
 
 // ── INIT ──────────────────────────────────────────
 addEventListener('DOMContentLoaded', async () => {
@@ -1138,7 +1138,6 @@ function renderIn(q, zone, isSub, pid) {
       b.innerHTML = `<span class="eico">${em.emoji}</span><span class="etxt">${em.id}</span>`;
       b.onclick = () => {
         save(id, em.id);
-        S.emotionColor = em.bg;
         updateBackgroundColor(em.bg);
         selectOnly(wrap, '.eb', b);
         wrap.classList.add('selected');
@@ -1921,10 +1920,6 @@ function closeSnackForm() {
   document.getElementById('snackFrame').src = '';
 }
 
-// script is at end of body, so DOM is ready
-populateSel($('nameSel'), localStorage.getItem(K_NAMES)
-  ? localStorage.getItem(K_NAMES).split(',').map(n=>n.trim()).filter(Boolean)
-  : [...NAMES]);
 </script>
 </body>
 </html>
