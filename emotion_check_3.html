@@ -53,6 +53,9 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 .snack-btn{background:linear-gradient(135deg,var(--s),#4ECDC4);color:#fff;border:none;border-radius:99px;padding:6px 12px;font-size:12px;font-weight:800;cursor:pointer;font-family:'Noto Sans KR',sans-serif;box-shadow:0 3px 10px rgba(91,173,138,.4);transition:all .2s;white-space:nowrap;flex-shrink:0}
 .snack-btn:hover{transform:translateY(-2px);box-shadow:0 5px 14px rgba(91,173,138,.5)}
 .snack-btn:active{transform:scale(.96)}
+.lang-btn{background:#fff;color:var(--p);border:2px solid var(--p);border-radius:99px;padding:5px 10px;font-size:11px;font-weight:900;cursor:pointer;font-family:'Noto Sans KR',sans-serif;transition:all .2s;white-space:nowrap;flex-shrink:0;letter-spacing:.04em;line-height:1.2;display:inline-flex;align-items:center;gap:4px}
+.lang-btn:hover{background:var(--pl);transform:translateY(-1px)}
+.lang-btn:active{transform:scale(.96)}
 
 /* ── PROGRESS ── */
 .prog{height:10px;background:var(--b);overflow:hidden;position:sticky;top:50px;z-index:99;border-radius:0 0 8px 8px}
@@ -388,8 +391,9 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 <header class="hdr">
   <div class="logo" onclick="show('s-land')" style="cursor:pointer">🦊 Fox<span>LC</span></div>
   <div class="hd" id="hdrDate"></div>
-  <div style="display:flex;align-items:center;gap:16px">
-    <button class="snack-btn" onclick="openSnackForm()">🍪 간식 신청</button>
+  <div style="display:flex;align-items:center;gap:10px">
+    <button class="lang-btn" id="langBtn" onclick="toggleLang()" title="Toggle Korean / English">🌐 <span id="langBtnLbl">EN</span></button>
+    <button class="snack-btn" id="snackBtn" onclick="openSnackForm()">🍪 <span data-i18n="snack_request">간식 신청</span></button>
     <button class="gear" onclick="openModal()">⚙️</button>
   </div>
 </header>
@@ -398,14 +402,14 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 <!-- HELP MODAL -->
 <div class="hmodal-bg" id="helpModal" onclick="if(event.target===this)closeHelp()">
   <div class="hmodal">
-    <div class="hm-title">처음이라면 이렇게 해보세요 👋</div>
+    <div class="hm-title" data-i18n="help_title">처음이라면 이렇게 해보세요 👋</div>
     <div class="hm-steps">
-      <div class="hm-step"><div class="hm-num">1</div><div class="hm-txt">내 이름을 선택하고 입실 또는 퇴실을 눌러요</div></div>
-      <div class="hm-step"><div class="hm-num">2</div><div class="hm-txt">질문에 솔직하게 체크해요</div></div>
-      <div class="hm-step"><div class="hm-num">3</div><div class="hm-txt">기록이 쌓이면 나의 성장을 볼 수 있어요 🌱</div></div>
+      <div class="hm-step"><div class="hm-num">1</div><div class="hm-txt" data-i18n="help_s1">내 이름을 선택하고 입실 또는 퇴실을 눌러요</div></div>
+      <div class="hm-step"><div class="hm-num">2</div><div class="hm-txt" data-i18n="help_s2">질문에 솔직하게 체크해요</div></div>
+      <div class="hm-step"><div class="hm-num">3</div><div class="hm-txt" data-i18n="help_s3">기록이 쌓이면 나의 성장을 볼 수 있어요 🌱</div></div>
     </div>
-    <div class="hm-note">정답은 없어요. 솔직함이 제일 중요해요 🙂</div>
-    <button class="btn bp" onclick="closeHelp()">시작해볼게요!</button>
+    <div class="hm-note" data-i18n="help_note">정답은 없어요. 솔직함이 제일 중요해요 🙂</div>
+    <button class="btn bp" onclick="closeHelp()" data-i18n="help_cta">시작해볼게요!</button>
   </div>
 </div>
 
@@ -413,7 +417,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 <div id="snackModal" style="display:none;position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.6);flex-direction:column;align-items:center;justify-content:center;padding:16px">
   <div style="background:#fff;border-radius:24px;width:100%;max-width:900px;height:85vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.3)">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:2px solid var(--b);flex-shrink:0">
-      <span style="font-size:15px;font-weight:800;color:var(--t)">🍪 간식 신청</span>
+      <span style="font-size:15px;font-weight:800;color:var(--t)">🍪 <span data-i18n="snack_request">간식 신청</span></span>
       <button onclick="closeSnackForm()" style="background:var(--b);border:none;border-radius:50%;width:32px;height:32px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1">✕</button>
     </div>
     <iframe id="snackFrame" src="" style="flex:1;border:none;width:100%" allow="autoplay"></iframe>
@@ -432,56 +436,56 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
       <div class="hblob hb2"></div>
       <div class="hblob hb3"></div>
     </div>
-    <button class="hbtn" onclick="openHelp()">처음이에요 ?</button>
+    <button class="hbtn" onclick="openHelp()" data-i18n="first_time">처음이에요 ?</button>
     <!-- Fox character: swap src to images/fox-wave.png once uploaded -->
     <img class="fox-img" id="foxImg" src="" alt="" style="display:none" onerror="this.style.display='none'">
     <span class="fox-char" id="foxChar">🦊</span>
-    <span class="hero-title">감정체크!</span>
-    <p class="hero-sub">오늘의 나를 기록하는 시간 🌱</p>
+    <span class="hero-title" data-i18n="hero_title">감정체크!</span>
+    <p class="hero-sub" data-i18n="hero_sub">오늘의 나를 기록하는 시간 🌱</p>
   </div>
 
   <!-- ── Name + Tip ── -->
   <div class="land-body">
     <div class="name-card">
-      <p class="name-lbl">📋 내 이름을 골라요</p>
+      <p class="name-lbl" data-i18n="pick_name">📋 내 이름을 골라요</p>
       <div class="sw">
         <select class="nsel" id="nameSel" onchange="pickName(this)">
-          <option value="">-- 이름을 선택하세요 --</option>
+          <option value="" data-i18n="pick_name_placeholder">-- 이름을 선택하세요 --</option>
         </select>
       </div>
-      <div class="manual">💡 정답이 없으니 마음 가는 대로 툭! 표시해 주세요. 지금 딱 드는 생각을 알려주세요.</div>
+      <div class="manual" data-i18n="manual">💡 정답이 없으니 마음 가는 대로 툭! 표시해 주세요. 지금 딱 드는 생각을 알려주세요.</div>
     </div>
 
     <!-- mission entry (shows when student has unlocked mission) -->
     <div id="landingMission" style="display:none;margin-bottom:16px">
       <a href="special-mission.html" style="display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,#EDE9FE,#FFF5D6);border:2px solid rgba(167,139,250,.4);border-radius:20px;padding:16px 18px;text-decoration:none;font-family:'Noto Sans KR',sans-serif;animation:mPulse 2s ease-in-out infinite">
         <div>
-          <div style="font-size:13px;font-weight:900;color:#5B21B6;margin-bottom:2px">✨ 특별 미션이 열려 있어요!</div>
-          <div style="font-size:11px;color:#7C3AED;font-weight:600">지금 바로 도전해봐요 🌟</div>
+          <div style="font-size:13px;font-weight:900;color:#5B21B6;margin-bottom:2px" data-i18n="lm_title">✨ 특별 미션이 열려 있어요!</div>
+          <div style="font-size:11px;color:#7C3AED;font-weight:600" data-i18n="lm_sub">지금 바로 도전해봐요 🌟</div>
         </div>
         <span style="font-size:28px">🎯</span>
       </a>
     </div>
 
     <!-- ── Session tiles ── -->
-    <p class="ses-lbl">⏰ 지금은 언제인가요?</p>
+    <p class="ses-lbl" data-i18n="when_label">⏰ 지금은 언제인가요?</p>
     <div class="sg">
       <div class="sc am" id="c-am" onclick="pickSes('morning')">
         <div class="sc-bg"></div>
         <div class="sc-tick">✓</div>
         <span class="si">🌅</span>
-        <div class="sl2">입실 체크</div>
-        <div class="sd">센터에 도착했어요</div>
+        <div class="sl2" data-i18n="morning_check">입실 체크</div>
+        <div class="sd" data-i18n="morning_sub">센터에 도착했어요</div>
       </div>
       <div class="sc pm" id="c-pm" onclick="pickSes('evening')">
         <div class="sc-bg"></div>
         <div class="sc-tick">✓</div>
         <span class="si">🌙</span>
-        <div class="sl2">퇴실 체크</div>
-        <div class="sd">집에 가기 전이에요</div>
+        <div class="sl2" data-i18n="evening_check">퇴실 체크</div>
+        <div class="sd" data-i18n="evening_sub">집에 가기 전이에요</div>
       </div>
     </div>
-    <button class="btn bp" id="startBtn" onclick="startSurvey()" disabled>체크 시작하기 →</button>
+    <button class="btn bp" id="startBtn" onclick="startSurvey()" disabled data-i18n="start_btn">체크 시작하기 →</button>
   </div>
 </div>
 
@@ -489,11 +493,11 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 <div id="s-q" class="scr">
   <div class="qh-banner" id="qhBanner">
     <div class="bdg bam" id="badge">🌅 입실 체크</div>
-    <div class="qnl">오늘도 멋지게 성장중인</div>
+    <div class="qnl" data-i18n="cheer_prefix">오늘도 멋지게 성장중인</div>
     <div class="qn" id="qName"></div>
   </div>
   <div id="qBox"></div>
-  <button class="nbk nav-side left" id="navBkDsk" onclick="go(-1)">← 이전</button>
+  <button class="nbk nav-side left" id="navBkDsk" onclick="go(-1)" data-i18n="nav_back">← 이전</button>
   <button class="nnx am nav-side right" id="navNxDsk" onclick="go(1)">다음 →</button>
 </div>
 
@@ -506,7 +510,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
     </div>
     <div id="missionCard"></div>
     <div class="scard" id="snapCard"></div>
-    <button class="btn bp done-back" onclick="reset()">처음으로 돌아가기</button>
+    <button class="btn bp done-back" onclick="reset()" data-i18n="back_to_start">처음으로 돌아가기</button>
   </div>
 </div>
 
@@ -514,7 +518,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 <div class="ldr" id="loader">
   <div class="ldr-fox">🦊</div>
   <div class="spin"></div>
-  <div style="font-size:15px;font-weight:800;color:var(--m)">저장 중이에요...</div>
+  <div style="font-size:15px;font-weight:800;color:var(--m)" data-i18n="saving">저장 중이에요...</div>
 </div>
 <div class="toast" id="toast"></div>
 
@@ -629,6 +633,205 @@ const EMOTION_DEF = {
   '화남':    '화남이란, 억울하거나 불공평할 때 속에서 뜨거운 것이 올라오는 느낌이에요 😠',
 };
 
+// ═══════════════════════════════════════════════════════════════
+// i18n SYSTEM
+// ═══════════════════════════════════════════════════════════════
+const K_LANG = 'foxlc_lang';
+const LANG = { cur: (localStorage.getItem(K_LANG) === 'en') ? 'en' : 'ko' };
+const isEn = () => LANG.cur === 'en';
+const t  = (ko, en) => isEn() ? (en || ko) : ko;
+
+// Korean emotion id → English display
+const EMOTION_EN = {
+  '기쁨':'Joy','만족':'Content','감사':'Grateful','설렘':'Excited','뿌듯함':'Proud',
+  '행복':'Happy','혼란':'Confused','지루함':'Bored','부끄러움':'Shy',
+  '걱정':'Worried','슬픔':'Sad','화남':'Angry'
+};
+const EMOTION_DEF_EN = {
+  '기쁨':"Joy is that bright feeling when something good happens 😄",
+  '만족':"Content is the warm feeling of getting what you hoped for 😊",
+  '감사':"Grateful is the warm thankfulness for someone's kindness or help 🥰",
+  '설렘':"Excited is that fluttery, can't-wait feeling for what's coming 🤩",
+  '뿌듯함':"Proud is the warm feeling when you did your best 😌",
+  '행복':"Happy is when everything feels good and your heart feels full 😁",
+  '혼란':"Confused is when you can't tell what's right and your mind feels mixed up 😵",
+  '지루함':"Bored is when nothing feels fun and time seems slow 😑",
+  '부끄러움':"Shy is when your face gets warm and you want to hide 😳",
+  '걱정':"Worried is the nervous feeling that something might go wrong 😟",
+  '슬픔':"Sad is the heavy feeling, like tears might come 😢",
+  '화남':"Angry is the hot feeling that rises when things feel unfair 😠"
+};
+
+// Flat KO→EN map for ANY option value stored in S.ans.
+// Used when echoing answers in encouragement prompts/snapshots.
+const KO_EN = {
+  // emotions
+  ...EMOTION_EN,
+  // Q: 오늘 목표
+  '친구들과 사이좋게 지내기':'Get along with my friends',
+  '활동에 집중해서 끝내기':'Stay focused and finish my work',
+  '감정 조절 잘하기':'Manage my feelings well',
+  '연구소 규칙을 잘 지키기':'Follow the lab rules',
+  // difficulty / strategy
+  '먼저 다가가서 말을 걸어요':'Walk up and start a chat',
+  '친구의 이야기를 끝까지 들어요':'Listen to my friend all the way through',
+  '기분이 상해도 말로 표현해요':'Use my words even when I\'m upset',
+  '연구원님을 보고 귀 기울여요':'Look at the teacher and listen carefully',
+  '말하고 싶을 때 손을 들어요':'Raise my hand when I want to speak',
+  '딴 생각이 나면 다시 집중해요':'Come back to focus when my mind wanders',
+  '천천히 숨을 쉬어요':'Breathe slowly',
+  '지금 내 기분을 생각해요':'Notice how I\'m feeling',
+  '바로 반응하지 않고 잠깐 멈춰요':'Pause before reacting',
+  '정해진 규칙을 지켜요':'Follow the rules we have',
+  '기다릴 때 차례를 지켜요':'Wait my turn',
+  '잘 모르겠으면 먼저 물어봐요':'Ask first when I\'m not sure',
+  // coping
+  '재밌는 책에 잠시 빠져보기':'Dive into a fun book',
+  '내 감정을 말로 표현하기':'Put my feelings into words',
+  '연구원님이나 친구에게 도움 요청하기':'Ask a teacher or friend for help',
+  '심호흡·스트레칭 하기':'Take deep breaths & stretch',
+  '혼자 조용히 쉬기':'Take a quiet break alone',
+  '기타: 직접 써봐요':'Other: write your own',
+  // relation intent
+  '친구의 기분을 이해하고 공감하기':"Understand my friend's feelings",
+  '친구의 말을 끝까지 듣기':'Listen all the way through',
+  '차례를 지키며 함께 하기':'Take turns and play together',
+  '먼저 인사하기':'Say hi first',
+  '칭찬해주기':'Give a compliment',
+  '양보해주기':'Let my friend go first',
+  '"고마워" "미안해" 감사 표현하기':'Say "thank you" and "sorry"',
+  '직접 적기':'Write your own',
+  // memory activity
+  '인공지능 연구소':'AI Lab',
+  '영어 연구소':'English Lab',
+  '미술 연구소':'Art Lab',
+  'SEL 연구소':'SEL Lab',
+  '수리 연구소':'Math Lab',
+  // memory reason
+  '재밌었어요!':'It was fun!',
+  '새로운 걸 배웠어요!':'I learned something new!',
+  '뿌듯했어요!':'I felt proud!',
+  '어렵지만 해냈어요!':'It was hard but I did it!',
+  '직접 입력':'Write your own',
+  // prosocial
+  '친구의 기분을 이해하고 공감했어요':"I understood my friend's feelings",
+  '친구의 말을 끝까지 들었어요':'I listened all the way through',
+  '차례를 지키며 함께 했어요':'I took turns and played together',
+  '먼저 인사했어요':'I said hi first',
+  '칭찬해줬어요':'I gave a compliment',
+  '양보해줬어요':'I let my friend go first',
+  '"고마워" "미안해" 감사 표현했어요':'I said "thank you" and "sorry"',
+  // selfcontrol type
+  '책에 빠져보기':'Got lost in a book',
+  '산책하기':'Went for a walk',
+  '오늘은 기분이 좋았어요!':'I felt good today!',
+  '말로 표현하기':'Used my words',
+  '도움 요청하기':'Asked for help',
+  // conflict strategy
+  '서로 대화하기':'Talked it out',
+  '규칙 다시 확인하기':'Looked at the rules again',
+  '연구원님께 도움 요청하기':'Asked the teacher for help',
+  '잠시 거리 두기':'Took some space',
+  '사과하기':'Said sorry',
+  '해결하고 싶지 않아요':"Don't want to fix it",
+  // self praise
+  '친구에게 친절하게 했어요':'I was kind to a friend',
+  '끝까지 집중했어요':'I stayed focused',
+  '감정을 잘 조절했어요':'I managed my feelings',
+  '도움을 요청하거나 도와줬어요':'I asked for or gave help',
+  '포기하지 않고 계속 해봤어요':"I didn't give up",
+  '누군가에게 칭찬을 받았어요':'Someone gave me a compliment',
+  '오늘은 자랑스러운 것이 없어요':"Nothing today",
+  // next action
+  '화가 날 때 심호흡하고 멈추기':'Breathe and pause when angry',
+  '감정을 말로 표현하기':'Put my feelings into words',
+  '필요할 때 도움 요청하기':'Ask for help when I need it',
+  '친구 말을 끝까지 듣기':'Listen all the way through',
+  '5분 더 집중해보기':'Focus 5 more minutes',
+  '먼저 "고마워" "미안해" 표현하기':'Say "thank you" and "sorry" first',
+  '배려하고 양보하기':'Be considerate and share',
+  '산책하며 마음 가라앉히기':'Take a walk to calm down',
+  // followup options (emotion wheel)
+  '마음대로 되지 않았어요':"Things didn't go my way",
+  '친구와 다퉜어요':'Had a fight with a friend',
+  '공부나 활동이 어려웠어요':'Schoolwork or activities were hard',
+  '직접 써봐요':'Write your own',
+  '오늘처럼 열심히 하기':'Keep working hard like today',
+  '즐거운 마음으로 활동하기':'Stay happy during activities',
+  '도움이 필요한 친구를 먼저 도와주기':'Help a friend who needs it',
+};
+const toEn = v => (typeof v === 'string' && KO_EN[v]) ? KO_EN[v] : v;
+
+// Dictionary for static [data-i18n="key"] elements
+const I18N = {
+  snack_request:    ['간식 신청', 'Snack Request'],
+  help_title:       ['처음이라면 이렇게 해보세요 👋', "First time? Here's how 👋"],
+  help_s1:          ['내 이름을 선택하고 입실 또는 퇴실을 눌러요', 'Pick your name and tap Morning or Evening'],
+  help_s2:          ['질문에 솔직하게 체크해요', 'Answer the questions honestly'],
+  help_s3:          ['기록이 쌓이면 나의 성장을 볼 수 있어요 🌱', "You'll see your growth as records build up 🌱"],
+  help_note:        ['정답은 없어요. 솔직함이 제일 중요해요 🙂', 'No right answers — being honest is what matters 🙂'],
+  help_cta:         ['시작해볼게요!', "Let's start!"],
+  first_time:       ['처음이에요 ?', 'First time?'],
+  hero_title:       ['감정체크!', 'Feelings Check!'],
+  hero_sub:         ['오늘의 나를 기록하는 시간 🌱', 'Time to record how I am today 🌱'],
+  pick_name:        ['📋 내 이름을 골라요', '📋 Pick your name'],
+  pick_name_placeholder: ['-- 이름을 선택하세요 --', '-- Select your name --'],
+  manual:           ['💡 정답이 없으니 마음 가는 대로 툭! 표시해 주세요. 지금 딱 드는 생각을 알려주세요.', "💡 No right answers — check whatever feels true. Just tell us what's on your mind."],
+  lm_title:         ['✨ 특별 미션이 열려 있어요!', '✨ Special mission is open!'],
+  lm_sub:           ['지금 바로 도전해봐요 🌟', 'Try it right now 🌟'],
+  when_label:       ['⏰ 지금은 언제인가요?', '⏰ Which check-in is this?'],
+  morning_check:    ['입실 체크', 'Morning Check'],
+  morning_sub:      ['센터에 도착했어요', 'Just arrived at the center'],
+  evening_check:    ['퇴실 체크', 'Evening Check'],
+  evening_sub:      ['집에 가기 전이에요', 'About to head home'],
+  start_btn:        ['체크 시작하기 →', 'Start check-in →'],
+  cheer_prefix:     ['오늘도 멋지게 성장중인', "Growing wonderfully today,"],
+  nav_back:         ['← 이전', '← Back'],
+  back_to_start:    ['처음으로 돌아가기', 'Back to start'],
+  saving:           ['저장 중이에요...', 'Saving...'],
+};
+
+function applyI18n() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.getAttribute('data-i18n');
+    const pair = I18N[k];
+    if (pair) el.textContent = isEn() ? pair[1] : pair[0];
+  });
+  // header lang button label shows the OTHER language
+  const lbl = document.getElementById('langBtnLbl');
+  if (lbl) lbl.textContent = isEn() ? 'KR' : 'EN';
+  // header date refresh (different formats per lang)
+  refreshHeaderDate();
+}
+
+function refreshHeaderDate() {
+  const elDate = document.getElementById('hdrDate');
+  if (!elDate) return;
+  const d = new Date();
+  if (isEn()) {
+    const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    elDate.textContent = `${d.getMonth()+1}/${d.getDate()} (${days[d.getDay()]})`;
+  } else {
+    const days=['일','월','화','수','목','금','토'];
+    elDate.textContent = `${d.getMonth()+1}월 ${d.getDate()}일 (${days[d.getDay()]})`;
+  }
+}
+
+function toggleLang() {
+  LANG.cur = isEn() ? 'ko' : 'en';
+  localStorage.setItem(K_LANG, LANG.cur);
+  applyI18n();
+  // Re-render dynamic parts if visible
+  if (document.getElementById('s-q')?.classList.contains('on') && S.pages.length) {
+    renderPage(); updateNav();
+  }
+  // Refresh landing dynamic bits
+  updateLandingMission();
+  // Refresh qName / badge if visible
+  const qn = document.getElementById('qName');
+  if (qn && S.name) qn.textContent = isEn() ? `${S.name} — we're cheering for you!` : `${S.name} 학생을 응원해요!`;
+}
+
 function nameCall(fullName) {
   const firstName = fullName.slice(1);
   const last = firstName[firstName.length - 1];
@@ -658,89 +861,114 @@ const ROT = [
   '오늘 가장 기뻤던 일은?',
   '오늘 내가 배운 한 가지는?'
 ];
+const ROT_EN = [
+  "What was today's most grateful moment?",
+  "When did you show courage today?",
+  "When did you hold back today?",
+  "What was today's happiest moment?",
+  "What's one thing you learned today?"
+];
 
 // ── 입실 문항 ─────────────────────────────────────
 const MQ = [
   { id:'axis1_emotion', axis:'축1·정서안정(①)', text:'지금 나의 감정은 어때요?',
+    text_en:'How are you feeling right now?',
     type:'emotion-wheel' },
   { id:'axis1_energy', axis:'축4 예측(④)', text:'오늘 내 에너지는 얼마나 있어요?',
-    type:'scale', slider:true, emojis:['🪫','😴','🔋','⚡','🔥'], labels:['전혀 없어요','많이 넘쳐요'] },
+    text_en:'How much energy do you have today?',
+    type:'scale', slider:true, emojis:['🪫','😴','🔋','⚡','🔥'],
+    labels:['전혀 없어요','많이 넘쳐요'], labels_en:['None at all','So much!'] },
   { id:'axis1_anxiety', axis:'축1 조기개입(①)', text:'오늘 걱정되거나 불안한 일이 있나요?',
+    text_en:"Anything you're worried or nervous about today?",
     type:'yesno',
     sub:[
       { id:'axis1_anxiety_level', text:'① 걱정의 크기는 어느 정도인가요?',
-        type:'scale', emojis:['😌','🤔','😰','😨','😱'], labels:['조금','많이'] },
+        text_en:'① How big is the worry?',
+        type:'scale', emojis:['😌','🤔','😰','😨','😱'],
+        labels:['조금','많이'], labels_en:['A little','A lot'] },
       { id:'axis1_anxiety_reason', text:'② 어떤 이유인지 간단히 적어볼까요?',
-        type:'text', placeholder:'짧게 적어도 괜찮아요', opt:true }
+        text_en:'② Want to write what it is?',
+        type:'text', placeholder:'짧게 적어도 괜찮아요',
+        placeholder_en:'Even a few words is fine', opt:true }
     ]
   },
   { id:'axis2_goal', axis:'축2 목표설정(④+①②)', text:'오늘 가장 집중하고 싶은 목표 하나를 골라보세요!',
+    text_en:'Pick one goal you want to focus on today!',
     type:'choice',
     opts:[
-      {i:'🤝',t:'친구들과 사이좋게 지내기'},
-      {i:'📚',t:'활동에 집중해서 끝내기'},
-      {i:'🧘',t:'감정 조절 잘하기'},
-      {i:'📋',t:'연구소 규칙을 잘 지키기'},
+      {i:'🤝',t:'친구들과 사이좋게 지내기', t_en:'Get along with my friends'},
+      {i:'📚',t:'활동에 집중해서 끝내기', t_en:'Stay focused and finish my work'},
+      {i:'🧘',t:'감정 조절 잘하기', t_en:'Manage my feelings well'},
+      {i:'📋',t:'연구소 규칙을 잘 지키기', t_en:'Follow the lab rules'},
     ]
   },
   { id:'axis1_difficulty', axis:'예방적 SEL(①②④⑤)',
-    text:'오늘의 목표', linkedGoal:'axis2_goal',
+    text:'오늘의 목표', text_en:"Today's goal", linkedGoal:'axis2_goal',
     type:'choice', single:true,
     goalMap:{
       '친구들과 사이좋게 지내기':[
-        {i:'💬',t:'먼저 다가가서 말을 걸어요'},
-        {i:'👂',t:'친구의 이야기를 끝까지 들어요'},
-        {i:'🗣️',t:'기분이 상해도 말로 표현해요'},
+        {i:'💬',t:'먼저 다가가서 말을 걸어요', t_en:'Walk up and start a chat'},
+        {i:'👂',t:'친구의 이야기를 끝까지 들어요', t_en:'Listen to my friend all the way through'},
+        {i:'🗣️',t:'기분이 상해도 말로 표현해요', t_en:"Use my words even when I'm upset"},
       ],
       '활동에 집중해서 끝내기':[
-        {i:'👀',t:'연구원님을 보고 귀 기울여요'},
-        {i:'✋',t:'말하고 싶을 때 손을 들어요'},
-        {i:'🎯',t:'딴 생각이 나면 다시 집중해요'},
+        {i:'👀',t:'연구원님을 보고 귀 기울여요', t_en:'Look at the teacher and listen carefully'},
+        {i:'✋',t:'말하고 싶을 때 손을 들어요', t_en:'Raise my hand when I want to speak'},
+        {i:'🎯',t:'딴 생각이 나면 다시 집중해요', t_en:'Come back to focus when my mind wanders'},
       ],
       '감정 조절 잘하기':[
-        {i:'🫁',t:'천천히 숨을 쉬어요'},
-        {i:'💭',t:'지금 내 기분을 생각해요'},
-        {i:'⏸️',t:'바로 반응하지 않고 잠깐 멈춰요'},
+        {i:'🫁',t:'천천히 숨을 쉬어요', t_en:'Breathe slowly'},
+        {i:'💭',t:'지금 내 기분을 생각해요', t_en:"Notice how I'm feeling"},
+        {i:'⏸️',t:'바로 반응하지 않고 잠깐 멈춰요', t_en:'Pause before reacting'},
       ],
       '연구소 규칙을 잘 지키기':[
-        {i:'📋',t:'정해진 규칙을 지켜요'},
-        {i:'⏳',t:'기다릴 때 차례를 지켜요'},
-        {i:'🙋',t:'잘 모르겠으면 먼저 물어봐요'},
+        {i:'📋',t:'정해진 규칙을 지켜요', t_en:'Follow the rules we have'},
+        {i:'⏳',t:'기다릴 때 차례를 지켜요', t_en:'Wait my turn'},
+        {i:'🙋',t:'잘 모르겠으면 먼저 물어봐요', t_en:"Ask first when I'm not sure"},
       ],
     }
   },
   { id:'axis1_coping', axis:'축1 자기관리도구(①, 2개까지)', text:'만약 마음이 어려운 일이 생기면 어떻게 하면 좋을까요?',
+    text_en:'What can I do if something feels hard?',
     type:'multi', max:2, pledge:true,
     opts:[
-      {i:'📖',t:'재밌는 책에 잠시 빠져보기'},
-      {i:'💬',t:'내 감정을 말로 표현하기'},
-      {i:'🙋',t:'연구원님이나 친구에게 도움 요청하기'},
-      {i:'🫁',t:'심호흡·스트레칭 하기'},
-      {i:'🤫',t:'혼자 조용히 쉬기'},
-      {i:'✏️',t:'기타: 직접 써봐요', custom:true}
+      {i:'📖',t:'재밌는 책에 잠시 빠져보기', t_en:'Dive into a fun book'},
+      {i:'💬',t:'내 감정을 말로 표현하기', t_en:'Put my feelings into words'},
+      {i:'🙋',t:'연구원님이나 친구에게 도움 요청하기', t_en:'Ask a teacher or friend for help'},
+      {i:'🫁',t:'심호흡·스트레칭 하기', t_en:'Take deep breaths & stretch'},
+      {i:'🤫',t:'혼자 조용히 쉬기', t_en:'Take a quiet break alone'},
+      {i:'✏️',t:'기타: 직접 써봐요', t_en:'Other: write your own', custom:true}
     ]
   },
   { id:'axis3_relation_intent', axis:'축3 관계·공감의도(②+③)',
     text:'오늘 친구들에게 어떤 좋은 태도를 보여줄까요?',
+    text_en:'What kindness will I show my friends today?',
     type:'choice',
     opts:[
-      {i:'💛',t:'친구의 기분을 이해하고 공감하기'},
-      {i:'👂',t:'친구의 말을 끝까지 듣기'},
-      {i:'🔄',t:'차례를 지키며 함께 하기'},
-      {i:'👋',t:'먼저 인사하기'},
-      {i:'🌟',t:'칭찬해주기'},
-      {i:'🤲',t:'양보해주기'},
-      {i:'💌',t:'"고마워" "미안해" 감사 표현하기'},
-      {i:'✏️',t:'직접 적기', custom:true}
+      {i:'💛',t:'친구의 기분을 이해하고 공감하기', t_en:"Understand my friend's feelings"},
+      {i:'👂',t:'친구의 말을 끝까지 듣기', t_en:'Listen all the way through'},
+      {i:'🔄',t:'차례를 지키며 함께 하기', t_en:'Take turns and play together'},
+      {i:'👋',t:'먼저 인사하기', t_en:'Say hi first'},
+      {i:'🌟',t:'칭찬해주기', t_en:'Give a compliment'},
+      {i:'🤲',t:'양보해주기', t_en:'Let my friend go first'},
+      {i:'💌',t:'"고마워" "미안해" 감사 표현하기', t_en:'Say "thank you" and "sorry"'},
+      {i:'✏️',t:'직접 적기', t_en:'Write your own', custom:true}
     ]
   },
   { id:'오늘_기대되는_것', axis:'🌟 기대',
     text:'오늘은 무엇이 가장 기대되나요?',
-    type:'text', placeholder:'자유롭게 적어봐요 (한글/영문 OK)', allowEn:true,
+    text_en:"What are you most excited about today?",
+    type:'text', placeholder:'자유롭게 적어봐요 (한글/영문 OK)',
+    placeholder_en:'Write freely (Korean or English)', allowEn:true,
     hints:[
       '😊 친구랑 대화하기','🎮 재미있는 활동 하기','⚽ 몸 움직이며 놀기',
       '📚 새로운 걸 배우기','🎨 만들기 활동 하기','🏆 포인트 받기',
       '🧪 연구소 활동 하기','🍱 간식 시간','🙌 연구원님 만나기','🌟 아직 모르겠어요'
+    ],
+    hints_en:[
+      '😊 Chatting with friends','🎮 Doing a fun activity','⚽ Playing & moving around',
+      '📚 Learning something new','🎨 Making crafts','🏆 Earning points',
+      '🧪 Lab activities','🍱 Snack time','🙌 Seeing my teacher','🌟 Not sure yet'
     ] }
 ];
 
@@ -761,108 +989,127 @@ if (_td === '2026-04-24') {
 const EQ = [
   { id:'axis1_emotion_change', axis:'축1 정서변화(①)',
     text:'지금 이 순간 나의 감정은 어때요?',
+    text_en:'How are you feeling right now?',
     type:'emotion-wheel'
   },
   { id:'memory_activity', axis:'축2 목표달성(④)',
     text:'오늘 가장 기억에 남는 활동은?',
+    text_en:'What activity stood out today?',
     type:'choice', compact:true,
     opts:[
-      {i:'🤖', t:'인공지능 연구소'},
-      {i:'🌍', t:'영어 연구소'},
-      {i:'🎨', t:'미술 연구소'},
-      {i:'❤️', t:'SEL 연구소'},
-      {i:'🔢', t:'수리 연구소'}
+      {i:'🤖', t:'인공지능 연구소', t_en:'AI Lab'},
+      {i:'🌍', t:'영어 연구소', t_en:'English Lab'},
+      {i:'🎨', t:'미술 연구소', t_en:'Art Lab'},
+      {i:'❤️', t:'SEL 연구소', t_en:'SEL Lab'},
+      {i:'🔢', t:'수리 연구소', t_en:'Math Lab'}
     ],
     followUp:{
       id:'memory_reason',
       text:'활동이 왜 기억에 남나요?',
+      text_en:'Why does it stand out?',
       type:'choice',
       opts:[
-        {i:'😄', t:'재밌었어요!'},
-        {i:'💡', t:'새로운 걸 배웠어요!'},
-        {i:'😊', t:'뿌듯했어요!'},
-        {i:'💪', t:'어렵지만 해냈어요!'},
-        {i:'✏️', t:'직접 입력', custom:true}
+        {i:'😄', t:'재밌었어요!', t_en:'It was fun!'},
+        {i:'💡', t:'새로운 걸 배웠어요!', t_en:'I learned something new!'},
+        {i:'😊', t:'뿌듯했어요!', t_en:'I felt proud!'},
+        {i:'💪', t:'어렵지만 해냈어요!', t_en:'It was hard but I did it!'},
+        {i:'✏️', t:'직접 입력', t_en:'Write your own', custom:true}
       ]
     }
   },
   { id:'axis3_relation', axis:'축3 관계(②)', text:'오늘 친구들과의 관계는 어땠어요?',
-    type:'scale', emojis:['😤','😕','😐','😊','🥰'], labels:['어려웠어요','아주 좋았어요'],
-    lowSub: { id:'axis3_relation_reason', text:'어떤 점이 어려웠나요? (선택)', type:'text', placeholder:'짧게 적어도 괜찮아요', opt:true }
+    text_en:'How were things with your friends today?',
+    type:'scale', emojis:['😤','😕','😐','😊','🥰'],
+    labels:['어려웠어요','아주 좋았어요'], labels_en:['Tough','Great!'],
+    lowSub: { id:'axis3_relation_reason', text:'어떤 점이 어려웠나요? (선택)',
+      text_en:'What was tough? (optional)',
+      type:'text', placeholder:'짧게 적어도 괜찮아요',
+      placeholder_en:'Even a few words is fine', opt:true }
   },
   { id:'axis3_prosocial', axis:'축3 친사회성(③)',
     text:'오늘 어떤 좋은 태도를 보여줬나요?',
+    text_en:'What kindness did you show today?',
     type:'choice',
     opts:[
-      {i:'💛',t:'친구의 기분을 이해하고 공감했어요'},
-      {i:'👂',t:'친구의 말을 끝까지 들었어요'},
-      {i:'🔄',t:'차례를 지키며 함께 했어요'},
-      {i:'👋',t:'먼저 인사했어요'},
-      {i:'🌟',t:'칭찬해줬어요'},
-      {i:'🤲',t:'양보해줬어요'},
-      {i:'💌',t:'"고마워" "미안해" 감사 표현했어요'},
-      {i:'✏️',t:'직접 적기', custom:true}
+      {i:'💛',t:'친구의 기분을 이해하고 공감했어요', t_en:"I understood my friend's feelings"},
+      {i:'👂',t:'친구의 말을 끝까지 들었어요', t_en:'I listened all the way through'},
+      {i:'🔄',t:'차례를 지키며 함께 했어요', t_en:'I took turns and played together'},
+      {i:'👋',t:'먼저 인사했어요', t_en:'I said hi first'},
+      {i:'🌟',t:'칭찬해줬어요', t_en:'I gave a compliment'},
+      {i:'🤲',t:'양보해줬어요', t_en:'I let my friend go first'},
+      {i:'💌',t:'"고마워" "미안해" 감사 표현했어요', t_en:'I said "thank you" and "sorry"'},
+      {i:'✏️',t:'직접 적기', t_en:'Write your own', custom:true}
     ]
   },
   { id:'axis1_selfcontrol', axis:'축1 자기관리(①)', text:'오늘 내 감정을 잘 조절했나요?',
+    text_en:'Did you manage your feelings well today?',
     type:'yesno',
     sub:[{ id:'axis1_selfcontrol_type', text:'어떤 방법을 썼어요? (여러개 선택 가능)',
+      text_en:'What did you do? (pick any that fit)',
       type:'multi', max:5,
       opts:[
-        {i:'📖',t:'책에 빠져보기'},
-        {i:'🚶',t:'산책하기'},
-        {i:'😊',t:'오늘은 기분이 좋았어요!'},
-        {i:'💬',t:'말로 표현하기'},
-        {i:'🙋',t:'도움 요청하기'},
-        {i:'🫁',t:'심호흡·스트레칭 하기'},
-        {i:'🤫',t:'혼자 조용히 쉬기'}
+        {i:'📖',t:'책에 빠져보기', t_en:'Got lost in a book'},
+        {i:'🚶',t:'산책하기', t_en:'Went for a walk'},
+        {i:'😊',t:'오늘은 기분이 좋았어요!', t_en:'I felt good today!'},
+        {i:'💬',t:'말로 표현하기', t_en:'Used my words'},
+        {i:'🙋',t:'도움 요청하기', t_en:'Asked for help'},
+        {i:'🫁',t:'심호흡·스트레칭 하기', t_en:'Deep breaths & stretching'},
+        {i:'🤫',t:'혼자 조용히 쉬기', t_en:'Took a quiet break'}
       ]
     }]
   },
   { id:'axis3_conflict', axis:'축3+4 갈등빈도(②⑤)', text:'오늘 친구나 누군가와 갈등(다툼)이 있었나요?',
+    text_en:'Did you have a conflict with anyone today?',
     type:'yesno',
     sub:[{ id:'axis3_conflict_strategy', text:'어떻게 해결했나요? (여러개 선택 가능)',
+      text_en:'How did you handle it? (pick any that fit)',
       type:'multi', max:5,
       opts:[
-        {i:'🗣️',t:'서로 대화하기'},
-        {i:'📋',t:'규칙 다시 확인하기'},
-        {i:'👩‍🏫',t:'연구원님께 도움 요청하기'},
-        {i:'🚶',t:'잠시 거리 두기'},
-        {i:'💌',t:'사과하기'},
-        {i:'🙅',t:'해결하고 싶지 않아요', custom:true}
+        {i:'🗣️',t:'서로 대화하기', t_en:'Talked it out'},
+        {i:'📋',t:'규칙 다시 확인하기', t_en:'Looked at the rules again'},
+        {i:'👩‍🏫',t:'연구원님께 도움 요청하기', t_en:'Asked the teacher for help'},
+        {i:'🚶',t:'잠시 거리 두기', t_en:'Took some space'},
+        {i:'💌',t:'사과하기', t_en:'Said sorry'},
+        {i:'🙅',t:'해결하고 싶지 않아요', t_en:"Don't want to fix it", custom:true}
       ]
     }]
   },
   { id:'axis4_focus', axis:'축4 집중·참여(④+⑤)', text:'오늘 활동에 얼마나 집중했나요?',
-    type:'scale', emojis:['😴','😕','😐','🙂','🤩'], labels:['전혀 못 했어요','아주 잘 했어요'] },
+    text_en:'How focused were you today?',
+    type:'scale', emojis:['😴','😕','😐','🙂','🤩'],
+    labels:['전혀 못 했어요','아주 잘 했어요'], labels_en:['Not at all','Really well!'] },
   { id:'self_praise', axis:'💛 자기효능감', text:'오늘 스스로 가장 자랑스러운 것은 뭐예요?',
+    text_en:'What are you most proud of today?',
     type:'choice',
     comfort:'괜찮아요! 오늘 하루도 수고했어요. 내일은 더 좋은 일이 있을 거예요 💪',
+    comfort_en:'It\'s okay! You worked hard today. Tomorrow will bring something good 💪',
     opts:[
-      {i:'😊',t:'친구에게 친절하게 했어요'},
-      {i:'💪',t:'끝까지 집중했어요'},
-      {i:'🧘',t:'감정을 잘 조절했어요'},
-      {i:'🙋',t:'도움을 요청하거나 도와줬어요'},
-      {i:'🔥',t:'포기하지 않고 계속 해봤어요'},
-      {i:'🌟',t:'누군가에게 칭찬을 받았어요'},
-      {i:'😔',t:'오늘은 자랑스러운 것이 없어요', comfort:true}
+      {i:'😊',t:'친구에게 친절하게 했어요', t_en:'I was kind to a friend'},
+      {i:'💪',t:'끝까지 집중했어요', t_en:'I stayed focused'},
+      {i:'🧘',t:'감정을 잘 조절했어요', t_en:'I managed my feelings'},
+      {i:'🙋',t:'도움을 요청하거나 도와줬어요', t_en:'I asked for or gave help'},
+      {i:'🔥',t:'포기하지 않고 계속 해봤어요', t_en:"I didn't give up"},
+      {i:'🌟',t:'누군가에게 칭찬을 받았어요', t_en:'Someone gave me a compliment'},
+      {i:'😔',t:'오늘은 자랑스러운 것이 없어요', t_en:'Nothing today', comfort:true}
     ]
   },
   { id:'next_action', axis:'🌟 다음행동연결', text:'내일 내가 실천할 한 가지를 골라볼까요?',
+    text_en:'Pick one thing to try tomorrow',
     type:'choice',
     opts:[
-      {i:'🧘',t:'화가 날 때 심호흡하고 멈추기'},
-      {i:'💬',t:'감정을 말로 표현하기'},
-      {i:'🙋',t:'필요할 때 도움 요청하기'},
-      {i:'👂',t:'친구 말을 끝까지 듣기'},
-      {i:'⏰',t:'5분 더 집중해보기'},
-      {i:'💌',t:'먼저 "고마워" "미안해" 표현하기'},
-      {i:'🤲',t:'배려하고 양보하기'},
-      {i:'🏃',t:'산책하며 마음 가라앉히기'}
+      {i:'🧘',t:'화가 날 때 심호흡하고 멈추기', t_en:'Breathe and pause when angry'},
+      {i:'💬',t:'감정을 말로 표현하기', t_en:'Put my feelings into words'},
+      {i:'🙋',t:'필요할 때 도움 요청하기', t_en:'Ask for help when I need it'},
+      {i:'👂',t:'친구 말을 끝까지 듣기', t_en:'Listen all the way through'},
+      {i:'⏰',t:'5분 더 집중해보기', t_en:'Focus 5 more minutes'},
+      {i:'💌',t:'먼저 "고마워" "미안해" 표현하기', t_en:'Say "thank you" and "sorry" first'},
+      {i:'🤲',t:'배려하고 양보하기', t_en:'Be considerate and share'},
+      {i:'🏃',t:'산책하며 마음 가라앉히기', t_en:'Take a walk to calm down'}
     ]
   },
-  { id:'daily_rotation', axis:'🔥 Daily Rotation', text:'', type:'text',
-    placeholder:'짧게 적어도 괜찮아요', rot:true }
+  { id:'daily_rotation', axis:'🔥 Daily Rotation', text:'', text_en:'',
+    type:'text', placeholder:'짧게 적어도 괜찮아요',
+    placeholder_en:'Even a few words is fine', rot:true }
 ];
 
 // ── STATE ─────────────────────────────────────────
@@ -870,11 +1117,15 @@ const S = { name:'', ses:'', page:0, ans:{}, pages:[] };
 
 // ── INIT ──────────────────────────────────────────
 addEventListener('DOMContentLoaded', async () => {
-  const d = new Date(), days=['일','월','화','수','목','금','토'];
-  $('hdrDate').textContent = `${d.getMonth()+1}월 ${d.getDate()}일 (${days[d.getDay()]})`;
+  refreshHeaderDate();
+  applyI18n();
   await buildNameSel();
   const rq = EQ.find(q=>q.rot);
-  if (rq) rq.text = ROT[((d.getDay()+6)%7) % ROT.length];
+  if (rq) {
+    const idx = ((new Date().getDay()+6)%7) % ROT.length;
+    rq.text = ROT[idx];
+    rq.text_en = ROT_EN[idx];
+  }
 });
 
 const $ = id => document.getElementById(id);
@@ -955,14 +1206,19 @@ function startSurvey() {
   updateNav();
 }
 
+function qText(q)  { return t(q.text, q.text_en); }
+function optT(o)   { return t(o.t,    o.t_en);    }
+function qPh(q)    { return t(q.placeholder, q.placeholder_en); }
+function qLabels(q){ return isEn() && q.labels_en ? q.labels_en : q.labels; }
+
 function renderPage() {
   const box=$('qBox'); box.innerHTML='';
   const am=S.ses==='morning';
   const bdg=$('badge');
   bdg.className='bdg '+(am?'bam':'bpm');
-  bdg.textContent=am?'🌅 입실 체크':'🌙 퇴실 체크';
+  bdg.textContent = am ? (isEn()?'🌅 Morning Check':'🌅 입실 체크') : (isEn()?'🌙 Evening Check':'🌙 퇴실 체크');
   $('navNxDsk').className='nnx nav-side right '+(am?'am':'pm');
-  $('qName').textContent=S.name+' 학생을 응원해요!';
+  $('qName').textContent = isEn() ? `${S.name} — we're cheering for you!` : `${S.name} 학생을 응원해요!`;
   let total=0, gi=0;
   S.pages.forEach((p,i)=>{ total+=p.length; if(i<S.page) gi+=p.length; });
   S.pages[S.page].forEach(q=>box.appendChild(buildCard(q,++gi,total)));
@@ -974,23 +1230,36 @@ function buildCard(q, gi, total) {
   const card=el('div','qc'+(answered(q)?' done':''));
   card.id='c-'+q.id;
 
-  const displayText = q.type==='pledge'
-    ? `오늘 기분이 안 좋을 때 꼭 "${Array.isArray(S.ans[q.linkedTo])?S.ans[q.linkedTo].join(', '):(S.ans[q.linkedTo]||'선택한 방법')}" 를 실천하기로 다짐해요!`
-    : q.linkedGoal
-    ? `오늘의 목표 "${S.ans[q.linkedGoal]||'선택한 목표'}"를 이루기 위해 어떻게 할까요?`
-    : q.text;
+  const linkedRaw = S.ans[q.linkedTo];
+  const linkedDisp = Array.isArray(linkedRaw)
+    ? linkedRaw.map(toEn).join(', ')
+    : (linkedRaw ? toEn(linkedRaw) : t('선택한 방법','what I picked'));
+  const goalDisp = S.ans[q.linkedGoal] ? toEn(S.ans[q.linkedGoal]) : t('선택한 목표','my goal');
 
-  let h=q.rot?'<div class="rtag">🔥 오늘의 특별 질문</div>':'';
+  const displayText = q.type==='pledge'
+    ? t(
+        `오늘 기분이 안 좋을 때 꼭 "${linkedDisp}" 를 실천하기로 다짐해요!`,
+        `When I'm feeling down, I promise to try "${linkedDisp}"!`
+      )
+    : q.linkedGoal
+    ? t(
+        `오늘의 목표 "${goalDisp}"를 이루기 위해 어떻게 할까요?`,
+        `How will I reach my goal "${goalDisp}"?`
+      )
+    : qText(q);
+
+  const rotTag = q.rot ? `<div class="rtag">${t("🔥 오늘의 특별 질문","🔥 Today's Special Question")}</div>` : '';
+  let h = rotTag;
   h+=`<div class="qnum">Q${gi} / ${total}</div><div class="qt">${displayText}</div><div class="qax">${q.axis}</div><div id="i-${q.id}"></div>`;
   (q.sub||[]).forEach(s=>{
-    h+=`<div class="sub ${S.ans[q.id]==='yes'?'on':''}" id="s-${q.id}-${s.id}"><div class="subt">${s.text}</div><div id="i-${s.id}"></div></div>`;
+    h+=`<div class="sub ${S.ans[q.id]==='yes'?'on':''}" id="s-${q.id}-${s.id}"><div class="subt">${qText(s)}</div><div id="i-${s.id}"></div></div>`;
   });
   if (q.lowSub) {
     const ls=q.lowSub;
     const showLow = [1,2].includes(S.ans[q.id]) || (q.type==='emotion-wheel' && NEG_EMOTIONS.has(S.ans[q.id]));
-    h+=`<div class="sub ${showLow?'on':''}" id="ls-${q.id}"><div class="subt">${ls.text}</div><div id="li-${q.id}"></div></div>`;
+    h+=`<div class="sub ${showLow?'on':''}" id="ls-${q.id}"><div class="subt">${qText(ls)}</div><div id="li-${q.id}"></div></div>`;
   }
-  if (q.comfort) h+=`<div class="comfort" id="cmf-${q.id}">${q.comfort}</div>`;
+  if (q.comfort) h+=`<div class="comfort" id="cmf-${q.id}">${t(q.comfort, q.comfort_en)}</div>`;
   card.innerHTML=h;
   renderIn(q, card.querySelector('#i-'+q.id), false);
   (q.sub||[]).forEach(s=>renderIn(s, card.querySelector('#i-'+s.id), true, q.id));
@@ -1119,16 +1388,18 @@ function renderIn(q, zone, isSub, pid) {
   const {id, type} = q;
 
   if (type==='emotion-wheel') {
+    const emoLabel = e => isEn() ? (EMOTION_EN[e.id]||e.id) : e.id;
+    const emoDef = e => isEn() ? (EMOTION_DEF_EN[e.id]||'') : (EMOTION_DEF[e.id]||'');
     const wrap = el('div','ewheel-wrap');
     const center = el('div','ewheel-center');
     const cur = EMOTIONS.find(e=>e.id===S.ans[id]);
     center.innerHTML = cur
-      ? `<span style="font-size:42px;display:block;line-height:1">${cur.emoji}</span><span style="font-size:14px;font-weight:800;margin-top:4px;display:block">${cur.id}</span>`
-      : `<span style="font-size:36px;display:block;line-height:1">😶</span><span style="font-size:12px;color:var(--m);margin-top:4px;display:block">골라봐요!</span>`;
+      ? `<span style="font-size:42px;display:block;line-height:1">${cur.emoji}</span><span style="font-size:14px;font-weight:800;margin-top:4px;display:block">${emoLabel(cur)}</span>`
+      : `<span style="font-size:36px;display:block;line-height:1">😶</span><span style="font-size:12px;color:var(--m);margin-top:4px;display:block">${t('골라봐요!','Pick one!')}</span>`;
     wrap.appendChild(center);
     const defBox = el('div','edef');
     defBox.id = 'edef-'+id;
-    if(cur) { defBox.textContent=EMOTION_DEF[cur.id]||''; defBox.classList.add('on'); }
+    if(cur) { defBox.textContent=emoDef(cur); defBox.classList.add('on'); }
     const scrW = Math.min(window.innerWidth, 900);
     const SIZE = Math.min(440, Math.max(240, scrW - 76));
     const CX=SIZE/2, CY=SIZE/2, R=Math.round(SIZE*0.375);
@@ -1140,7 +1411,7 @@ function renderIn(q, zone, isSub, pid) {
       const b = document.createElement('button');
       b.className = 'eb' + (S.ans[id]===em.id?' on':'');
       b.style.cssText = `left:${x}px;top:${y}px;background:${em.bg}`;
-      b.innerHTML = `<span class="eico">${em.emoji}</span><span class="etxt">${em.id}</span>`;
+      b.innerHTML = `<span class="eico">${em.emoji}</span><span class="etxt">${emoLabel(em)}</span>`;
       b.onclick = () => {
         save(id, em.id);
         updateBackgroundColor(em.bg);
@@ -1151,8 +1422,8 @@ function renderIn(q, zone, isSub, pid) {
         const rpl=document.createElement('div'); rpl.className='eb-ripple'; b.appendChild(rpl); setTimeout(()=>rpl.remove(),450);
         center.style.transform='translate(-50%,-50%) scale(.88)';
         setTimeout(()=>{ center.style.transform='translate(-50%,-50%) scale(1)'; },120);
-        center.innerHTML = `<span style="font-size:36px;display:block;line-height:1">${em.emoji}</span><span style="font-size:13px;font-weight:800;margin-top:4px;display:block">${em.id}</span>`;
-        defBox.textContent = EMOTION_DEF[em.id]||'';
+        center.innerHTML = `<span style="font-size:36px;display:block;line-height:1">${em.emoji}</span><span style="font-size:13px;font-weight:800;margin-top:4px;display:block">${emoLabel(em)}</span>`;
+        defBox.textContent = emoDef(em);
         defBox.classList.add('on');
         if(q.lowSub) {
           const ls=document.getElementById('ls-'+id);
@@ -1166,7 +1437,9 @@ function renderIn(q, zone, isSub, pid) {
           const fo = fp.querySelector('.eq-fopts');
           const customDiv = fp.querySelector('.eq-follow-custom');
           const customInput = fp.querySelector('.eq-follow-input');
-          fq.textContent = isNeg ? '이 기분이 든 이유는 무엇일까요?' : '이 기분을 계속 이어가려면 어떻게 할까요?';
+          fq.textContent = isNeg
+            ? t('이 기분이 든 이유는 무엇일까요?', "What's making you feel this way?")
+            : t('이 기분을 계속 이어가려면 어떻게 할까요?', 'How will you keep feeling this way?');
           fo.innerHTML = '';
           customDiv.classList.remove('on');
           if (customInput) customInput.value = '';
@@ -1176,7 +1449,7 @@ function renderIn(q, zone, isSub, pid) {
             : [{i:'🌟',t:'친구들과 사이좋게 지내기'},{i:'💪',t:'오늘처럼 열심히 하기'},{i:'😊',t:'즐거운 마음으로 활동하기'},{i:'🤝',t:'도움이 필요한 친구를 먼저 도와주기'}];
           fopts.forEach(o => {
             const btn = el('button','eq-fopt');
-            btn.innerHTML = `<span>${o.i}</span>${o.t}`;
+            btn.innerHTML = `<span>${o.i}</span>${isEn() ? toEn(o.t) : o.t}`;
             btn.onclick = () => {
               fp.querySelectorAll('.eq-fopt').forEach(x=>x.classList.remove('on'));
               btn.classList.add('on');
@@ -1207,15 +1480,16 @@ function renderIn(q, zone, isSub, pid) {
     zone.appendChild(defBox);
     const followPanel = el('div','eq-follow');
     followPanel.id = 'eq-follow-'+id;
-    followPanel.innerHTML = '<div class="eq-follow-q"></div><div class="eq-fopts"></div><div class="eq-follow-custom"><input class="eq-follow-input" type="text" placeholder="여기에 직접 써봐요 ✏️" maxlength="80"></div>';
+    followPanel.innerHTML = `<div class="eq-follow-q"></div><div class="eq-fopts"></div><div class="eq-follow-custom"><input class="eq-follow-input" type="text" placeholder="${t('여기에 직접 써봐요 ✏️','Write here ✏️')}" maxlength="80"></div>`;
     zone.appendChild(followPanel);
 
   } else if (type==='scale') {
     if (q.slider) { renderEnergySlider(q, zone, isSub, pid); return; }
+    const lbls = qLabels(q);
     const row=el('div','sr');
     for (let i=1;i<=5;i++) {
       const b=el('button','sb'+(S.ans[id]===i?' on':''));
-      const edgeLbl = (i===1&&q.labels?.[0]) ? `<span class="sb-lbl">${q.labels[0]}</span>` : (i===5&&q.labels?.[1]) ? `<span class="sb-lbl">${q.labels[1]}</span>` : '';
+      const edgeLbl = (i===1&&lbls?.[0]) ? `<span class="sb-lbl">${lbls[0]}</span>` : (i===5&&lbls?.[1]) ? `<span class="sb-lbl">${lbls[1]}</span>` : '';
       b.innerHTML=`<span>${q.emojis[i-1]}</span><span class="n">${i}</span>${edgeLbl}`;
       b.onclick=()=>{
         save(id,i);
@@ -1234,7 +1508,7 @@ function renderIn(q, zone, isSub, pid) {
     const row=el('div','yr');
     ['yes','no'].forEach(v=>{
       const b=el('button','yb '+(v==='yes'?'y':'n')+(S.ans[id]===v?' on':''));
-      b.textContent=v==='yes'?'✅  예':'❌  아니요';
+      b.textContent = v==='yes' ? t('✅  예','✅  Yes') : t('❌  아니요','❌  No');
       b.onclick=()=>{
         save(id,v);
         selectOnly(row, '.yb', b); mark(id);
@@ -1250,7 +1524,9 @@ function renderIn(q, zone, isSub, pid) {
   } else if (type==='choice'||type==='multi') {
     if (type==='multi') {
       const hint=el('div','mh');
-      hint.textContent=q.max<(q.opts||[]).length?`최대 ${q.max}개까지 선택할 수 있어요`:'해당하는 것을 모두 선택하세요';
+      hint.textContent = q.max<(q.opts||[]).length
+        ? t(`최대 ${q.max}개까지 선택할 수 있어요`, `Pick up to ${q.max}`)
+        : t('해당하는 것을 모두 선택하세요', 'Pick all that apply');
       zone.appendChild(hint);
     }
     if (q.helper) { const h=el('div','mh'); h.textContent=q.helper; zone.appendChild(h); }
@@ -1259,7 +1535,7 @@ function renderIn(q, zone, isSub, pid) {
     const cur=()=>Array.isArray(S.ans[id])?S.ans[id]:[];
     opts.forEach(o=>{
       const b=el('button','cb'+((type==='choice'?S.ans[id]===o.t:cur().includes(o.t))?' on':''));
-      b.innerHTML=`<span class="ico">${o.i}</span>${o.t}`;
+      b.innerHTML=`<span class="ico">${o.i}</span>${optT(o)}`;
       b.onclick=()=>{
         if (type==='choice') {
           save(id,o.t);
@@ -1278,11 +1554,11 @@ function renderIn(q, zone, isSub, pid) {
             if(fp) {
               const fq=fp.querySelector('.follow-q');
               const fo=fp.querySelector('.follow-opts');
-              fq.innerHTML = `<strong>${o.t}</strong> ${q.followUp.text}`;
+              fq.innerHTML = `<strong>${optT(o)}</strong> ${qText(q.followUp)}`;
               fo.innerHTML='';
               q.followUp.opts.forEach(opt=>{
                 const btn = el('button','follow-opt');
-                btn.innerHTML = `<span>${opt.i}</span>${opt.t}`;
+                btn.innerHTML = `<span>${opt.i}</span>${optT(opt)}`;
                 btn.className = 'follow-opt' + (S.ans[q.followUp.id]===opt.t?' on':'');
                 btn.onclick = () => {
                   if(opt.custom) {
@@ -1303,7 +1579,7 @@ function renderIn(q, zone, isSub, pid) {
           let arr=[...cur()];
           if(arr.includes(o.t)){arr=arr.filter(x=>x!==o.t);b.classList.remove('on')}
           else{
-            if(q.max&&arr.length>=q.max){toast(`최대 ${q.max}개까지만 선택할 수 있어요!`);return}
+            if(q.max&&arr.length>=q.max){toast(t(`최대 ${q.max}개까지만 선택할 수 있어요!`, `You can only pick ${q.max}!`));return}
             arr.push(o.t);b.classList.add('on');
           }
           save(id,arr);if(!isSub) mark(pid||id);
@@ -1328,22 +1604,25 @@ function renderIn(q, zone, isSub, pid) {
     if (q.pledge) {
       const pp = el('div','q6-pledge');
       pp.id = 'pledge-'+id;
-      pp.innerHTML = '<div class="q6-pledge-txt"></div><button class="q6-pledge-btn" onclick="this.textContent=\'✅ 다짐했어요!\';this.classList.add(\'done\');this.disabled=true">다짐할게요! 🤜</button>';
+      const promised = t('✅ 다짐했어요!', '✅ Promised!');
+      const promiseBtn = t('다짐할게요! 🤜', 'I promise! 🤜');
+      pp.innerHTML = `<div class="q6-pledge-txt"></div><button class="q6-pledge-btn" onclick="this.textContent='${promised}';this.classList.add('done');this.disabled=true">${promiseBtn}</button>`;
       zone.appendChild(pp);
     }
 
   } else if (type==='text') {
-    if(q.opt){const h=el('div','oh');h.textContent='✏️ 선택 사항 — 쓰고 싶은 것만 적어요';zone.appendChild(h)}
+    if(q.opt){const h=el('div','oh');h.textContent=t('✏️ 선택 사항 — 쓰고 싶은 것만 적어요','✏️ Optional — write only if you want to');zone.appendChild(h)}
     const ta=document.createElement('textarea');
-    ta.className='ti';ta.rows=3;ta.placeholder=q.placeholder||'';ta.value=S.ans[id]||'';
+    ta.className='ti';ta.rows=3;ta.placeholder=qPh(q)||'';ta.value=S.ans[id]||'';
     ta.oninput=()=>{save(id,ta.value);if(!isSub) mark(pid||id)};
     zone.appendChild(ta);
-    if (q.hints && q.hints.length) {
+    const hints = isEn() && q.hints_en ? q.hints_en : q.hints;
+    if (hints && hints.length) {
       const lbl = el('div','hint-label');
-      lbl.textContent = '✏️ 예시를 보고 따라 써봐요';
+      lbl.textContent = t('✏️ 예시를 보고 따라 써봐요','✏️ Look at these examples & try writing');
       zone.appendChild(lbl);
       const list = el('div','hint-list');
-      q.hints.forEach(txt => {
+      hints.forEach(txt => {
         const chip = el('span','hint-chip');
         chip.textContent = txt;
         list.appendChild(chip);
@@ -1358,7 +1637,7 @@ function addCustomInput(id, grid) {
   const wrap=el('div',''); wrap.id='custom-'+id;
   wrap.style.cssText='grid-column:1/-1;margin-top:4px';
   const ta=document.createElement('textarea');
-  ta.className='ti';ta.rows=2;ta.placeholder='직접 적어주세요';
+  ta.className='ti';ta.rows=2;ta.placeholder=t('직접 적어주세요','Write your own');
   ta.oninput=()=>{ save(id+'_custom', ta.value) };
   wrap.appendChild(ta); grid.appendChild(wrap);
 }
@@ -1375,11 +1654,13 @@ function updatePledgePanel(id, arr, zone) {
   const pp = zone.querySelector('#pledge-'+id) || document.getElementById('pledge-'+id);
   if (!pp) return;
   if (!arr || arr.length === 0) { pp.classList.remove('on'); return; }
-  const joined = arr.map((t,i) => i===arr.length-1&&arr.length>1 ? t+'을(를)' : t+(i<arr.length-1?', ':'')).join('');
+  const dispArr = arr.map(toEn);
   const txt = pp.querySelector('.q6-pledge-txt');
-  if (txt) txt.textContent = `마음이 어려운 일이 생기면 "${arr.join(', ')}"을(를) 실천하기로 다짐해요!`;
+  if (txt) txt.textContent = isEn()
+    ? `When things feel hard, I promise to try "${dispArr.join(', ')}"!`
+    : `마음이 어려운 일이 생기면 "${arr.join(', ')}"을(를) 실천하기로 다짐해요!`;
   const btn = pp.querySelector('.q6-pledge-btn');
-  if (btn && !btn.disabled) { btn.textContent = '다짐할게요! 🤜'; btn.classList.remove('done'); }
+  if (btn && !btn.disabled) { btn.textContent = t('다짐할게요! 🤜','I promise! 🤜'); btn.classList.remove('done'); }
   pp.classList.add('on');
 }
 
@@ -1391,14 +1672,20 @@ function refreshLinked(goalId) {
     zone.innerHTML = '';
     renderIn(q, zone, false);
     const qt = zone.closest('.qc')?.querySelector('.qt');
-    if (qt) qt.textContent = `오늘의 목표 "${S.ans[goalId]}"를 이루기 위해 어떻게 할까요?`;
+    if (qt) {
+      const g = toEn(S.ans[goalId]);
+      qt.textContent = isEn()
+        ? `How will I reach my goal "${g}"?`
+        : `오늘의 목표 "${S.ans[goalId]}"를 이루기 위해 어떻게 할까요?`;
+    }
   });
 }
 
 // ── NAV ───────────────────────────────────────────
 function updateNav() {
   $('navBkDsk').style.visibility=S.page===0?'hidden':'visible';
-  $('navNxDsk').textContent=S.page===S.pages.length-1?'제출하기 🎉':'다음 →';
+  $('navNxDsk').textContent = S.page===S.pages.length-1 ? t('제출하기 🎉','Submit 🎉') : t('다음 →','Next →');
+  $('navBkDsk').textContent = t('← 이전','← Back');
 }
 function go(dir) {
   if(dir===1){
@@ -1406,11 +1693,11 @@ function go(dir) {
     if(bad.length){
       const textBad=bad.find(q=>q.type==='text');
       if(textBad){
-        toast('완전한 글자로 조금 더 적어줘요! ✏️');
+        toast(t('완전한 글자로 조금 더 적어줘요! ✏️','Write a few more letters! ✏️'));
         const ta=document.querySelector('#c-'+textBad.id+' textarea');
         if(ta){ta.style.outline='3px solid #FF6B35';ta.focus();setTimeout(()=>{ta.style.outline=''},2000);}
       } else {
-        toast('모든 질문에 답해줘야 해요! 😊');
+        toast(t('모든 질문에 답해줘야 해요! 😊','Please answer every question! 😊'));
       }
       return;
     }
@@ -1559,7 +1846,7 @@ function showDone(p, saved) {
   const [qt,qa]=DAILY_QUOTES[qi];
   const qtBr=qt.replace(/([\uAC00-\uD7A3][.!?])\s+/g,'$1<br>');
   $('doneQuoteCard').innerHTML=`<span class="dq-fox">🦊</span><div class="dq-text">"${qtBr}"</div>${qa?`<div class="dq-author">— ${qa}</div>`:''}`;
-  $('sumCard').innerHTML = `<div style="color:var(--m);font-size:12px;text-align:center">✨ 응원 문구를 만들고 있어요...</div>`;
+  $('sumCard').innerHTML = `<div style="color:var(--m);font-size:12px;text-align:center">${t('✨ 응원 문구를 만들고 있어요...','✨ Creating an encouragement...')}</div>`;
   generateEncouragement(p);
 
   const weekEntries = saveWeekEntry(p);
@@ -1573,6 +1860,10 @@ function showDone(p, saved) {
     const amDates = weekEntries.filter(e=>e.session==='morning').map(e=>{
       const [y,m,d]=e.date.split('-').map(Number);
       const dt=new Date(y,m-1,d);
+      if (isEn()) {
+        const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        return `${m}/${d} (${days[dt.getDay()]})`;
+      }
       return `${m}월 ${d}일(${'일월화수목금토'[dt.getDay()]})`;
     });
     const datesHTML = amDates.length
@@ -1586,16 +1877,16 @@ function showDone(p, saved) {
       $('missionCard').innerHTML = unlocked
         ? `<div style="background:linear-gradient(135deg,#EDE9FE,#FFF5D6);border-radius:20px;padding:18px 18px 14px;text-align:center;border:2px solid rgba(167,139,250,.35)">
             <div style="font-size:26px;margin-bottom:6px">🎉</div>
-            <div style="font-size:15px;font-weight:900;color:#1A1A2E;margin-bottom:4px">특별 미션이 열렸어요!</div>
-            <div style="font-size:12px;color:#6B7280;margin-bottom:14px;line-height:1.6">감정체크 기록이 쌓였어요.<br>이번 주 특별 미션에 도전해봐요 🌟</div>
-            <a href="special-mission.html" style="display:block;padding:13px;border-radius:12px;background:linear-gradient(135deg,#A78BFA,#8B5CF6);color:#fff;font-size:15px;font-weight:700;text-decoration:none;font-family:'Noto Sans KR',sans-serif;animation:mPulse 2s ease-in-out infinite">✨ 미션 하러 가기</a>
+            <div style="font-size:15px;font-weight:900;color:#1A1A2E;margin-bottom:4px">${t('특별 미션이 열렸어요!','Special mission unlocked!')}</div>
+            <div style="font-size:12px;color:#6B7280;margin-bottom:14px;line-height:1.6">${t('감정체크 기록이 쌓였어요.','Your check-ins added up.')}<br>${t('이번 주 특별 미션에 도전해봐요 🌟',"Try this week's special mission 🌟")}</div>
+            <a href="special-mission.html" style="display:block;padding:13px;border-radius:12px;background:linear-gradient(135deg,#A78BFA,#8B5CF6);color:#fff;font-size:15px;font-weight:700;text-decoration:none;font-family:'Noto Sans KR',sans-serif;animation:mPulse 2s ease-in-out infinite">${t('✨ 미션 하러 가기','✨ Go to Mission')}</a>
            </div>`
         : `<div style="background:#fff;border-radius:16px;padding:14px 18px;border:1.5px solid var(--b);">
             <div style="display:flex;align-items:center;gap:14px">
               <span style="font-size:28px">🎯</span>
               <div>
-                <div style="font-size:12px;font-weight:700;color:var(--t);margin-bottom:2px">특별 미션까지 <strong style="color:var(--v)">${remaining}회</strong> 남았어요!</div>
-                <div style="font-size:11px;color:var(--m)">5회 체크마다 특별 미션이 열려요 🌟</div>
+                <div style="font-size:12px;font-weight:700;color:var(--t);margin-bottom:2px">${isEn() ? `<strong style="color:var(--v)">${remaining}</strong> more until your next mission!` : `특별 미션까지 <strong style="color:var(--v)">${remaining}회</strong> 남았어요!`}</div>
+                <div style="font-size:11px;color:var(--m)">${t('5회 체크마다 특별 미션이 열려요 🌟','Mission unlocks every 5 check-ins 🌟')}</div>
               </div>
             </div>
             ${datesHTML}
@@ -1635,11 +1926,15 @@ function showDone(p, saved) {
 
 async function generateEncouragement(p) {
   const am = p.session === 'morning';
-  const nc = nameCall(p.student_name);
-  const summary = (am ? [
+  const ko = !isEn();
+  const nc = ko ? nameCall(p.student_name) : p.student_name.slice(1); // EN: first name only
+  // value translator for prompt
+  const v = x => ko ? x : toEn(x);
+
+  const summary = ko ? (am ? [
     p.axis1_emotion    ? `현재 마음 상태: ${p.axis1_emotion}` : '',
     p.axis1_energy     ? `에너지: ${p.axis1_energy}` : '',
-    p.axis1_anxiety === '예' ? `걱정/불안이 있음${p.axis1_anxiety_reason?': '+p.axis1_anxiety_reason:''}` : '',
+    p.axis1_anxiety === 'yes' || p.axis1_anxiety === '예' ? `걱정/불안이 있음${p.axis1_anxiety_reason?': '+p.axis1_anxiety_reason:''}` : '',
     p.axis2_goal       ? `오늘 목표: ${p.axis2_goal}` : '',
     p.axis1_difficulty ? `어려울 것 같은 상황: ${p.axis1_difficulty}` : '',
     p.axis1_coping     ? `선택한 대처 방법: ${p.axis1_coping}` : '',
@@ -1649,27 +1944,58 @@ async function generateEncouragement(p) {
     p.memory_activity      ? `기억에 남는 활동: ${p.memory_activity}${p.memory_reason ? ' - ' + p.memory_reason : ''}` : '',
     p.axis3_relation       ? `친구 관계: ${p.axis3_relation}` : '',
     p.axis3_prosocial      ? `배려 행동: ${p.axis3_prosocial}` : '',
-    p.axis1_selfcontrol==='예' ? `감정 조절 성공${p.axis1_selfcontrol_type?': '+p.axis1_selfcontrol_type:''}` : '',
-    p.axis3_conflict==='예'    ? `갈등 있었음${p.axis3_conflict_strategy?', 해결 방법: '+p.axis3_conflict_strategy:''}` : '',
+    p.axis1_selfcontrol==='yes' || p.axis1_selfcontrol==='예' ? `감정 조절 성공${p.axis1_selfcontrol_type?': '+p.axis1_selfcontrol_type:''}` : '',
+    p.axis3_conflict==='yes' || p.axis3_conflict==='예'    ? `갈등 있었음${p.axis3_conflict_strategy?', 해결 방법: '+p.axis3_conflict_strategy:''}` : '',
     p.axis4_focus    ? `집중도: ${p.axis4_focus}` : '',
     p.self_praise    ? `자랑스러운 것: ${p.self_praise}` : '',
     p.next_action    ? `내일 다짐: ${p.next_action}` : '',
     p.daily_rotation ? `오늘의 질문 답변: ${p.daily_rotation}` : '',
-  ]).filter(Boolean).join('\n');
+  ]) : (am ? [
+    p.axis1_emotion    ? `Mood: ${v(p.axis1_emotion)}` : '',
+    p.axis1_energy     ? `Energy: ${p.axis1_energy}/5` : '',
+    p.axis1_anxiety === 'yes' ? `Has worry/anxiety${p.axis1_anxiety_reason?': '+p.axis1_anxiety_reason:''}` : '',
+    p.axis2_goal       ? `Today's goal: ${v(p.axis2_goal)}` : '',
+    p.axis1_difficulty ? `Plan to reach goal: ${v(p.axis1_difficulty)}` : '',
+    p.axis1_coping     ? `Coping strategy: ${p.axis1_coping.split(' / ').map(toEn).join(' / ')}` : '',
+    p.axis3_relation_intent ? `Kindness for today: ${v(p.axis3_relation_intent)}` : '',
+  ] : [
+    p.axis1_emotion_change ? `Current mood: ${v(p.axis1_emotion_change)}` : '',
+    p.memory_activity      ? `Memorable activity: ${v(p.memory_activity)}${p.memory_reason ? ' - ' + v(p.memory_reason) : ''}` : '',
+    p.axis3_relation       ? `Friend relationship: ${p.axis3_relation}/5` : '',
+    p.axis3_prosocial      ? `Kind act today: ${v(p.axis3_prosocial)}` : '',
+    p.axis1_selfcontrol==='yes' ? `Managed feelings well${p.axis1_selfcontrol_type?': '+p.axis1_selfcontrol_type.split(' / ').map(toEn).join(' / '):''}` : '',
+    p.axis3_conflict==='yes'    ? `Had a conflict${p.axis3_conflict_strategy?', resolved by: '+p.axis3_conflict_strategy.split(' / ').map(toEn).join(' / '):''}` : '',
+    p.axis4_focus    ? `Focus: ${p.axis4_focus}/5` : '',
+    p.self_praise    ? `Proud of: ${v(p.self_praise)}` : '',
+    p.next_action    ? `Tomorrow's plan: ${v(p.next_action)}` : '',
+    p.daily_rotation ? `Reflection: ${p.daily_rotation}` : '',
+  ])).filter(Boolean).join('\n');
 
-  const prompt = am
+  const prompt = ko ? (am
     ? `너는 초등학생을 응원하는 따뜻한 선생님이야.\n아래는 ${p.student_name} 학생이 오늘 입실 체크에서 답한 내용이야:\n\n${summary}\n\n이 내용을 바탕으로 오늘 하루를 승리할 수 있도록 짧고 따뜻한 응원 문구를 써줘.\n조건:\n- 학생을 "${nc}"처럼 이름+야/아 형태로 한 번 부르기 (성 빼고 이름만, 존칭 없이)\n- 2~3문장으로 짧게\n- 구체적인 답변 내용을 1~2개 언급해서 "나를 잘 알고 있구나" 느낌이 들도록\n- 밝고 따뜻하고 힘이 나는 톤\n- 이모지 1~2개 포함\n- 존댓말 없이 친근하게`
-    : `너는 초등학생을 따뜻하게 격려하는 선생님이야.\n아래는 ${p.student_name} 학생이 오늘 퇴실 체크에서 답한 내용이야:\n\n${summary}\n\n이 내용을 바탕으로 오늘 하루의 수고와 성장을 인정하고 응원하는 따뜻한 문구를 써줘.\n조건:\n- 학생을 "${nc}"처럼 이름+야/아 형태로 한 번 부르기 (성 빼고 이름만, 존칭 없이)\n- 2~3문장으로 짧게\n- 구체적인 답변 내용(잘한 점, 노력한 점)을 1~2개 언급하기\n- "오늘 하루 수고했어", "성장했어" 느낌이 나도록\n- 내일 다짐과 연결해서 마무리해주면 좋아\n- 따뜻하고 포근한 톤, 이모지 1~2개\n- 존댓말 없이 친근하게`;
+    : `너는 초등학생을 따뜻하게 격려하는 선생님이야.\n아래는 ${p.student_name} 학생이 오늘 퇴실 체크에서 답한 내용이야:\n\n${summary}\n\n이 내용을 바탕으로 오늘 하루의 수고와 성장을 인정하고 응원하는 따뜻한 문구를 써줘.\n조건:\n- 학생을 "${nc}"처럼 이름+야/아 형태로 한 번 부르기 (성 빼고 이름만, 존칭 없이)\n- 2~3문장으로 짧게\n- 구체적인 답변 내용(잘한 점, 노력한 점)을 1~2개 언급하기\n- "오늘 하루 수고했어", "성장했어" 느낌이 나도록\n- 내일 다짐과 연결해서 마무리해주면 좋아\n- 따뜻하고 포근한 톤, 이모지 1~2개\n- 존댓말 없이 친근하게`
+  ) : (am
+    ? `You are a warm, encouraging elementary-school teacher.\nHere is what ${p.student_name} answered in today's morning check-in:\n\n${summary}\n\nWrite a short, warm encouragement to help them have a great day.\nRules:\n- Call the student by first name once: "${nc}"\n- 2-3 short sentences only\n- Mention 1-2 specific answers so it feels personal\n- Bright, warm, energetic tone for a young student\n- 1-2 emojis\n- Friendly, not formal`
+    : `You are a warm, encouraging elementary-school teacher.\nHere is what ${p.student_name} answered in today's evening check-in:\n\n${summary}\n\nWrite a short, warm message that acknowledges their effort and growth today.\nRules:\n- Call the student by first name once: "${nc}"\n- 2-3 short sentences only\n- Mention 1-2 specific answers (something they did well or tried)\n- Feels like "you worked hard today" / "you grew"\n- Optionally tie in to tomorrow's plan\n- Warm, cozy tone, 1-2 emojis\n- Friendly, not formal`
+  );
 
-  const fallbacks = am ? [
-    `${nc}, 오늘 목표인 "${p.axis2_goal}"를 꼭 이뤄보자!\n할 수 있어 💪`,
+  const fallbacks = ko ? (am ? [
+    `${nc}, 오늘 목표인 "${p.axis2_goal||''}"를 꼭 이뤄보자!\n할 수 있어 💪`,
     `${nc}, 오늘도 멋진 하루가 될 거야!\n파이팅! 🌟`,
     `${nc}, 지금 이 순간도 충분히 잘 하고 있어!\n오늘 하루도 응원해 🎉`,
   ] : [
     `${nc}, 오늘 하루도 정말 수고했어!\n${p.self_praise?'"'+p.self_praise+'" 이게 오늘의 가장 빛나는 순간이야.':'오늘도 최선을 다했잖아.'}\n내일도 응원할게 🌙`,
     `${nc}, 오늘 하루를 끝까지 해낸 너를 응원해!\n작은 노력들이 쌓여서 큰 성장이 되는 거야 💛`,
     `${nc}, 오늘도 잘 버텼어!\n힘든 순간도 있었겠지만 여기까지 온 것만으로도 충분해.\n내일은 더 좋은 하루가 될 거야 🌟`,
-  ];
+  ]) : (am ? [
+    `${nc}, let's go for today's goal: "${v(p.axis2_goal||'')}"!\nYou've got this 💪`,
+    `${nc}, today is going to be a wonderful day!\nGo go go! 🌟`,
+    `${nc}, you're already doing great just by being here.\nCheering you on today 🎉`,
+  ] : [
+    `${nc}, you really worked hard today!\n${p.self_praise?'"'+v(p.self_praise)+'" — that\'s the brightest moment of your day.':'You gave it your all today.'}\nCheering you on tomorrow too 🌙`,
+    `${nc}, way to make it through the whole day!\nLittle efforts stack up into big growth 💛`,
+    `${nc}, you held it together today!\nThere may have been tough moments, but getting here is enough.\nTomorrow will be even better 🌟`,
+  ]);
 
   await callAIAndShow(prompt, p, fallbacks);
 }
@@ -1719,55 +2045,67 @@ function showWeekSnapshot(entries, p) {
   const emoRank  = [...count(entries.map(e=>e.emotion).filter(Boolean)).entries()].sort((a,b)=>b[1]-a[1]).slice(0,2);
   const copeRank = [...count(entries.flatMap(e=>e.coping)).entries()].sort((a,b)=>b[1]-a[1]).slice(0,2);
 
+  const empty = t('아직 데이터가 쌓이는 중이에요','Building up data...');
   const emoHTML = emoRank.length
     ? emoRank.map(([id,n])=>{
         const em=EMOTIONS.find(e=>e.id===id);
-        return `<div class="snap-tag">${em?.emoji||''} ${id} <span class="snap-cnt">${n}번</span></div>`;
+        const lbl = isEn() ? (EMOTION_EN[id]||id) : id;
+        return `<div class="snap-tag">${em?.emoji||''} ${lbl} <span class="snap-cnt">${isEn()?`× ${n}`:`${n}번`}</span></div>`;
       }).join('')
-    : '<div class="snap-empty">아직 데이터가 쌓이는 중이에요</div>';
+    : `<div class="snap-empty">${empty}</div>`;
 
   const copeHTML = copeRank.length
-    ? copeRank.map(([t])=>`<div class="snap-tag">✨ ${t}</div>`).join('')
-    : '<div class="snap-empty">아직 데이터가 쌓이는 중이에요</div>';
+    ? copeRank.map(([k])=>`<div class="snap-tag">✨ ${toEn(k)}</div>`).join('')
+    : `<div class="snap-empty">${empty}</div>`;
 
   $('snapCard').innerHTML = `
     <img src="images/sitting-fox.png" class="snap-fox" alt="">
-    <div class="snap-hdr">✨ 이번 주 나는!</div>
+    <div class="snap-hdr">${t('✨ 이번 주 나는!','✨ This week, I was…')}</div>
     <div class="snap-sec">
-      <div class="snap-sh">🪞 이번 주 나는 이런 사람이었어요</div>
+      <div class="snap-sh">${t('🪞 이번 주 나는 이런 사람이었어요','🪞 Who I was this week')}</div>
       <div class="snap-tags">${emoHTML}</div>
     </div>
     <div class="snap-sec">
-      <div class="snap-sh">💡 어려운 상황에 나의 대응 방법</div>
+      <div class="snap-sh">${t('💡 어려운 상황에 나의 대응 방법','💡 How I handled tough moments')}</div>
       <div class="snap-tags">${copeHTML}</div>
     </div>
     <div class="snap-sec">
-      <div class="snap-sh">🌟 한 주 정리</div>
-      <div id="snap-msg" class="snap-loading">✨ 만들고 있어요...</div>
+      <div class="snap-sh">${t('🌟 한 주 정리','🌟 Week recap')}</div>
+      <div id="snap-msg" class="snap-loading">${t('✨ 만들고 있어요...','✨ Creating...')}</div>
     </div>`;
 
   genWeekMsg(entries, p, emoRank, copeRank);
 }
 
 async function genWeekMsg(entries, p, emoRank, copeRank) {
-  const nc        = nameCall(p.student_name);
+  const ko        = !isEn();
+  const nc        = ko ? nameCall(p.student_name) : p.student_name.slice(1);
   const firstName = p.student_name.slice(1);
-  const emoStr    = emoRank.map(([id,n])=>`${id}(${n}번)`).join(', ') || '없음';
-  const copeStr   = copeRank.map(([t])=>t).join(', ') || '없음';
+  const emoStr    = ko
+    ? (emoRank.map(([id,n])=>`${id}(${n}번)`).join(', ') || '없음')
+    : (emoRank.map(([id,n])=>`${EMOTION_EN[id]||id} (×${n})`).join(', ') || 'none');
+  const copeStr   = ko
+    ? (copeRank.map(([k])=>k).join(', ') || '없음')
+    : (copeRank.map(([k])=>toEn(k)).join(', ') || 'none');
+
+  const emo  = emoRank[0]?.[0];
+  const cope = copeRank[0]?.[0];
 
   // Korean particle helpers
-  const jong  = s => { const c=s.charCodeAt(s.length-1); return c>=0xAC00&&c<=0xD7A3?(c-0xAC00)%28:-1; };
+  const jong    = s => { const c=s.charCodeAt(s.length-1); return c>=0xAC00&&c<=0xD7A3?(c-0xAC00)%28:-1; };
   const eulreul = s => jong(s)===0?'를':'을';
   const euro_ro = s => { const j=jong(s); return j===0||j===8?'로':'으로'; };
   const nameAcc = n => jong(n)===0?n+'를':n+'이를';
 
-  const emo  = emoRank[0]?.[0];
-  const cope = copeRank[0]?.[0];
-  const fallback = emo
+  const fallback = ko ? (emo
     ? `${nc}, ${emo}${eulreul(emo)} 자주 느꼈네. ${cope?cope+euro_ro(cope)+' 잘 이겨낸 ':'매일 스스로를 돌본 '}${nameAcc(firstName)} 칭찬해! 🌿`
-    : `${nc}, 이번 주도 자신을 돌아본 ${nameAcc(firstName)} 칭찬해! 🌿`;
+    : `${nc}, 이번 주도 자신을 돌아본 ${nameAcc(firstName)} 칭찬해! 🌿`
+  ) : (emo
+    ? `${nc}, you felt ${EMOTION_EN[emo]||emo} a lot this week — and you took care of yourself${cope?` by ${toEn(cope).toLowerCase()}`:''}. So proud of you! 🌿`
+    : `${nc}, you reflected on yourself this whole week. So proud of you! 🌿`
+  );
 
-  const prompt = `너는 초등학생을 응원하는 따뜻한 선생님이야.
+  const prompt = ko ? `너는 초등학생을 응원하는 따뜻한 선생님이야.
 아래는 ${p.student_name} 학생의 이번 주 감정 체크 데이터야 (최근 7일, ${entries.length}회):
 - 자주 느낀 감정: ${emoStr}
 - 주로 사용한 대처 방법: ${copeStr}
@@ -1782,7 +2120,22 @@ async function genWeekMsg(entries, p, emoRank, copeRank) {
 - 분석 느낌 없이 따뜻하고 친근하게
 - 이모지 1개 (🌿 🌟 💛 중 하나)
 - 존댓말 없이
-예시: "${nc}, 감사한 마음을 자주 느끼면서 산책으로 스스로를 잘 돌본 ${nameAcc(firstName)} 칭찬해! 🌿"`;
+예시: "${nc}, 감사한 마음을 자주 느끼면서 산책으로 스스로를 잘 돌본 ${nameAcc(firstName)} 칭찬해! 🌿"`
+  : `You are a warm, encouraging elementary-school teacher.
+Here is ${p.student_name}'s weekly emotion-check data (last 7 days, ${entries.length} entries):
+- Often felt: ${emoStr}
+- Main coping strategies: ${copeStr}
+
+Write ONE warm, short sentence to wrap up the week.
+Rules:
+- Start with the student's first name: "${nc}"
+- Exactly one sentence, kept short
+- Use "you felt ... a lot" — never "the most"
+- End with "So proud of you!" or "I'm proud of you!"
+- Weave in a coping strategy naturally
+- Warm and friendly, NOT analytical
+- One emoji (pick from 🌿 🌟 💛)
+Example: "${nc}, you felt grateful a lot this week and took such good care of yourself with walks — so proud of you! 🌿"`;
 
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
@@ -1820,7 +2173,7 @@ function saveModal(){
   const n=$('mNames').value.trim(),u=$('mUrl').value.trim();
   if(n) localStorage.setItem(K_NAMES,n);
   if(u) localStorage.setItem(K_SCRIPT,u);
-  buildNameSel();closeModal();toast('설정이 저장됐어요 ✅');
+  buildNameSel();closeModal();toast(t('설정이 저장됐어요 ✅','Settings saved ✅'));
 }
 $('modal').addEventListener('click',e=>{if(e.target===$('modal'))closeModal()});
 
