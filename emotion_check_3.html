@@ -775,7 +775,7 @@ const I18N = {
   hero_title:       ['감정체크!', 'Emotion Check!'],
   hero_sub:         ['오늘의 나를 기록하는 시간 🌱', 'Time to record how I am today 🌱'],
   pick_name:        ['📋 내 이름을 골라요', '📋 Pick your name'],
-  pick_name_placeholder: ['-- 이름을 선택하세요 --', '-- Select your name --'],
+  pick_name_placeholder: ['-- 이름을 선택하세요 --', '-- Name --'],
   manual:           ['💡 정답이 없으니 마음 가는 대로 툭! 표시해 주세요. 지금 딱 드는 생각을 알려주세요.', "💡 No right answers — check whatever feels true. Just tell us what's on your mind."],
   lm_title:         ['✨ 특별 미션이 열려 있어요!', '✨ Special mission is open!'],
   lm_sub:           ['지금 바로 도전해봐요 🌟', 'Try it right now 🌟'],
@@ -1141,7 +1141,7 @@ const el = (tag,cls) => { const e=document.createElement(tag); e.className=cls; 
 
 function populateSel(sel, names) {
   const cur = sel.value;
-  sel.innerHTML = '<option value="">-- 이름을 선택하세요 --</option>';
+  sel.innerHTML = `<option value="" data-i18n="pick_name_placeholder">${t('-- 이름을 선택하세요 --','-- Name --')}</option>`;
   [...names].sort((a,b)=>a.localeCompare(b,'ko')).forEach(n => {
     const o=document.createElement('option'); o.value=o.textContent=n; sel.appendChild(o);
   });
