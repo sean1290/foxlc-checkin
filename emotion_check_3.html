@@ -1931,7 +1931,7 @@ async function generateEncouragement(p) {
   // value translator for prompt
   const v = x => ko ? x : toEn(x);
 
-  const summary = ko ? (am ? [
+  const summary = (ko ? (am ? [
     p.axis1_emotion    ? `현재 마음 상태: ${p.axis1_emotion}` : '',
     p.axis1_energy     ? `에너지: ${p.axis1_energy}` : '',
     p.axis1_anxiety === 'yes' || p.axis1_anxiety === '예' ? `걱정/불안이 있음${p.axis1_anxiety_reason?': '+p.axis1_anxiety_reason:''}` : '',
