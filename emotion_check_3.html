@@ -260,7 +260,8 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 #missionCard:empty{display:none}
 @keyframes up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 .scard{background:#fff;border-radius:32px;padding:28px 24px;margin:0;box-shadow:0 12px 40px rgba(0,0,0,.12);border:none;position:relative;overflow:hidden}
-#snapCard .snap-fox{position:absolute;right:0;bottom:-38px;height:450px;width:auto;pointer-events:none;opacity:.9}
+#snapCard .snap-fox{position:absolute;right:-30px;top:-50px;height:200px;width:auto;pointer-events:none;opacity:.95;z-index:0}
+#snapCard .snap-hdr,#snapCard .snap-sec{position:relative;z-index:1}
 .done-seq .done-top-row{animation:up .5s cubic-bezier(.25,.46,.45,.94) .05s both}
 .done-seq #missionCard{animation:up .5s cubic-bezier(.25,.46,.45,.94) .35s both}
 .done-seq #snapCard{animation:up .5s cubic-bezier(.25,.46,.45,.94) .5s both}
