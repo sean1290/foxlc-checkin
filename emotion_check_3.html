@@ -2273,7 +2273,10 @@ function adminChangeCode() {
 
 function openSnackForm() {
   const m = document.getElementById('snackModal');
-  document.getElementById('snackFrame').src = 'https://docs.google.com/forms/d/e/1FAIpQLScaHLq4dyg4aYftzU5p5OoH2ijvDy-OA9dJAAzUHFH4fG7Nig/viewform?embedded=true';
+  const url = isEn()
+    ? 'https://forms.gle/GQ29FXQWgr46zdvL6?embedded=true'
+    : 'https://docs.google.com/forms/d/e/1FAIpQLScaHLq4dyg4aYftzU5p5OoH2ijvDy-OA9dJAAzUHFH4fG7Nig/viewform?embedded=true';
+  document.getElementById('snackFrame').src = url;
   m.style.display = 'flex';
 }
 function closeSnackForm() {
