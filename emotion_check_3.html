@@ -822,6 +822,13 @@ function toggleLang() {
   LANG.cur = isEn() ? 'ko' : 'en';
   localStorage.setItem(K_LANG, LANG.cur);
   applyI18n();
+  // Re-sort name dropdown with new locale rules
+  const sel = document.getElementById('nameSel');
+  if (sel) {
+    const saved = localStorage.getItem(K_NAMES);
+    const names = saved ? saved.split(',').map(n=>n.trim()).filter(Boolean) : [...NAMES];
+    populateSel(sel, names);
+  }
   // Re-render dynamic parts if visible
   if (document.getElementById('s-q')?.classList.contains('on') && S.pages.length) {
     renderPage(); updateNav();
@@ -1145,7 +1152,14 @@ const el = (tag,cls) => { const e=document.createElement(tag); e.className=cls; 
 function populateSel(sel, names) {
   const cur = sel.value;
   sel.innerHTML = `<option value="" data-i18n="pick_name_placeholder">${t('-- 이름을 선택하세요 --','-- Name --')}</option>`;
-  [...names].sort((a,b)=>a.localeCompare(b,'ko')).forEach(n => {
+  const startsLatin = n => /^[A-Za-z]/.test(n);
+  const sorted = [...names].sort((a,b) => {
+    const aLat = startsLatin(a), bLat = startsLatin(b);
+    // EN mode: Latin names on top; KO mode: Hangul on top
+    if (aLat !== bLat) return isEn() ? (aLat ? -1 : 1) : (aLat ? 1 : -1);
+    return a.localeCompare(b, isEn() ? 'en' : 'ko');
+  });
+  sorted.forEach(n => {
     const o=document.createElement('option'); o.value=o.textContent=n; sel.appendChild(o);
   });
   if(cur) sel.value = cur;
