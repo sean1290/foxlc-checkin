@@ -862,19 +862,120 @@ const NAMES = [
   '정윤우','김폭스'
 ];
 
+// 입실 마지막 질문 (4가지) — 매일 회전
+const MQ_ROT = [
+  '오늘 폭스에서 어떤 시간이 가장 기다려지나요?',
+  '오늘 폭스에서 제일 해보고 싶은 건 뭐예요?',
+  '오늘은 어떤 기분으로 시작하고 싶나요?',
+  '오늘 폭스에서 어떤 하루를 보내고 싶나요?'
+];
+const MQ_ROT_EN = [
+  'What part of today at Fox are you looking forward to most?',
+  'What do you most want to try at Fox today?',
+  'How do you want to feel as you start today?',
+  'What kind of day do you want to have at Fox today?'
+];
+const MQ_ROT_HINTS = [
+  [
+    '❤️ SEL 연구소 시간이 가장 기다려져요',
+    '🤖 AI 연구소 활동이 기다려져요',
+    '🍱 친구들과 간식 먹는 시간이 기다려져요'
+  ],
+  [
+    '🎨 미술 연구소에서 새 작품을 만들어보고 싶어요',
+    '🔢 수리 연구소에서 어려운 문제에 도전해보고 싶어요',
+    '🌍 영어 연구소에서 새로운 단어를 배워보고 싶어요'
+  ],
+  [
+    '😊 즐겁고 신나는 기분으로 시작하고 싶어요',
+    '💪 자신감 있는 기분으로 시작하고 싶어요',
+    '🌟 새로운 걸 도전하는 기분으로 시작하고 싶어요'
+  ],
+  [
+    '🤝 친구들과 사이좋게 지내는 하루를 보내고 싶어요',
+    '🎯 끝까지 집중하는 하루를 보내고 싶어요',
+    '🌈 새로운 걸 많이 배우는 하루를 보내고 싶어요'
+  ]
+];
+const MQ_ROT_HINTS_EN = [
+  [
+    "❤️ SEL Lab time",
+    "🤖 AI Lab activities",
+    "🍱 Snack time with friends"
+  ],
+  [
+    "🎨 I want to make new art at the Art Lab",
+    "🔢 I want to take on a hard problem at the Math Lab",
+    "🌍 I want to learn new words at the English Lab"
+  ],
+  [
+    "😊 I want to start feeling happy and excited",
+    "💪 I want to start feeling confident",
+    "🌟 I want to start ready for a new challenge"
+  ],
+  [
+    "🤝 A day of getting along with friends",
+    "🎯 A day of staying focused to the end",
+    "🌈 A day of learning lots of new things"
+  ]
+];
+
+// 퇴실 마지막 질문 (4가지) — 매일 회전
 const ROT = [
-  '오늘 내가 가장 감사했던 순간은?',
-  '오늘 내가 용기를 낸 순간은?',
-  '오늘 내가 참은 순간은?',
-  '오늘 가장 기뻤던 일은?',
-  '오늘 내가 배운 한 가지는?'
+  '오늘 내가 잘한 행동은 무엇이었나요?',
+  '오늘 스스로 뿌듯했던 순간은 언제였나요?',
+  '오늘 나를 칭찬해주고 싶은 순간은 언제였나요?',
+  "오늘 '잘했다!' 하고 싶은 순간이 있었나요?"
 ];
 const ROT_EN = [
-  "What was today's most grateful moment?",
-  "When did you show courage today?",
-  "When did you hold back today?",
-  "What was today's happiest moment?",
-  "What's one thing you learned today?"
+  'What did you do well today?',
+  'When did you feel proud of yourself today?',
+  'When did you want to give yourself a compliment today?',
+  "Was there a moment today you'd say \"I did it!\" to?"
+];
+const ROT_HINTS = [
+  [
+    '🤝 친구의 이야기를 끝까지 들었어요',
+    '🎯 활동에 끝까지 집중했어요',
+    '💌 먼저 "고마워"라고 말했어요'
+  ],
+  [
+    '💪 어려운 문제를 끝까지 풀어냈을 때',
+    '🌟 도움이 필요한 친구를 도와줬을 때',
+    '🧘 화났을 때 잠시 멈춰서 마음을 가라앉혔을 때'
+  ],
+  [
+    '🙋 모를 때 용기내서 손을 들고 물어봤을 때',
+    '🤲 친구에게 양보했을 때',
+    '🔥 포기하고 싶었지만 다시 도전했을 때'
+  ],
+  [
+    '🎯 약속한 목표를 끝까지 해냈을 때',
+    '😊 친구의 기분을 살펴줬을 때',
+    '🌱 새로운 걸 배워서 알게 됐을 때'
+  ]
+];
+const ROT_HINTS_EN = [
+  [
+    "🤝 I listened to my friend all the way through",
+    "🎯 I stayed focused on the activity until the end",
+    '💌 I said "thank you" first'
+  ],
+  [
+    "💪 When I solved a hard problem all the way",
+    "🌟 When I helped a friend who needed help",
+    "🧘 When I paused to calm down when I was angry"
+  ],
+  [
+    "🙋 When I raised my hand to ask even when I wasn't sure",
+    "🤲 When I let a friend go first",
+    "🔥 When I tried again even though I wanted to give up"
+  ],
+  [
+    "🎯 When I finished a goal I set",
+    "😊 When I noticed how a friend was feeling",
+    "🌱 When I learned something new"
+  ]
 ];
 
 // ── 입실 문항 ─────────────────────────────────────
@@ -963,23 +1064,11 @@ const MQ = [
       {i:'✏️',t:'직접 적기', t_en:'Write your own', custom:true}
     ]
   },
-  { id:'오늘_기대되는_것', axis:'🌟 기대',
-    text:'오늘은 무엇이 가장 기대되나요?',
-    text_en:"What are you most excited about today?",
+  { id:'오늘_기대되는_것', axis:'🌟 오늘의 한마디',
+    text:'', text_en:'',
     type:'text', placeholder:'자유롭게 적어봐요 (한글/영문 OK)',
     placeholder_en:'Write freely (Korean or English)', allowEn:true,
-    hints:[
-      '❤️ SEL 연구소에서 ______ 활동이 기대되요.',
-      '🌍 영어 연구소에서 ______ 활동이 기대되요.',
-      '🤖 AI 연구소에서 ______ 활동이 기대되요.',
-      '🙌 ______ 연구원님을 만나는게 기대되요.'
-    ],
-    hints_en:[
-      "❤️ I'm excited about ______ at the SEL Lab.",
-      "🌍 I'm excited about ______ at the English Lab.",
-      "🤖 I'm excited about ______ at the AI Lab.",
-      "🙌 I'm excited to see Teacher ______."
-    ] }
+    hints:[], hints_en:[], morningRot:true }
 ];
 
 // 오늘(4/24)만 표시되는 특별 질문
@@ -1130,13 +1219,30 @@ addEventListener('DOMContentLoaded', async () => {
   refreshHeaderDate();
   applyI18n();
   await buildNameSel();
+  applyDailyRotation();
+});
+
+function applyDailyRotation() {
+  const dow = (new Date().getDay()+6)%7;   // Mon=0 .. Sun=6
+  // 퇴실 마지막 질문
   const rq = EQ.find(q=>q.rot);
   if (rq) {
-    const idx = ((new Date().getDay()+6)%7) % ROT.length;
-    rq.text = ROT[idx];
-    rq.text_en = ROT_EN[idx];
+    const i = dow % ROT.length;
+    rq.text = ROT[i];
+    rq.text_en = ROT_EN[i];
+    rq.hints = ROT_HINTS[i] || [];
+    rq.hints_en = ROT_HINTS_EN[i] || [];
   }
-});
+  // 입실 마지막 질문
+  const mq = MQ.find(q=>q.morningRot);
+  if (mq) {
+    const i = dow % MQ_ROT.length;
+    mq.text = MQ_ROT[i];
+    mq.text_en = MQ_ROT_EN[i];
+    mq.hints = MQ_ROT_HINTS[i] || [];
+    mq.hints_en = MQ_ROT_HINTS_EN[i] || [];
+  }
+}
 
 const $ = id => document.getElementById(id);
 const show = id => {
