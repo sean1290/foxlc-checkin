@@ -1862,6 +1862,15 @@ async function submit() {
       else payload[k] = v;
     }
   });
+  // 회전 질문: 시트에 [질문 // 답변] 형태로 기록 (어떤 질문이었는지 알 수 있게)
+  const mq = MQ.find(q => q.morningRot);
+  if (mq && payload['오늘_기대되는_것']) {
+    payload['오늘_기대되는_것'] = `${mq.text} // ${payload['오늘_기대되는_것']}`;
+  }
+  const eq = EQ.find(q => q.rot);
+  if (eq && payload['daily_rotation']) {
+    payload['daily_rotation'] = `${eq.text} // ${payload['daily_rotation']}`;
+  }
   const url=localStorage.getItem(K_SCRIPT)||DEFAULT_SCRIPT_URL;
   setP(100);
   if(!url){showDone(payload,false);return}
