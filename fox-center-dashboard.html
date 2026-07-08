@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>폭스러닝센터 · 기획/팀장 운영 시스템</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" media="print" onload="this.media='all'">
+<style>
+:root{
+  --bg:#f5f6f8; --card:#ffffff; --line:#e5e8ec; --line2:#eef0f4;
+  --txt:#1f2937; --sub:#6b7280; --faint:#9ca3af;
+  --fox:#f97316; --fox-soft:#fff3e8; --fox-deep:#c2540a;
+  --red:#dc2626; --red-bg:#fee2e2; --orange:#ea580c; --orange-bg:#ffedd5;
+  --yellow:#ca8a04; --yellow-bg:#fef9c3; --green:#16a34a; --green-bg:#dcfce7;
+  --blue:#2563eb; --blue-bg:#dbeafe; --purple:#7c3aed; --purple-bg:#ede9fe;
+  --gray:#4b5563; --gray-bg:#f3f4f6;
+  --r:12px; --sh:0 1px 3px rgba(16,24,40,.05),0 1px 2px rgba(16,24,40,.03);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Pretendard,-apple-system,'Segoe UI','Malgun Gothic',sans-serif;background:var(--bg);color:var(--txt);font-size:14px;line-height:1.55}
+button{font-family:inherit;cursor:pointer;border:none;background:none;font-size:13px;color:inherit}
+input,select,textarea{font-family:inherit;font-size:13px;color:var(--txt)}
+a{color:var(--blue)}
+
+/* ── Header ── */
+header{background:#fff;border-bottom:1px solid var(--line);padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;position:sticky;top:0;z-index:50}
+.logo h1{font-size:17px;font-weight:800;letter-spacing:-.2px}
+.logo .sub{font-size:12px;color:var(--sub);font-weight:500}
+.week-pill{background:var(--fox-soft);color:var(--fox-deep);font-weight:700;padding:5px 13px;border-radius:999px;font-size:12.5px}
+.hd-sp{flex:1}
+.hd-btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 12px;font-weight:600;color:var(--gray);font-size:12.5px}
+.hd-btn:hover{background:var(--gray-bg)}
+#saveStamp{font-size:11px;color:var(--faint)}
+
+/* ── Tabs ── */
+nav{background:#fff;border-bottom:1px solid var(--line);padding:0 24px;display:flex;gap:4px;overflow-x:auto;position:sticky;top:63px;z-index:49}
+nav button{padding:11px 15px;font-size:13.5px;font-weight:600;color:var(--sub);border-bottom:2.5px solid transparent;white-space:nowrap}
+nav button.on{color:var(--fox-deep);border-bottom-color:var(--fox)}
+nav button:hover{color:var(--txt)}
+
+main{max-width:1240px;margin:0 auto;padding:20px 24px 60px}
+.tab{display:none}.tab.on{display:block}
+
+/* ── Cards ── */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);padding:18px;margin-bottom:16px}
+.card h3{font-size:13.5px;font-weight:800;margin-bottom:12px;display:flex;align-items:center;gap:7px}
+.card h3 .cnt{font-size:11px;background:var(--gray-bg);color:var(--sub);border-radius:999px;padding:1px 8px;font-weight:700}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:1fr 1fr}
+@media(max-width:900px){.g2{grid-template-columns:1fr}}
+.muted{color:var(--faint);font-size:12.5px}
+.empty{color:var(--faint);text-align:center;padding:22px 0;font-size:13px}
+.dot{display:inline-block;width:8px;height:8px;border-radius:99px}
+
+/* ── Stat cards ── */
+.stats{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:16px}
+@media(max-width:900px){.stats{grid-template-columns:repeat(3,1fr)}}
+.stat{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:13px 16px;box-shadow:var(--sh);cursor:pointer;transition:transform .1s}
+.stat:hover{transform:translateY(-2px)}
+.stat .lb{font-size:12px;font-weight:600;color:var(--sub);display:flex;align-items:center;gap:6px}
+.stat .num{font-size:25px;font-weight:800;margin-top:3px}
+.stat.warn .num{color:var(--red)}
+
+/* ── Badges ── */
+.b-critical{background:var(--red-bg);color:var(--red)} .b-high{background:var(--orange-bg);color:var(--orange)}
+.b-medium{background:var(--yellow-bg);color:var(--yellow)} .b-low{background:var(--green-bg);color:var(--green)}
+.b-planned{background:var(--gray-bg);color:var(--gray)} .b-active{background:var(--blue-bg);color:var(--blue)}
+.b-review{background:var(--purple-bg);color:var(--purple)} .b-done{background:var(--green-bg);color:var(--green)}
+.b-hold{background:#e5e7eb;color:#374151}
+.due{display:inline-block;border-radius:6px;padding:1px 7px;font-size:11px;font-weight:700}
+.due-over{background:var(--red);color:#fff} .due-3{background:var(--orange-bg);color:var(--orange)}
+.due-7{background:var(--yellow-bg);color:var(--yellow)} .due-ok{background:var(--gray-bg);color:var(--sub)}
+.bdg{display:inline-flex;border-radius:6px;padding:2px 8px;font-size:11.5px;font-weight:700;white-space:nowrap}
+
+/* ── Tables ── */
+table{width:100%;border-collapse:collapse}
+th{font-size:11.5px;color:var(--sub);font-weight:700;text-align:left;padding:9px 10px;border-bottom:1.5px solid var(--line);white-space:nowrap;background:#fafbfc}
+td{padding:8px 10px;border-bottom:1px solid var(--line2);vertical-align:middle;font-size:13px}
+tr:hover td{background:#fafbfd}
+.tbl-wrap{overflow-x:auto}
+[contenteditable]{border-radius:6px;padding:3px 6px;min-width:40px;outline:none;transition:box-shadow .12s;cursor:text}
+[contenteditable]:hover{background:var(--gray-bg)}
+[contenteditable]:focus{background:#fff;box-shadow:0 0 0 2px var(--fox)}
+[contenteditable]:empty::before{content:attr(data-ph);color:var(--faint)}
+select.cell{border:1px solid transparent;background:transparent;border-radius:6px;padding:3px 4px;font-weight:600;cursor:pointer;appearance:auto}
+select.cell:hover{border-color:var(--line);background:#fff}
+input.cell-date{border:1px solid transparent;background:transparent;border-radius:6px;padding:2px 4px;cursor:pointer;width:118px}
+input.cell-date:hover{border-color:var(--line);background:#fff}
+.icon-btn{color:var(--faint);font-size:13px;padding:3px 6px;border-radius:6px}
+.icon-btn:hover{background:var(--red-bg);color:var(--red)}
+
+/* drag */
+.handle{cursor:grab;color:var(--faint);font-size:14px;user-select:none;padding:2px 4px;border-radius:5px}
+.handle:hover{background:var(--gray-bg);color:var(--txt)}
+.exp-btn{color:var(--faint);font-size:10px;padding:3px 5px;border-radius:5px;font-weight:700}
+.exp-btn:hover{background:var(--gray-bg);color:var(--txt)}
+tr.hint-top td{box-shadow:inset 0 3px 0 var(--fox)}
+tr.hint-bottom td{box-shadow:inset 0 -3px 0 var(--fox)}
+tr.dragging td{opacity:.4}
+
+/* progress */
+.prog{display:flex;align-items:center;gap:6px}
+.prog input[type=range]{width:64px;accent-color:var(--fox);cursor:pointer}
+.prog .pv{font-size:11.5px;font-weight:700;color:var(--sub);width:32px}
+.pbar{height:5px;background:var(--line2);border-radius:99px;overflow:hidden;margin-top:3px}
+.pbar>div{height:100%;background:linear-gradient(90deg,#fb923c,#f97316);border-radius:99px}
+
+/* project detail row */
+.detail td{background:#fbfcfe;padding:14px 18px}
+.detail-grid{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:18px}
+@media(max-width:900px){.detail-grid{grid-template-columns:1fr}}
+.dlabel{font-size:11px;font-weight:800;color:var(--fox-deep);letter-spacing:.5px;margin-bottom:6px}
+.chk{display:flex;align-items:center;gap:7px;padding:3px 0}
+.chk input{accent-color:var(--green);cursor:pointer}
+.chk .del{opacity:0;color:var(--faint)}
+.chk:hover .del{opacity:1}
+.mini-btn{font-size:11.5px;font-weight:700;color:var(--fox-deep);background:var(--fox-soft);border-radius:6px;padding:4px 10px}
+.mini-btn:hover{background:#ffe4cc}
+.mini-btn.gray{background:var(--gray-bg);color:var(--gray)}
+
+/* toolbar */
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.toolbar select,.toolbar input[type=text]{border:1px solid var(--line);border-radius:8px;padding:7px 10px;background:#fff}
+.add-btn{background:var(--fox);color:#fff;font-weight:700;border-radius:8px;padding:8px 16px;font-size:13px;box-shadow:var(--sh)}
+.add-btn:hover{background:#ea580c}
+
+/* dashboard lists */
+.top5-item{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--line2)}
+.top5-item:last-child{border-bottom:none}
+.top5-item .rank{width:23px;height:23px;border-radius:7px;background:var(--fox-soft);color:var(--fox-deep);font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.top5-item .nm{font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
+.top5-item .nm:hover{color:var(--fox-deep)}
+.blk-item{padding:8px 10px;border-left:3px solid var(--red);background:#fef7f7;border-radius:0 8px 8px 0;margin-bottom:8px}
+.blk-item b{font-size:13px}
+.blk-item .who{font-size:11.5px;color:var(--sub)}
+.mtg-chk{display:flex;align-items:center;gap:8px;padding:5px 0}
+.mtg-chk input[type=checkbox]{width:16px;height:16px;accent-color:var(--fox);cursor:pointer}
+.mtg-chk .del{opacity:0;color:var(--faint)}
+.mtg-chk:hover .del{opacity:1}
+.mtg-chk span.done-lb{text-decoration:line-through;color:var(--faint)}
+.pp-hot{color:var(--red);font-weight:800}
+
+/* 담당자 칩 + 선택 팝업 */
+.own-wrap{display:flex;flex-wrap:wrap;gap:4px;align-items:center;min-width:90px}
+.own-chip{display:inline-flex;align-items:center;gap:4px;background:var(--gray-bg);border-radius:99px;padding:2px 8px;font-size:11.5px;font-weight:600;white-space:nowrap}
+.own-chip button{color:var(--faint);font-size:10px;padding:0 1px}
+.own-chip button:hover{color:var(--red)}
+.own-add{width:20px;height:20px;border-radius:99px;border:1px dashed var(--faint);color:var(--sub);font-size:12px;line-height:1;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+.own-add:hover{border-color:var(--fox);color:var(--fox-deep);background:var(--fox-soft)}
+#pickPop{position:fixed;z-index:200;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 28px rgba(16,24,40,.16);padding:8px;min-width:190px;display:none}
+#pickPop .pk-item{display:flex;align-items:center;gap:8px;padding:5px 7px;border-radius:7px;cursor:pointer;font-size:13px}
+#pickPop .pk-item:hover{background:var(--gray-bg)}
+#pickPop .pk-item input{accent-color:var(--fox);pointer-events:none}
+#pickPop .pk-item span{flex:1}
+#pickPop .pk-del{color:var(--faint);font-size:11px;padding:1px 5px;border-radius:5px;opacity:0}
+#pickPop .pk-item:hover .pk-del{opacity:1}
+#pickPop .pk-del:hover{background:var(--red-bg);color:var(--red)}
+#pickPop .pk-new{display:flex;gap:6px;margin-top:6px;border-top:1px solid var(--line2);padding-top:8px}
+#pickPop .pk-new input{flex:1;border:1px solid var(--line);border-radius:7px;padding:5px 8px;min-width:90px}
+
+/* meetings */
+.pdf-link{font-weight:600;color:var(--blue);padding:3px 8px;border-radius:6px;font-size:12.5px}
+.pdf-link:hover{background:var(--blue-bg)}
+
+/* calendar */
+.cal-now td{background:var(--fox-soft)!important}
+.cal-month{font-weight:800;white-space:nowrap}
+.cal-due{font-size:11.5px;line-height:1.7}
+.cal-due .d{display:block;color:var(--sub)}
+.cal-due .d b{color:var(--txt)}
+
+footer{max-width:1240px;margin:0 auto;padding:0 24px 40px;color:var(--faint);font-size:11.5px;display:flex;gap:14px;align-items:center}
+footer button{color:var(--faint);text-decoration:underline;font-size:11.5px}
+
+#toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(80px);background:#1f2937;color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;transition:transform .25s;z-index:99;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+#toast.show{transform:translateX(-50%) translateY(0)}
+
+@media print{
+  header .hd-btn,nav,footer,.toolbar,.icon-btn,.exp-btn,.add-btn,.mini-btn,.handle{display:none!important}
+  body{background:#fff}
+  .tab{display:none}.tab.on{display:block}
+  .card{box-shadow:none;break-inside:avoid}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <h1>폭스러닝센터</h1>
+    <div class="sub">기획/팀장 운영 시스템</div>
+  </div>
+  <div class="week-pill" id="weekPill"></div>
+  <div class="hd-sp"></div>
+  <span id="saveStamp"></span>
+  <button class="hd-btn" onclick="exportJSON()">내보내기</button>
+  <button class="hd-btn" onclick="document.getElementById('impFile').click()">가져오기</button>
+  <button class="hd-btn" onclick="window.print()">인쇄</button>
+</header>
+
+<nav id="tabNav">
+  <button data-t="dash" class="on">대시보드</button>
+  <button data-t="proj">프로젝트</button>
+  <button data-t="meet">회의록</button>
+  <button data-t="cal">연간 캘린더</button>
+  <button data-t="sop">운영 문서</button>
+  <button data-t="comp">완료</button>
+</nav>
+
+<main>
+  <section id="tab-dash" class="tab on"></section>
+  <section id="tab-proj" class="tab"></section>
+  <section id="tab-meet" class="tab"></section>
+  <section id="tab-cal" class="tab"></section>
+  <section id="tab-sop" class="tab"></section>
+  <section id="tab-comp" class="tab"></section>
+</main>
+
+<footer>
+  <span>링크를 가진 사람은 누구나 함께 보고 수정할 수 있습니다 · 변경 사항은 자동으로 팀 저장소에 동기화됩니다 (회의록 PDF만 각자 기기 보관 · 주기적으로 내보내기 백업 권장)</span>
+  <span style="flex:1"></span>
+  <button onclick="resetAll()">전체 초기화</button>
+</footer>
+
+<input type="file" id="impFile" accept=".json" hidden onchange="importJSON(this)">
+<input type="file" id="pdfFile" accept="application/pdf,.pdf" hidden onchange="pdfChosen(this)">
+<div id="pickPop" style="display:none" onclick="event.stopPropagation()"></div>
+<div id="toast"></div>
+
+<script>
+'use strict';
+/* ═══════════════ 상수 ═══════════════ */
+const LS_KEY = 'foxcenter.ops.v1';
+const SYNC_URL = 'https://api.npoint.io/1cfdae95fc9b02674247'; // 팀 공유 저장소
+const PRIO = {
+  critical:{l:'Critical', o:0}, high:{l:'High', o:1},
+  medium:{l:'Medium', o:2},    low:{l:'Low', o:3}
+};
+const STAT = { planned:'예정', active:'진행중', review:'검토중', done:'완료', hold:'보류' };
+const CAL_COLS = [['ops','운영'],['events','행사'],['mkt','마케팅'],['counsel','상담'],['edu','교육']];
+
+/* ═══════════════ 데이터 ═══════════════ */
+let DB = null;
+const EXP = new Set();
+const F = { owner:'', status:'', prio:'', q:'' };
+
+function defaults(){
+  const y = new Date().getFullYear();
+  const cal = {};
+  for(let m=1;m<=12;m++) cal[m] = {ops:'',events:'',mkt:'',counsel:'',edu:''};
+  cal[7] = {ops:'여름방학 운영', events:'글로벌캠프 준비', mkt:'', counsel:'여름 상담 시작', edu:''};
+  return {
+    seqP: 6, seqM: 1, seqF: 0,
+    members: ['준모','박미현','송센터장'],
+    projects: [
+      {id:'P001', name:'SEL 안내 페이지 제작', field:'SEL', owners:['박미현'], prio:'critical', status:'active',
+       start:y+'-07-01', due:y+'-07-10', prog:60,
+       why:'학부모가 센터의 상담 서비스를 쉽게 이해하도록 하기 위해',
+       crit:[{t:'안내페이지 제작',d:true},{t:'검토 완료',d:false},{t:'발송 완료',d:false}],
+       next:'상담 종류 정리 → 디자이너 전달', blocker:'상담 종류 확정 안됨', note:'', doneAt:''},
+      {id:'P002', name:'연구원 매뉴얼', field:'운영', owners:['준모'], prio:'high', status:'active',
+       start:y+'-07-01', due:y+'-07-12', prog:40, why:'신규 연구원이 1주 안에 독립 근무 가능하도록',
+       crit:[{t:'목차 확정',d:true},{t:'본문 작성',d:false},{t:'센터장 검토',d:false}],
+       next:'목차 초안 검토 요청', blocker:'', note:'', doneAt:''},
+      {id:'P003', name:'조직문화 선언', field:'운영', owners:['준모'], prio:'medium', status:'planned',
+       start:'', due:y+'-07-20', prog:0, why:'센터 핵심 가치를 전 구성원이 공유하기 위해',
+       crit:[{t:'초안 작성',d:false},{t:'전체 공유',d:false}], next:'초안 키워드 수집', blocker:'', note:'', doneAt:''},
+      {id:'P004', name:'상담 시스템 구축', field:'상담', owners:['송센터장'], prio:'high', status:'active',
+       start:y+'-07-02', due:y+'-07-17', prog:30, why:'학부모 상담을 체계적으로 기록·관리하기 위해',
+       crit:[{t:'상담 종류 정리',d:true},{t:'기록 양식 제작',d:false},{t:'시범 운영',d:false}],
+       next:'학부모 명단 확보', blocker:'학부모 명단 없음', note:'', doneAt:''},
+      {id:'P005', name:'연간 캘린더', field:'운영', owners:['준모'], prio:'high', status:'active',
+       start:y+'-07-03', due:y+'-07-13', prog:50, why:'1년 운영계획을 한눈에 보기 위해 (이사님 요청)',
+       crit:[{t:'월별 초안',d:true},{t:'행사 일정 확정',d:false}], next:'8~12월 행사 일정 채우기', blocker:'', note:'', doneAt:''},
+      {id:'P006', name:'여름학기 시간표 확정', field:'교육', owners:['준모'], prio:'high', status:'done',
+       start:y+'-06-20', due:y+'-07-03', prog:100, why:'여름학기 개강 준비', crit:[{t:'시간표 배포',d:true}],
+       next:'', blocker:'', note:'', doneAt:y+'-07-03'}
+    ],
+    meetings: [
+      {id:'M001', date:todayISO(), title:'기획팀 주간회의', note:'상담 종류 목요일까지 확정 (송센터장)', fileId:'', fileName:''}
+    ],
+    calendar: cal,
+    sops: [
+      {doc:'연구원 매뉴얼', owners:['준모'], ver:'v0.9 (작성 중)', link:''},
+      {doc:'학부모 상담 가이드', owners:['송센터장'], ver:'v1.0', link:''},
+      {doc:'SEL 운영 매뉴얼', owners:['박미현'], ver:'v1.0', link:''},
+      {doc:'회의 운영 규칙', owners:['준모'], ver:'v1.0', link:''},
+      {doc:'보고 체계', owners:['준모'], ver:'v1.0', link:''}
+    ],
+    weekly: {week:'', items:[{t:'기획팀 회의',d:false},{t:'연구원 회의',d:false},{t:'학부모 상담',d:false}]}
+  };
+}
+
+function normalize(){
+  const d = defaults();
+  for(const k in d) if(DB[k]===undefined) DB[k]=d[k];
+  // 구버전 회의록(안건/액션 구조) → PDF 보관함 구조로 이관
+  DB.meetings = DB.meetings.map(m=>{
+    if(m.agenda !== undefined){
+      const title = (m.agenda||[]).map(a=>a.topic).filter(Boolean).join(', ') || '회의록';
+      const note = (m.agenda||[]).map(a=>a.dec).filter(Boolean).join(' / ');
+      return {id:m.id, date:m.date, title, note, fileId:'', fileName:''};
+    }
+    return m;
+  });
+  // 담당자 단일(owner 문자열) → 다중(owners 배열) 이관
+  DB.projects.forEach(p=>{ if(!Array.isArray(p.owners)){ p.owners = p.owner ? [p.owner] : []; delete p.owner; } });
+  DB.sops.forEach(s=>{ if(!Array.isArray(s.owners)){ s.owners = s.owner ? [s.owner] : []; delete s.owner; } });
+  const wk = mondayISO(new Date());
+  if(DB.weekly.week !== wk){
+    DB.weekly.week = wk;
+    DB.weekly.items.forEach(i=>i.d=false);
+  }
+}
+function load(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    DB = raw ? JSON.parse(raw) : defaults();
+  }catch(e){ DB = defaults(); }
+  normalize();
+  save(false, false);
+}
+function setStat(t){ document.getElementById('saveStamp').textContent = t; }
+function save(stamp=true, sync=true){
+  if(sync) DB.updatedAt = new Date().toISOString();
+  localStorage.setItem(LS_KEY, JSON.stringify(DB));
+  if(stamp) setStat('저장됨 ' + new Date().toLocaleTimeString('ko-KR'));
+  if(sync) queuePush();
+}
+
+/* ═══════════════ 팀 실시간 동기화 ═══════════════ */
+let pushT=null, pushing=false, needPush=false;
+function queuePush(){ needPush=true; clearTimeout(pushT); pushT=setTimeout(pushRemote, 1200); }
+async function pushRemote(){
+  if(pushing) return;
+  pushing=true; setStat('동기화 중…');
+  try{
+    const res=await fetch(SYNC_URL, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(DB)});
+    if(!res.ok) throw new Error(res.status);
+    needPush=false;
+    setStat('팀 공유됨 ' + new Date().toLocaleTimeString('ko-KR'));
+  }catch(e){
+    setStat('동기화 실패 · 이 기기에는 저장됨 (자동 재시도)');
+  }
+  pushing=false;
+}
+function editingNow(){
+  if(dragPid) return true;
+  if(document.getElementById('pickPop').style.display==='block') return true;
+  const a=document.activeElement;
+  return !!(a && (a.isContentEditable || ['INPUT','TEXTAREA','SELECT'].includes(a.tagName)));
+}
+async function pullRemote(initial=false){
+  if(pushing || needPush) return;
+  try{
+    const res=await fetch(SYNC_URL+'?t='+Date.now(), {cache:'no-store'});
+    if(!res.ok) throw new Error(res.status);
+    const remote=await res.json();
+    if(!remote || !Array.isArray(remote.projects)){
+      if(DB.updatedAt) queuePush();  // 저장소가 비어있으면 내 데이터로 초기화
+      return;
+    }
+    const r=remote.updatedAt||'', l=DB.updatedAt||'';
+    if(r>l){
+      if(!initial && editingNow()) return;  // 입력 중에는 다음 주기에 반영
+      DB=remote; normalize();
+      localStorage.setItem(LS_KEY, JSON.stringify(DB));
+      render();
+      setStat('팀 업데이트 받음 ' + new Date().toLocaleTimeString('ko-KR'));
+    }else if(l>r){
+      queuePush();
+    }
+  }catch(e){
+    if(initial) setStat('오프라인 · 이 기기에만 저장됨');
+  }
+}
+
+/* ═══════════════ IndexedDB (회의록 PDF 저장) ═══════════════ */
+let idb = null;
+function idbOpen(){
+  return new Promise((res,rej)=>{
+    if(idb) return res(idb);
+    const r = indexedDB.open('foxcenter-files', 1);
+    r.onupgradeneeded = ()=> r.result.createObjectStore('pdfs');
+    r.onsuccess = ()=>{ idb=r.result; res(idb); };
+    r.onerror = ()=> rej(r.error);
+  });
+}
+async function filePut(id, blob){
+  const db = await idbOpen();
+  return new Promise((res,rej)=>{
+    const tx = db.transaction('pdfs','readwrite');
+    tx.objectStore('pdfs').put(blob, id);
+    tx.oncomplete = res; tx.onerror = ()=>rej(tx.error);
+  });
+}
+async function fileGet(id){
+  const db = await idbOpen();
+  return new Promise((res,rej)=>{
+    const rq = db.transaction('pdfs').objectStore('pdfs').get(id);
+    rq.onsuccess = ()=>res(rq.result); rq.onerror = ()=>rej(rq.error);
+  });
+}
+async function fileDel(id){
+  const db = await idbOpen();
+  return new Promise((res)=>{
+    const tx = db.transaction('pdfs','readwrite');
+    tx.objectStore('pdfs').delete(id);
+    tx.oncomplete = res; tx.onerror = res;
+  });
+}
+
+/* ═══════════════ 날짜 유틸 ═══════════════ */
+function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function addDays(iso,n){ const d=new Date(iso+'T00:00:00'); d.setDate(d.getDate()+n); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function mondayISO(dt){ const d=new Date(dt); const dow=(d.getDay()+6)%7; d.setDate(d.getDate()-dow); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function fmtMD(iso){ if(!iso) return ''; const [y,m,d]=iso.split('-'); return (+m)+'/'+(+d); }
+function fmtFull(iso){ if(!iso) return ''; const [y,m,d]=iso.split('-'); const dow='일월화수목금토'[new Date(iso+'T00:00:00').getDay()]; return `${y}. ${+m}. ${+d} (${dow})`; }
+function daysLeft(iso){ if(!iso) return null; const t=new Date(todayISO()+'T00:00:00'), d=new Date(iso+'T00:00:00'); return Math.round((d-t)/86400000); }
+function dueBadge(p){
+  if(!p.due) return '<span class="due due-ok">기한 없음</span>';
+  const n = daysLeft(p.due);
+  if(p.status==='done') return `<span class="due due-ok">${fmtMD(p.due)}</span>`;
+  if(n<0)  return `<span class="due due-over">${fmtMD(p.due)} · ${-n}일 지연</span>`;
+  if(n===0)return `<span class="due due-over">오늘 마감</span>`;
+  if(n<=3) return `<span class="due due-3">${fmtMD(p.due)} · D-${n}</span>`;
+  if(n<=7) return `<span class="due due-7">${fmtMD(p.due)} · D-${n}</span>`;
+  return `<span class="due due-ok">${fmtMD(p.due)} · D-${n}</span>`;
+}
+function thisWeek(){ const mon = mondayISO(new Date()); return [mon, addDays(mon,6)]; }
+
+/* ═══════════════ 공통 유틸 ═══════════════ */
+function esc(s){ return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._tm); t._tm=setTimeout(()=>t.classList.remove('show'),2200); }
+function ceKey(e){ if(e.key==='Enter' && !e.currentTarget.dataset.ml){ e.preventDefault(); e.currentTarget.blur(); } }
+function ce(fn, ph, ml){
+  return `contenteditable="true" data-ph="${esc(ph||'')}" ${ml?'data-ml="1"':''} onkeydown="ceKey(event)" onblur="${fn}"`;
+}
+function P(id){ return DB.projects.find(p=>p.id===id); }
+
+/* ── 담당자 다중 선택 (칩 + 팝업) ── */
+let PICK = null; // {type:'proj'|'sop', key}
+function ownersOf(type,key){ return type==='proj' ? P(key).owners : DB.sops[key].owners; }
+function ownerCell(owners, type, key){
+  return `<div class="own-wrap">
+    ${owners.map((o,i)=>`<span class="own-chip">${esc(o)}<button title="제외" onclick="event.stopPropagation();rmOwner('${type}','${key}',${i})">✕</button></span>`).join('')}
+    ${owners.length?'':'<span class="muted">미정</span>'}
+    <button class="own-add" title="담당자 추가" onclick="event.stopPropagation();openPicker(event,'${type}','${key}')">＋</button>
+  </div>`;
+}
+function rmOwner(type,key,i){ ownersOf(type,key).splice(i,1); save(); render(); }
+function openPicker(e,type,key){
+  PICK={type,key};
+  const pop=document.getElementById('pickPop');
+  renderPicker();
+  pop.style.display='block';
+  const r=e.currentTarget.getBoundingClientRect();
+  let x=r.left, y=r.bottom+6;
+  if(x+pop.offsetWidth>innerWidth-10) x=innerWidth-pop.offsetWidth-10;
+  if(y+pop.offsetHeight>innerHeight-10) y=r.top-pop.offsetHeight-6;
+  pop.style.left=Math.max(8,x)+'px'; pop.style.top=Math.max(8,y)+'px';
+  pop.querySelector('.pk-new input').focus();
+}
+function renderPicker(){
+  const pop=document.getElementById('pickPop');
+  const cur=ownersOf(PICK.type,PICK.key);
+  pop.innerHTML = `
+    ${DB.members.map((m,i)=>`<div class="pk-item" onclick="togglePick(${i})">
+      <input type="checkbox" ${cur.includes(m)?'checked':''}><span>${esc(m)}</span>
+      <button class="pk-del" title="이름 삭제" onclick="event.stopPropagation();delPickMember(${i})">✕</button></div>`).join('')}
+    <div class="pk-new">
+      <input type="text" placeholder="새 이름 바로 추가" onkeydown="if(event.key==='Enter')addPickMember(this)">
+      <button class="mini-btn" onclick="addPickMember(this.previousElementSibling)">추가</button>
+    </div>`;
+}
+function togglePick(mi){
+  const m=DB.members[mi], arr=ownersOf(PICK.type,PICK.key);
+  const i=arr.indexOf(m);
+  i>=0 ? arr.splice(i,1) : arr.push(m);
+  save(); renderPicker();
+}
+function addPickMember(inp){
+  const v=inp.value.trim(); if(!v) return;
+  if(!DB.members.includes(v)) DB.members.push(v);
+  const arr=ownersOf(PICK.type,PICK.key);
+  if(!arr.includes(v)) arr.push(v);
+  inp.value=''; save(); renderPicker();
+  document.getElementById('pickPop').querySelector('.pk-new input').focus();
+}
+function delPickMember(mi){
+  const m=DB.members[mi];
+  const n=DB.projects.filter(p=>p.owners.includes(m)).length;
+  if(!confirm(`'${m}' 이름을 담당자 목록에서 삭제할까요?${n?`\n(이미 지정된 프로젝트 ${n}건의 담당 표기는 유지됩니다)`:''}`)) return;
+  DB.members.splice(mi,1);
+  save(); renderPicker();
+}
+function closePicker(){
+  const pop=document.getElementById('pickPop');
+  if(pop.style.display==='none') return;
+  pop.style.display='none'; PICK=null; render();
+}
+document.addEventListener('click', e=>{
+  const pop=document.getElementById('pickPop');
+  if(pop.style.display!=='none' && !pop.contains(e.target)) closePicker();
+});
+
+/* ═══════════════ 집계 ═══════════════ */
+function openProjects(){ return DB.projects.filter(p=>p.status!=='done'); }
+function stats(){
+  const [mon,sun]=thisWeek(), t=todayISO();
+  const op = openProjects();
+  return {
+    critical: op.filter(p=>p.prio==='critical').length,
+    high:     op.filter(p=>p.prio==='high').length,
+    active:   op.filter(p=>p.status==='active'||p.status==='review').length,
+    done:     DB.projects.filter(p=>p.status==='done').length,
+    weekDue:  op.filter(p=>p.due && p.due>=mon && p.due<=sun).length,
+    late:     op.filter(p=>p.due && p.due<t && p.status!=='hold').length
+  };
+}
+
+/* ═══════════════ 탭 전환 ═══════════════ */
+let curTab='dash';
+document.getElementById('tabNav').addEventListener('click', e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  curTab=b.dataset.t;
+  document.querySelectorAll('#tabNav button').forEach(x=>x.classList.toggle('on',x===b));
+  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x.id==='tab-'+curTab));
+  render();
+});
+function goTab(t){ document.querySelector(`#tabNav button[data-t="${t}"]`).click(); }
+function render(){ ({dash:rDash, proj:rProj, meet:rMeet, cal:rCal, sop:rSop, comp:rComp})[curTab](); }
+
+/* ═══════════════ 대시보드 ═══════════════ */
+function rDash(){
+  const s = stats(), [mon,sun]=thisWeek(), t=todayISO();
+  const op = openProjects();
+  const top = op.filter(p=>p.due && p.due<=sun && p.status!=='hold')
+    .sort((a,b)=> (a.due<b.due?-1:a.due>b.due?1:0) || (PRIO[a.prio].o-PRIO[b.prio].o)).slice(0,5);
+  const blockers = op.filter(p=>p.blocker && p.blocker.trim());
+  const people = DB.members.map(m=>{
+    const mine = op.filter(p=>p.owners.includes(m));
+    return { m,
+      ing:  mine.filter(p=>p.status==='active'||p.status==='review').length,
+      week: mine.filter(p=>p.due && p.due>=mon && p.due<=sun).length,
+      late: mine.filter(p=>p.due && p.due<t && p.status!=='hold').length,
+      total: mine.length };
+  });
+
+  document.getElementById('tab-dash').innerHTML = `
+  <div class="stats">
+    <div class="stat warn" onclick="filterGo('prio','critical')"><div class="lb"><span class="dot" style="background:var(--red)"></span>Critical</div><div class="num">${s.critical}</div></div>
+    <div class="stat" onclick="filterGo('prio','high')"><div class="lb"><span class="dot" style="background:var(--orange)"></span>High</div><div class="num">${s.high}</div></div>
+    <div class="stat" onclick="filterGo('status','active')"><div class="lb"><span class="dot" style="background:var(--blue)"></span>진행중</div><div class="num">${s.active}</div></div>
+    <div class="stat" onclick="goTab('comp')"><div class="lb"><span class="dot" style="background:var(--green)"></span>완료</div><div class="num">${s.done}</div></div>
+    <div class="stat" onclick="goTab('proj')"><div class="lb"><span class="dot" style="background:var(--yellow)"></span>이번주 마감</div><div class="num">${s.weekDue}</div></div>
+    <div class="stat ${s.late?'warn':''}" onclick="goTab('proj')"><div class="lb"><span class="dot" style="background:${s.late?'var(--red)':'var(--faint)'}"></span>지연</div><div class="num">${s.late}</div></div>
+  </div>
+
+  <div class="grid g2">
+    <div class="card">
+      <h3>이번주 TOP 5 <span class="cnt">마감 임박순</span></h3>
+      ${top.length ? top.map((p,i)=>`
+        <div class="top5-item">
+          <div class="rank">${i+1}</div>
+          <span class="nm" onclick="openProj('${p.id}')">${esc(p.name)}</span>
+          <span class="muted">${esc(p.owners.join(', ')||'미정')}</span>
+          ${dueBadge(p)}
+        </div>`).join('') : '<div class="empty">이번 주 마감 프로젝트가 없습니다</div>'}
+    </div>
+
+    <div class="card">
+      <h3>이슈사항 <span class="cnt">${blockers.length}건</span></h3>
+      ${blockers.length ? blockers.map(p=>`
+        <div class="blk-item">
+          <b>${esc(p.blocker)}</b>
+          <div class="who">${esc(p.name)} · ${esc(p.owners.join(', ')||'미정')}</div>
+        </div>`).join('') : '<div class="empty">이슈사항이 없습니다</div>'}
+    </div>
+  </div>
+
+  <div class="grid g2">
+    <div class="card">
+      <h3>담당자별 현황</h3>
+      <div class="tbl-wrap"><table>
+        <tr><th>담당자</th><th>진행 중</th><th>이번 주 마감</th><th>지연</th><th>전체</th><th></th></tr>
+        ${people.map((r,i)=>`<tr>
+          <td style="font-weight:700">${esc(r.m)}</td>
+          <td>${r.ing}</td><td>${r.week}</td>
+          <td class="${r.late?'pp-hot':''}">${r.late}</td>
+          <td class="muted">${r.total}</td>
+          <td><button class="icon-btn" title="삭제" onclick="delMember(${i})">✕</button></td>
+        </tr>`).join('')}
+      </table></div>
+      <div style="margin-top:10px;display:flex;gap:8px">
+        <input type="text" id="newMember" placeholder="담당자 추가" style="border:1px solid var(--line);border-radius:8px;padding:6px 10px;flex:1"
+          onkeydown="if(event.key==='Enter')addMember()">
+        <button class="mini-btn" onclick="addMember()">추가</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>이번주 회의 체크 <span class="cnt">월요일 자동 리셋</span></h3>
+      ${DB.weekly.items.map((it,i)=>`
+        <div class="mtg-chk">
+          <input type="checkbox" ${it.d?'checked':''} onchange="DB.weekly.items[${i}].d=this.checked;save();rDash()">
+          <span ${it.d?'class="done-lb"':''} ${ce(`upWeekly(${i},this.innerText)`,'회의명')}>${esc(it.t)}</span>
+          <span style="flex:1"></span>
+          <button class="icon-btn del" onclick="DB.weekly.items.splice(${i},1);save();rDash()">✕</button>
+        </div>`).join('')}
+      <button class="mini-btn gray" style="margin-top:8px" onclick="DB.weekly.items.push({t:'새 회의',d:false});save();rDash()">항목 추가</button>
+      <div class="muted" style="margin-top:14px;border-top:1px solid var(--line2);padding-top:10px">
+        회의 순서 : 대시보드 → 지난주 액션 확인 → 프로젝트 업데이트 → 새 프로젝트 → 우선순위·담당·기한 확정
+      </div>
+    </div>
+  </div>`;
+}
+function upWeekly(i,v){ DB.weekly.items[i].t=v.trim()||'회의'; save(); rDash(); }
+function addMember(){
+  const el=document.getElementById('newMember'), v=el.value.trim();
+  if(!v) return;
+  if(!DB.members.includes(v)) DB.members.push(v);
+  el.value=''; save(); rDash();
+}
+function delMember(i){
+  const m=DB.members[i];
+  const n=DB.projects.filter(p=>p.owners.includes(m)).length;
+  if(!confirm(`'${m}' 담당자를 목록에서 삭제할까요?${n?`\n(담당 중인 프로젝트 ${n}건의 담당 표기는 유지됩니다)`:''}`)) return;
+  DB.members.splice(i,1); save(); rDash();
+}
+function filterGo(k,v){ F.owner=F.status=F.prio=''; F.q=''; F[k]=v; goTab('proj'); }
+function openProj(id){ EXP.add(id); F.owner=F.status=F.prio=F.q=''; goTab('proj');
+  setTimeout(()=>{ const r=document.getElementById('row-'+id); if(r) r.scrollIntoView({behavior:'smooth',block:'center'}); },80); }
+
+/* ═══════════════ 프로젝트 ═══════════════ */
+function rProj(){
+  let list = openProjects();
+  if(F.owner)  list=list.filter(p=>p.owners.includes(F.owner));
+  if(F.status) list=list.filter(p=>p.status===F.status);
+  if(F.prio)   list=list.filter(p=>p.prio===F.prio);
+  if(F.q){ const q=F.q.toLowerCase(); list=list.filter(p=>(p.name+p.field+p.owners.join('')+p.next+p.blocker+p.why+p.note).toLowerCase().includes(q)); }
+
+  document.getElementById('tab-proj').innerHTML = `
+  <div class="toolbar">
+    <button class="add-btn" onclick="addProj()">＋ 새 프로젝트</button>
+    <select onchange="F.owner=this.value;rProj()">
+      <option value="">담당 · 전체</option>
+      ${DB.members.map(m=>`<option ${F.owner===m?'selected':''} value="${esc(m)}">${esc(m)}</option>`).join('')}
+    </select>
+    <select onchange="F.status=this.value;rProj()">
+      <option value="">상태 · 전체</option>
+      ${Object.entries(STAT).filter(([k])=>k!=='done').map(([k,v])=>`<option ${F.status===k?'selected':''} value="${k}">${v}</option>`).join('')}
+    </select>
+    <select onchange="F.prio=this.value;rProj()">
+      <option value="">우선순위 · 전체</option>
+      ${Object.entries(PRIO).map(([k,v])=>`<option ${F.prio===k?'selected':''} value="${k}">${v.l}</option>`).join('')}
+    </select>
+    <input type="text" placeholder="검색" value="${esc(F.q)}" oninput="F.q=this.value;clearTimeout(window._qt);window._qt=setTimeout(rProj,250)">
+    ${(F.owner||F.status||F.prio||F.q)?`<button class="mini-btn gray" onclick="F.owner=F.status=F.prio=F.q='';rProj()">필터 해제 ✕</button>`:''}
+    <span class="muted">${list.length}건</span>
+  </div>
+
+  <div class="card" style="padding:0"><div class="tbl-wrap">
+  <table>
+    <tr><th style="width:52px"></th><th style="min-width:180px">프로젝트</th><th>분야</th><th>담당</th><th>우선순위</th><th>상태</th><th>마감일</th><th style="min-width:110px">진행률</th><th style="min-width:140px">비고</th><th style="min-width:110px">이슈사항</th><th></th></tr>
+    ${list.length ? list.map(p=>projRow(p)).join('') : '<tr><td colspan="11"><div class="empty">조건에 맞는 프로젝트가 없습니다</div></td></tr>'}
+  </table>
+  </div></div>
+  <div class="muted">⠿ 를 잡고 위아래로 끌면 순서가 바뀝니다 · ▶ 를 누르면 Why / 완료 기준 / 시작일 / 메모를 편집할 수 있습니다 · 상태를 완료로 바꾸면 완료 탭으로 이동합니다</div>`;
+}
+
+function projRow(p){
+  const ex = EXP.has(p.id);
+  const main = `
+  <tr id="row-${p.id}"
+      ondragstart="dragStart(event,'${p.id}')" ondragend="dragEnd(event)"
+      ondragover="dragOver(event,'${p.id}')" ondragleave="dragLeave(event,'${p.id}')" ondrop="dropRow(event,'${p.id}')">
+    <td style="white-space:nowrap"><span class="handle" title="끌어서 순서 이동" onmousedown="armDrag('${p.id}')">⠿</span><button class="exp-btn" onclick="togEx('${p.id}')">${ex?'▼':'▶'}</button></td>
+    <td><div style="font-weight:600" ${ce(`upP('${p.id}','name',this.innerText)`,'프로젝트명')}>${esc(p.name)}</div><div class="muted" style="font-size:11px;padding-left:6px">${p.id}</div></td>
+    <td ${ce(`upP('${p.id}','field',this.innerText)`,'분야')}>${esc(p.field)}</td>
+    <td>${ownerCell(p.owners,'proj',p.id)}</td>
+    <td><select class="cell b-${p.prio}" style="border-radius:6px" onchange="upP('${p.id}','prio',this.value)">
+      ${Object.entries(PRIO).map(([k,v])=>`<option ${p.prio===k?'selected':''} value="${k}">${v.l}</option>`).join('')}</select></td>
+    <td><select class="cell b-${p.status}" style="border-radius:6px" onchange="upP('${p.id}','status',this.value)">
+      ${Object.entries(STAT).map(([k,v])=>`<option ${p.status===k?'selected':''} value="${k}">${v}</option>`).join('')}</select></td>
+    <td><input type="date" class="cell-date" value="${p.due||''}" onchange="upP('${p.id}','due',this.value)"><br>${dueBadge(p)}</td>
+    <td><div class="prog">
+      <input type="range" min="0" max="100" step="5" value="${p.prog}"
+        oninput="this.nextElementSibling.textContent=this.value+'%'"
+        onchange="upP('${p.id}','prog',+this.value)">
+      <span class="pv">${p.prog}%</span></div>
+      <div class="pbar"><div style="width:${p.prog}%"></div></div></td>
+    <td ${ce(`upP('${p.id}','next',this.innerText)`,'메모')}>${esc(p.next)}</td>
+    <td style="${p.blocker?'color:var(--red);font-weight:600':''}" ${ce(`upP('${p.id}','blocker',this.innerText)`,'없음')}>${esc(p.blocker)}</td>
+    <td><button class="icon-btn" title="삭제" onclick="delProj('${p.id}')">🗑</button></td>
+  </tr>`;
+  if(!ex) return main;
+  return main + `
+  <tr class="detail"><td colspan="11">
+    <div class="detail-grid">
+      <div>
+        <div class="dlabel">WHY — 왜 하는가</div>
+        <div ${ce(`upP('${p.id}','why',this.innerText)`,'이 프로젝트가 필요한 이유',1)} style="min-height:40px">${esc(p.why)}</div>
+        <div class="dlabel" style="margin-top:12px">메모</div>
+        <div ${ce(`upP('${p.id}','note',this.innerText)`,'메모',1)} style="min-height:30px">${esc(p.note)}</div>
+      </div>
+      <div>
+        <div class="dlabel">완료 기준</div>
+        ${p.crit.map((c,i)=>`
+          <div class="chk">
+            <input type="checkbox" ${c.d?'checked':''} onchange="P('${p.id}').crit[${i}].d=this.checked;save();rProj()">
+            <span style="${c.d?'text-decoration:line-through;color:var(--faint)':''}" ${ce(`upCrit('${p.id}',${i},this.innerText)`,'기준')}>${esc(c.t)}</span>
+            <button class="icon-btn del" onclick="P('${p.id}').crit.splice(${i},1);save();rProj()">✕</button>
+          </div>`).join('')}
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <button class="mini-btn gray" onclick="P('${p.id}').crit.push({t:'새 기준',d:false});save();rProj()">기준 추가</button>
+          <button class="mini-btn" onclick="calcProg('${p.id}')">체크 기준으로 진행률 계산</button>
+        </div>
+      </div>
+      <div>
+        <div class="dlabel">시작일</div>
+        <input type="date" class="cell-date" value="${p.start||''}" onchange="upP('${p.id}','start',this.value)">
+        <div class="dlabel" style="margin-top:12px">요약</div>
+        <div class="muted" style="line-height:2">
+          완료 기준 <b>${p.crit.filter(c=>c.d).length}/${p.crit.length}</b> 달성<br>
+          ${p.start?`시작 ${fmtMD(p.start)} → `:''}마감 ${p.due?fmtMD(p.due):'미정'}<br>
+          ${p.blocker?`<span style="color:var(--red)">⚠ ${esc(p.blocker)}</span>`:'이슈 없음 ✓'}
+        </div>
+      </div>
+    </div>
+  </td></tr>`;
+}
+function togEx(id){ EXP.has(id)?EXP.delete(id):EXP.add(id); rProj(); }
+function upP(id,k,v){
+  const p=P(id); if(!p) return;
+  if(typeof v==='string') v=v.trim();
+  p[k]=v;
+  if(k==='status'){
+    if(v==='done'){ p.doneAt=todayISO(); p.prog=100; toast(`'${p.name}' 완료 — 완료 탭으로 이동했습니다`); }
+    else p.doneAt='';
+  }
+  save(); render();
+}
+function upCrit(id,i,v){ P(id).crit[i].t=v.trim()||'기준'; save(); rProj(); }
+function calcProg(id){
+  const p=P(id); if(!p.crit.length) return toast('완료 기준을 먼저 추가하세요');
+  p.prog=Math.round(p.crit.filter(c=>c.d).length/p.crit.length*20)*5; save(); rProj();
+}
+function addProj(){
+  const id='P'+String(++DB.seqP).padStart(3,'0');
+  DB.projects.push({id, name:'새 프로젝트', field:'', owners:[], prio:'medium', status:'planned',
+    start:todayISO(), due:'', prog:0, why:'', crit:[], next:'', blocker:'', note:'', doneAt:''});
+  EXP.add(id); save(); rProj();
+  setTimeout(()=>{ const r=document.getElementById('row-'+id); if(r) r.scrollIntoView({behavior:'smooth',block:'center'}); },50);
+}
+function delProj(id){
+  const p=P(id);
+  if(!confirm(`'${p.name}' 프로젝트를 완전히 삭제할까요?\n(완료 처리하려면 상태를 완료로 바꾸세요)`)) return;
+  DB.projects=DB.projects.filter(x=>x.id!==id); save(); render();
+}
+
+/* ── 드래그 순서 이동 ── */
+let dragPid=null;
+function armDrag(id){ const tr=document.getElementById('row-'+id); if(tr) tr.draggable=true; }
+function dragStart(e,id){ dragPid=id; e.dataTransfer.effectAllowed='move'; try{e.dataTransfer.setData('text/plain',id);}catch(_){} document.getElementById('row-'+id)?.classList.add('dragging'); }
+function dragOver(e,id){
+  if(!dragPid||dragPid===id) return;
+  e.preventDefault(); e.dataTransfer.dropEffect='move';
+  const tr=document.getElementById('row-'+id); if(!tr) return;
+  const r=tr.getBoundingClientRect(), after=e.clientY > r.top+r.height/2;
+  tr.classList.toggle('hint-top',!after); tr.classList.toggle('hint-bottom',after);
+}
+function dragLeave(e,id){ const tr=document.getElementById('row-'+id); if(tr){tr.classList.remove('hint-top','hint-bottom');} }
+function dropRow(e,id){
+  e.preventDefault();
+  if(!dragPid||dragPid===id) return;
+  const tr=document.getElementById('row-'+id);
+  const r=tr.getBoundingClientRect(), after=e.clientY > r.top+r.height/2;
+  const arr=DB.projects;
+  const from=arr.findIndex(p=>p.id===dragPid);
+  const item=arr.splice(from,1)[0];
+  let to=arr.findIndex(p=>p.id===id);
+  arr.splice(after?to+1:to, 0, item);
+  dragPid=null; save(); rProj();
+}
+function dragEnd(e){
+  dragPid=null;
+  document.querySelectorAll('tr[id^="row-"]').forEach(tr=>{ tr.draggable=false; tr.classList.remove('hint-top','hint-bottom','dragging'); });
+}
+
+/* ═══════════════ 회의록 (날짜별 PDF 보관함) ═══════════════ */
+function rMeet(){
+  const list=[...DB.meetings].sort((a,b)=> a.date>b.date?-1 : a.date<b.date?1 : (a.id<b.id?1:-1));
+  document.getElementById('tab-meet').innerHTML = `
+  <div class="toolbar">
+    <button class="add-btn" onclick="addMeet()">＋ 회의록 추가</button>
+    <span class="muted">회의록 PDF를 올려두면 날짜별로 정리됩니다 · 파일명을 누르면 PDF가 열립니다</span>
+  </div>
+  <div class="card" style="padding:0"><div class="tbl-wrap">
+  <table>
+    <tr><th style="width:170px">날짜</th><th style="min-width:170px">제목</th><th style="min-width:200px">회의록 PDF</th><th style="min-width:200px">핵심 메모</th><th></th></tr>
+    ${list.length ? list.map(m=>`<tr>
+      <td><input type="date" class="cell-date" value="${m.date}" onchange="upM('${m.id}','date',this.value)"><div class="muted" style="font-size:11px;padding-left:5px">${fmtFull(m.date)}</div></td>
+      <td style="font-weight:600" ${ce(`upM('${m.id}','title',this.innerText)`,'회의 제목')}>${esc(m.title)}</td>
+      <td>${m.fileId
+          ? `<button class="pdf-link" onclick="openPdf('${m.id}')">📄 ${esc(m.fileName||'회의록.pdf')}</button>
+             <button class="icon-btn" title="파일 제거" onclick="removePdf('${m.id}')">✕</button>`
+          : `<button class="mini-btn" onclick="pickPdf('${m.id}')">PDF 업로드</button>`}</td>
+      <td class="muted" ${ce(`upM('${m.id}','note',this.innerText)`,'주요 결정·전달사항',1)}>${esc(m.note)}</td>
+      <td><button class="icon-btn" onclick="delMeet('${m.id}')">🗑</button></td>
+    </tr>`).join('') : '<tr><td colspan="5"><div class="empty">회의록이 없습니다 — 회의록 추가 버튼으로 시작하세요</div></td></tr>'}
+  </table>
+  </div></div>
+  <div class="muted">PDF는 이 브라우저 안에 저장됩니다 (내보내기 JSON에는 목록만 포함, 파일은 포함되지 않습니다)</div>`;
+}
+function MT(id){ return DB.meetings.find(m=>m.id===id); }
+function upM(id,k,v){ MT(id)[k]=typeof v==='string'?v.trim():v; save(); rMeet(); }
+function addMeet(){
+  const id='M'+String(++DB.seqM).padStart(3,'0');
+  DB.meetings.push({id, date:todayISO(), title:'기획팀 주간회의', note:'', fileId:'', fileName:''});
+  save(); rMeet();
+}
+async function delMeet(id){
+  const m=MT(id);
+  if(!confirm(`${fmtFull(m.date)} '${m.title}' 회의록을 삭제할까요?`)) return;
+  if(m.fileId) await fileDel(m.fileId);
+  DB.meetings=DB.meetings.filter(x=>x.id!==id); save(); rMeet();
+}
+let pdfTarget=null;
+function pickPdf(mid){ pdfTarget=mid; document.getElementById('pdfFile').click(); }
+async function pdfChosen(input){
+  const f=input.files[0]; input.value='';
+  if(!f || !pdfTarget) return;
+  if(f.size > 25*1024*1024) return alert('25MB 이하의 PDF만 올릴 수 있습니다.');
+  const m=MT(pdfTarget); pdfTarget=null;
+  if(!m) return;
+  try{
+    const fid='f'+(++DB.seqF);
+    await filePut(fid, f);
+    if(m.fileId) await fileDel(m.fileId);
+    m.fileId=fid; m.fileName=f.name;
+    save(); rMeet(); toast('회의록 PDF가 저장되었습니다');
+  }catch(e){ alert('파일 저장에 실패했습니다: '+e); }
+}
+async function openPdf(mid){
+  const m=MT(mid); if(!m||!m.fileId) return;
+  const w=window.open('about:blank');
+  try{
+    const blob=await fileGet(m.fileId);
+    if(!blob){ w.close(); return toast('이 브라우저에 파일이 없습니다 (올린 컴퓨터에서만 열 수 있어요)'); }
+    w.location = URL.createObjectURL(blob);
+  }catch(e){ w.close(); toast('파일을 여는 데 실패했습니다'); }
+}
+async function removePdf(mid){
+  const m=MT(mid);
+  if(!confirm(`'${m.fileName}' 파일을 제거할까요? (회의록 항목은 유지됩니다)`)) return;
+  await fileDel(m.fileId);
+  m.fileId=''; m.fileName=''; save(); rMeet();
+}
+
+/* ═══════════════ 연간 캘린더 ═══════════════ */
+function rCal(){
+  const y=new Date().getFullYear(), nowM=new Date().getMonth()+1;
+  const dueByMonth={};
+  DB.projects.forEach(p=>{
+    if(!p.due) return; const [py,pm]=p.due.split('-');
+    if(+py!==y) return; (dueByMonth[+pm]=dueByMonth[+pm]||[]).push(p);
+  });
+  let rows='';
+  for(let m=1;m<=12;m++){
+    const c=DB.calendar[m];
+    rows+=`<tr class="${m===nowM?'cal-now':''}">
+      <td class="cal-month">${m}월 ${m===nowM?'◀':''}</td>
+      ${CAL_COLS.map(([k,_])=>`<td ${ce(`upCal(${m},'${k}',this.innerText)`,'',1)}>${esc(c[k])}</td>`).join('')}
+      <td class="cal-due">${(dueByMonth[m]||[]).map(p=>
+        `<span class="d">${p.status==='done'?'✓':'•'} <b>${esc(p.name)}</b> ${fmtMD(p.due)} · ${esc(p.owners.join(', ')||'미정')}</span>`).join('')||'<span class="muted">—</span>'}</td>
+    </tr>`;
+  }
+  document.getElementById('tab-cal').innerHTML=`
+  <div class="card" style="padding:0"><div class="tbl-wrap">
+    <table>
+      <tr><th>월</th>${CAL_COLS.map(([_,l])=>`<th style="min-width:120px">${l}</th>`).join('')}<th style="min-width:200px">프로젝트 마감 (자동)</th></tr>
+      ${rows}
+    </table>
+  </div></div>
+  <div class="muted">각 칸을 클릭해 ${y}년 연간 운영계획을 입력하세요 · 마지막 열은 프로젝트 탭의 마감일이 자동 표시됩니다</div>`;
+}
+function upCal(m,k,v){ DB.calendar[m][k]=v.trim(); save(); }
+
+/* ═══════════════ 운영 문서 ═══════════════ */
+function rSop(){
+  document.getElementById('tab-sop').innerHTML=`
+  <div class="toolbar">
+    <button class="add-btn" onclick="DB.sops.push({doc:'새 문서',owner:'',ver:'v1.0',link:''});save();rSop()">＋ 문서 추가</button>
+    <span class="muted">센터 운영의 기준 문서 목록 · 링크 칸에 구글독스/드라이브 URL을 붙여넣으세요</span>
+  </div>
+  <div class="card" style="padding:0"><div class="tbl-wrap">
+  <table>
+    <tr><th style="min-width:180px">문서</th><th style="width:120px">담당</th><th style="width:150px">최신 버전</th><th>링크</th><th style="width:70px"></th><th></th></tr>
+    ${DB.sops.map((s,i)=>`<tr>
+      <td style="font-weight:600" ${ce(`upSop(${i},'doc',this.innerText)`,'문서명')}>${esc(s.doc)}</td>
+      <td>${ownerCell(s.owners,'sop',i)}</td>
+      <td ${ce(`upSop(${i},'ver',this.innerText)`,'v1.0')}>${esc(s.ver)}</td>
+      <td ${ce(`upSop(${i},'link',this.innerText)`,'URL 붙여넣기')} style="color:var(--sub);font-size:12px;word-break:break-all">${esc(s.link)}</td>
+      <td>${/^https?:\/\//.test(s.link)?`<a href="${esc(s.link)}" target="_blank" rel="noopener">열기 ↗</a>`:''}</td>
+      <td><button class="icon-btn" onclick="if(confirm('삭제할까요?')){DB.sops.splice(${i},1);save();rSop()}">🗑</button></td>
+    </tr>`).join('')}
+  </table>
+  </div></div>`;
+}
+function upSop(i,k,v){ DB.sops[i][k]=v.trim(); save(); rSop(); }
+
+/* ═══════════════ 완료 ═══════════════ */
+function rComp(){
+  const list=DB.projects.filter(p=>p.status==='done').sort((a,b)=>(b.doneAt||'')<(a.doneAt||'')?-1:1);
+  document.getElementById('tab-comp').innerHTML=`
+  <div class="card" style="padding:0"><div class="tbl-wrap">
+  <table>
+    <tr><th>ID</th><th style="min-width:180px">프로젝트</th><th>분야</th><th>담당</th><th>마감일</th><th>완료일</th><th style="min-width:150px">Why</th><th></th><th></th></tr>
+    ${list.length? list.map(p=>`<tr>
+      <td class="muted" style="font-weight:700">${p.id}</td>
+      <td style="font-weight:600">${esc(p.name)}</td>
+      <td>${esc(p.field)}</td>
+      <td>${esc(p.owners.join(', '))}</td>
+      <td class="muted">${p.due?fmtMD(p.due):''}</td>
+      <td><span class="bdg b-done">✓ ${p.doneAt?fmtMD(p.doneAt):''}</span></td>
+      <td class="muted">${esc(p.why)}</td>
+      <td><button class="mini-btn gray" onclick="upP('${p.id}','status','active');goTab('proj')">복구</button></td>
+      <td><button class="icon-btn" onclick="delProj('${p.id}')">🗑</button></td>
+    </tr>`).join('') : '<tr><td colspan="9"><div class="empty">완료된 프로젝트가 아직 없습니다</div></td></tr>'}
+  </table>
+  </div></div>
+  <div class="muted">프로젝트 탭에는 진행 중인 것만 남고, 완료된 프로젝트는 이곳에 쌓입니다 · 복구를 누르면 다시 진행중으로 돌아갑니다</div>`;
+}
+
+/* ═══════════════ 내보내기 / 가져오기 ═══════════════ */
+function exportJSON(){
+  const blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='foxcenter-data-'+todayISO().replace(/-/g,'')+'.json';
+  a.click(); URL.revokeObjectURL(a.href);
+  toast('데이터 파일을 내려받았습니다 — 팀에 공유하세요');
+}
+function importJSON(input){
+  const f=input.files[0]; if(!f) return;
+  const rd=new FileReader();
+  rd.onload=()=>{
+    try{
+      const data=JSON.parse(rd.result);
+      if(!Array.isArray(data.projects)) throw new Error('형식 오류');
+      if(!confirm('현재 데이터를 가져온 파일로 교체합니다. 계속할까요?')) return;
+      DB=data; const d=defaults();
+      for(const k in d) if(DB[k]===undefined) DB[k]=d[k];
+      save(); render(); toast('데이터를 불러왔습니다');
+    }catch(e){ alert('올바른 데이터 파일이 아닙니다: '+e.message); }
+    input.value='';
+  };
+  rd.readAsText(f);
+}
+function resetAll(){
+  if(!confirm('모든 데이터를 삭제하고 초기 예시로 되돌립니다.\n⚠ 팀 공유 저장소도 함께 초기화되어 모든 팀원에게 적용됩니다.\n정말 초기화할까요?')) return;
+  if(!confirm('마지막 확인 — 되돌릴 수 없습니다. 초기화할까요?\n(필요하면 먼저 내보내기로 백업하세요)')) return;
+  localStorage.removeItem(LS_KEY); DB=defaults(); save(); render(); toast('초기화되었습니다');
+}
+
+/* ═══════════════ 시작 ═══════════════ */
+load();
+(function(){
+  const [mon,sun]=thisWeek();
+  document.getElementById('weekPill').textContent='이번 주 '+fmtMD(mon)+' ~ '+fmtMD(sun);
+})();
+render();
+pullRemote(true);
+setInterval(()=>{ if(needPush && !pushing) pushRemote(); else pullRemote(); }, 8000);
+window.addEventListener('focus', ()=>pullRemote());
+</script>
+</body>
+</html>
