@@ -47,7 +47,8 @@ main{max-width:1240px;margin:0 auto;padding:20px 24px 60px}
 .card h3 .cnt{font-size:11px;background:var(--gray-bg);color:var(--sub);border-radius:999px;padding:1px 8px;font-weight:700}
 .grid{display:grid;gap:16px}
 .g2{grid-template-columns:1fr 1fr}
-@media(max-width:900px){.g2{grid-template-columns:1fr}}
+.g3{grid-template-columns:1fr 1.2fr 1fr}
+@media(max-width:900px){.g2,.g3{grid-template-columns:1fr}}
 .muted{color:var(--faint);font-size:12.5px}
 .empty{color:var(--faint);text-align:center;padding:22px 0;font-size:13px}
 .dot{display:inline-block;width:8px;height:8px;border-radius:99px}
@@ -162,12 +163,46 @@ tr.dragging td{opacity:.4}
 .pdf-link{font-weight:600;color:var(--blue);padding:3px 8px;border-radius:6px;font-size:12.5px}
 .pdf-link:hover{background:var(--blue-bg)}
 
-/* calendar */
-.cal-now td{background:var(--fox-soft)!important}
-.cal-month{font-weight:800;white-space:nowrap}
-.cal-due{font-size:11.5px;line-height:1.7}
-.cal-due .d{display:block;color:var(--sub)}
-.cal-due .d b{color:var(--txt)}
+/* 월간 캘린더 */
+.cal-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.cal-head .ttl{font-size:17px;font-weight:800;min-width:120px;text-align:center}
+.cal-nav{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:#fff;font-size:13px;color:var(--sub)}
+.cal-nav:hover{background:var(--gray-bg);color:var(--txt)}
+.calgrid{display:grid;grid-template-columns:repeat(7,1fr);border-top:1px solid var(--line);border-left:1px solid var(--line);border-radius:0 0 var(--r) var(--r);overflow:hidden}
+.calgrid .dow{background:#fafbfc;font-size:11.5px;font-weight:700;color:var(--sub);text-align:center;padding:7px 0;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.cal-cell{min-height:96px;border-right:1px solid var(--line2);border-bottom:1px solid var(--line2);padding:5px 6px;cursor:pointer;background:#fff;overflow:hidden}
+.cal-cell:hover{background:var(--fox-soft)}
+.cal-cell.out{background:#fafbfc}
+.cal-cell.out .dnum{color:var(--faint)}
+.dnum{font-size:12px;font-weight:700;width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:99px}
+.dnum.sun{color:var(--red)} .dnum.sat{color:var(--blue)}
+.cal-cell.today .dnum{background:var(--fox);color:#fff}
+.ev{font-size:11px;border-radius:5px;padding:1.5px 6px;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.ev.due{background:var(--orange-bg);color:var(--orange)}
+.ev.due.late{background:var(--red-bg);color:var(--red)}
+.ev.plain{background:var(--blue-bg);color:var(--blue)}
+.ev.more{background:var(--gray-bg);color:var(--sub);text-align:center}
+
+/* 날짜 팝업 */
+#dayPop{position:fixed;z-index:200;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 32px rgba(16,24,40,.18);padding:12px;width:280px;display:none}
+#dayPop .dp-title{font-weight:800;font-size:13.5px;margin-bottom:8px}
+#dayPop .dp-due{padding:6px 9px;border-left:3px solid var(--orange);background:#fff9f2;border-radius:0 7px 7px 0;margin-bottom:6px;cursor:pointer;font-size:12.5px;font-weight:600}
+#dayPop .dp-due:hover{background:var(--orange-bg)}
+#dayPop .dp-due .muted{font-weight:500}
+#dayPop .dp-ev{display:flex;align-items:center;gap:4px;padding:2px 0}
+#dayPop .dp-ev>span{flex:1;font-size:13px}
+#dayPop .dp-new{display:flex;gap:6px;margin-top:8px;border-top:1px solid var(--line2);padding-top:9px}
+#dayPop .dp-new input{flex:1;border:1px solid var(--line);border-radius:7px;padding:5px 8px;min-width:80px}
+
+/* 미니 캘린더 (대시보드) */
+.mc-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center}
+.mc-dow{font-size:10.5px;font-weight:700;color:var(--faint);padding:2px 0}
+.mc-day{padding:3px 0 1px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;min-height:28px}
+.mc-day:hover{background:var(--fox-soft)}
+.mc-day.today{background:var(--fox);color:#fff;font-weight:800}
+.mc-day.today .mc-dot{background:#fff!important}
+.mc-dots{display:flex;gap:2px;justify-content:center;height:5px;margin-top:1px}
+.mc-dot{width:4px;height:4px;border-radius:99px}
 
 footer{max-width:1240px;margin:0 auto;padding:0 24px 40px;color:var(--faint);font-size:11.5px;display:flex;gap:14px;align-items:center}
 footer button{color:var(--faint);text-decoration:underline;font-size:11.5px}
@@ -225,6 +260,7 @@ footer button{color:var(--faint);text-decoration:underline;font-size:11.5px}
 <input type="file" id="impFile" accept=".json" hidden onchange="importJSON(this)">
 <input type="file" id="pdfFile" accept="application/pdf,.pdf" hidden onchange="pdfChosen(this)">
 <div id="pickPop" style="display:none" onclick="event.stopPropagation()"></div>
+<div id="dayPop" style="display:none" onclick="event.stopPropagation()"></div>
 <div id="toast"></div>
 
 <script>
@@ -237,7 +273,6 @@ const PRIO = {
   medium:{l:'Medium', o:2},    low:{l:'Low', o:3}
 };
 const STAT = { planned:'예정', active:'진행중', review:'검토중', done:'완료', hold:'보류' };
-const CAL_COLS = [['ops','운영'],['events','행사'],['mkt','마케팅'],['counsel','상담'],['edu','교육']];
 
 /* ═══════════════ 데이터 ═══════════════ */
 let DB = null;
@@ -246,11 +281,8 @@ const F = { owner:'', status:'', prio:'', q:'' };
 
 function defaults(){
   const y = new Date().getFullYear();
-  const cal = {};
-  for(let m=1;m<=12;m++) cal[m] = {ops:'',events:'',mkt:'',counsel:'',edu:''};
-  cal[7] = {ops:'여름방학 운영', events:'글로벌캠프 준비', mkt:'', counsel:'여름 상담 시작', edu:''};
   return {
-    seqP: 6, seqM: 1, seqF: 0,
+    seqP: 6, seqM: 1, seqF: 0, seqE: 0,
     members: ['준모','박미현','송센터장'],
     projects: [
       {id:'P001', name:'SEL 안내 페이지 제작', field:'SEL', owners:['박미현'], prio:'critical', status:'active',
@@ -279,7 +311,7 @@ function defaults(){
     meetings: [
       {id:'M001', date:todayISO(), title:'기획팀 주간회의', note:'상담 종류 목요일까지 확정 (송센터장)', fileId:'', fileName:''}
     ],
-    calendar: cal,
+    events: [],
     sops: [
       {doc:'연구원 매뉴얼', owners:['준모'], ver:'v0.9 (작성 중)', link:''},
       {doc:'학부모 상담 가이드', owners:['송센터장'], ver:'v1.0', link:''},
@@ -306,6 +338,23 @@ function normalize(){
   // 담당자 단일(owner 문자열) → 다중(owners 배열) 이관
   DB.projects.forEach(p=>{ if(!Array.isArray(p.owners)){ p.owners = p.owner ? [p.owner] : []; delete p.owner; } });
   DB.sops.forEach(s=>{ if(!Array.isArray(s.owners)){ s.owners = s.owner ? [s.owner] : []; delete s.owner; } });
+  // 구버전 연간 캘린더(월별 텍스트) → 일정(events)으로 이관
+  if(!Array.isArray(DB.events)) DB.events=[];
+  if(typeof DB.seqE!=='number') DB.seqE=DB.events.length;
+  if(DB.calendar){
+    const y=new Date().getFullYear();
+    const L={ops:'운영',events:'행사',mkt:'마케팅',counsel:'상담',edu:'교육'};
+    for(const m in DB.calendar){
+      const c=DB.calendar[m]||{};
+      for(const k in L){
+        const v=(c[k]||'').trim(); if(!v) continue;
+        const date=`${y}-${String(m).padStart(2,'0')}-01`, title=`[${L[k]}] ${v}`;
+        if(!DB.events.some(e=>e.date===date && e.title===title))
+          DB.events.push({id:'E'+(++DB.seqE), date, title});
+      }
+    }
+    delete DB.calendar;
+  }
   const wk = mondayISO(new Date());
   if(DB.weekly.week !== wk){
     DB.weekly.week = wk;
@@ -347,6 +396,7 @@ async function pushRemote(){
 function editingNow(){
   if(dragPid) return true;
   if(document.getElementById('pickPop').style.display==='block') return true;
+  if(document.getElementById('dayPop').style.display==='block') return true;
   const a=document.activeElement;
   return !!(a && (a.isContentEditable || ['INPUT','TEXTAREA','SELECT'].includes(a.tagName)));
 }
@@ -411,7 +461,8 @@ async function fileDel(id){
 }
 
 /* ═══════════════ 날짜 유틸 ═══════════════ */
-function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function dISO(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function todayISO(){ return dISO(new Date()); }
 function addDays(iso,n){ const d=new Date(iso+'T00:00:00'); d.setDate(d.getDate()+n); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function mondayISO(dt){ const d=new Date(dt); const dow=(d.getDay()+6)%7; d.setDate(d.getDate()-dow); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function fmtMD(iso){ if(!iso) return ''; const [y,m,d]=iso.split('-'); return (+m)+'/'+(+d); }
@@ -579,7 +630,15 @@ function rDash(){
     </div>
   </div>
 
-  <div class="grid g2">
+  <div class="grid g3">
+    <div class="card">
+      <h3>이번 달 캘린더 <span style="flex:1"></span><button class="mini-btn gray" onclick="goTab('cal')">전체 보기</button></h3>
+      ${miniCalHTML()}
+      <div class="muted" style="margin-top:9px;font-size:11px">
+        <span class="mc-dot" style="display:inline-block;background:var(--orange)"></span> 프로젝트 마감 ·
+        <span class="mc-dot" style="display:inline-block;background:var(--blue)"></span> 일정 · 날짜를 누르면 캘린더로 이동
+      </div>
+    </div>
     <div class="card">
       <h3>담당자별 현황</h3>
       <div class="tbl-wrap"><table>
@@ -628,6 +687,25 @@ function delMember(i){
   if(!confirm(`'${m}' 담당자를 목록에서 삭제할까요?${n?`\n(담당 중인 프로젝트 ${n}건의 담당 표기는 유지됩니다)`:''}`)) return;
   DB.members.splice(i,1); save(); rDash();
 }
+function miniCalHTML(){
+  const now=new Date(), y=now.getFullYear(), m=now.getMonth()+1, today=todayISO();
+  const map=calData();
+  const first=new Date(y,m-1,1), off=first.getDay(), dim=new Date(y,m,0).getDate();
+  const weeks=Math.ceil((off+dim)/7);
+  let cells='';
+  for(let i=0;i<weeks*7;i++){
+    const dnum=i-off+1;
+    if(dnum<1 || dnum>dim){ cells+='<div></div>'; continue; }
+    const iso=`${y}-${String(m).padStart(2,'0')}-${String(dnum).padStart(2,'0')}`;
+    const it=map[iso];
+    const dots=it?`${it.dues.length?'<span class="mc-dot" style="background:var(--orange)"></span>':''}${it.evs.length?'<span class="mc-dot" style="background:var(--blue)"></span>':''}`:'';
+    cells+=`<div class="mc-day ${iso===today?'today':''}" onclick="goCalDay('${iso}')">${dnum}<div class="mc-dots">${dots}</div></div>`;
+  }
+  return `<div class="mc-grid">
+    ${DOW.map((d,i)=>`<div class="mc-dow" style="${i===0?'color:var(--red)':i===6?'color:var(--blue)':''}">${d}</div>`).join('')}
+    ${cells}</div>`;
+}
+function goCalDay(iso){ const [y,m]=iso.split('-'); calY=+y; calM=+m; goTab('cal'); }
 function filterGo(k,v){ F.owner=F.status=F.prio=''; F.q=''; F[k]=v; goTab('proj'); }
 function openProj(id){ EXP.add(id); F.owner=F.status=F.prio=F.q=''; goTab('proj');
   setTimeout(()=>{ const r=document.getElementById('row-'+id); if(r) r.scrollIntoView({behavior:'smooth',block:'center'}); },80); }
@@ -858,34 +936,114 @@ async function removePdf(mid){
   m.fileId=''; m.fileName=''; save(); rMeet();
 }
 
-/* ═══════════════ 연간 캘린더 ═══════════════ */
+/* ═══════════════ 연간 캘린더 (월간 달력) ═══════════════ */
+let calY=new Date().getFullYear(), calM=new Date().getMonth()+1;
+let dayISO=null;
+const DOW=['일','월','화','수','목','금','토'];
+
+function calData(){
+  const map={};
+  const g=iso=>(map[iso]=map[iso]||{evs:[],dues:[]});
+  DB.events.forEach(ev=>{ if(ev.date) g(ev.date).evs.push(ev); });
+  openProjects().forEach(p=>{ if(p.due) g(p.due).dues.push(p); });
+  return map;
+}
+function calShift(n){ calM+=n; if(calM<1){calM=12;calY--;} if(calM>12){calM=1;calY++;} closeDay(); rCal(); }
+function calToday(){ const d=new Date(); calY=d.getFullYear(); calM=d.getMonth()+1; closeDay(); rCal(); }
+
 function rCal(){
-  const y=new Date().getFullYear(), nowM=new Date().getMonth()+1;
-  const dueByMonth={};
-  DB.projects.forEach(p=>{
-    if(!p.due) return; const [py,pm]=p.due.split('-');
-    if(+py!==y) return; (dueByMonth[+pm]=dueByMonth[+pm]||[]).push(p);
-  });
-  let rows='';
-  for(let m=1;m<=12;m++){
-    const c=DB.calendar[m];
-    rows+=`<tr class="${m===nowM?'cal-now':''}">
-      <td class="cal-month">${m}월 ${m===nowM?'◀':''}</td>
-      ${CAL_COLS.map(([k,_])=>`<td ${ce(`upCal(${m},'${k}',this.innerText)`,'',1)}>${esc(c[k])}</td>`).join('')}
-      <td class="cal-due">${(dueByMonth[m]||[]).map(p=>
-        `<span class="d">${p.status==='done'?'✓':'•'} <b>${esc(p.name)}</b> ${fmtMD(p.due)} · ${esc(p.owners.join(', ')||'미정')}</span>`).join('')||'<span class="muted">—</span>'}</td>
-    </tr>`;
+  const today=todayISO(), map=calData();
+  const first=new Date(calY, calM-1, 1);
+  const off=first.getDay(), dim=new Date(calY, calM, 0).getDate();
+  const weeks=Math.ceil((off+dim)/7);
+  const cur=new Date(first); cur.setDate(1-off);
+  let cells='';
+  for(let i=0;i<weeks*7;i++){
+    const iso=dISO(cur), inM=cur.getMonth()===calM-1;
+    const it=map[iso]||{evs:[],dues:[]};
+    const chips=[
+      ...it.dues.map(p=>`<div class="ev due ${p.due<today?'late':''}">${esc(p.name)}</div>`),
+      ...it.evs.map(ev=>`<div class="ev plain">${esc(ev.title)}</div>`)
+    ];
+    const shown=chips.slice(0,3).join('') + (chips.length>3?`<div class="ev more">+${chips.length-3}</div>`:'');
+    const dow=cur.getDay();
+    cells+=`<div class="cal-cell ${inM?'':'out'} ${iso===today?'today':''}" onclick="openDay(event,'${iso}')">
+      <div class="dnum ${dow===0?'sun':dow===6?'sat':''}">${cur.getDate()}</div>${shown}</div>`;
+    cur.setDate(cur.getDate()+1);
   }
   document.getElementById('tab-cal').innerHTML=`
-  <div class="card" style="padding:0"><div class="tbl-wrap">
-    <table>
-      <tr><th>월</th>${CAL_COLS.map(([_,l])=>`<th style="min-width:120px">${l}</th>`).join('')}<th style="min-width:200px">프로젝트 마감 (자동)</th></tr>
-      ${rows}
-    </table>
-  </div></div>
-  <div class="muted">각 칸을 클릭해 ${y}년 연간 운영계획을 입력하세요 · 마지막 열은 프로젝트 탭의 마감일이 자동 표시됩니다</div>`;
+  <div class="cal-head">
+    <button class="cal-nav" onclick="calShift(-1)">◀</button>
+    <span class="ttl">${calY}년 ${calM}월</span>
+    <button class="cal-nav" onclick="calShift(1)">▶</button>
+    <button class="mini-btn gray" onclick="calToday()">오늘</button>
+    <span style="flex:1"></span>
+    <span class="muted"><span class="ev due" style="margin-right:4px">프로젝트 마감 (자동)</span><span class="ev plain">일정</span></span>
+  </div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <div class="calgrid">
+      ${DOW.map((d,i)=>`<div class="dow" style="${i===0?'color:var(--red)':i===6?'color:var(--blue)':''}">${d}</div>`).join('')}
+      ${cells}
+    </div>
+  </div>
+  <div class="muted">날짜를 클릭하면 일정을 추가·수정·삭제할 수 있습니다 · 프로젝트 탭에서 마감일을 입력하면 자동으로 표시됩니다</div>`;
 }
-function upCal(m,k,v){ DB.calendar[m][k]=v.trim(); save(); }
+
+/* 날짜 팝업 */
+function openDay(e, iso){
+  e.stopPropagation();
+  dayISO=iso;
+  const pop=document.getElementById('dayPop');
+  renderDayPop();
+  pop.style.display='block';
+  const r=e.currentTarget.getBoundingClientRect();
+  let x=r.left, y=r.bottom+4;
+  if(x+pop.offsetWidth>innerWidth-10) x=innerWidth-pop.offsetWidth-10;
+  if(y+pop.offsetHeight>innerHeight-10) y=r.top-pop.offsetHeight-4;
+  pop.style.left=Math.max(8,x)+'px'; pop.style.top=Math.max(8,y)+'px';
+  pop.querySelector('.dp-new input').focus();
+}
+function renderDayPop(){
+  const pop=document.getElementById('dayPop');
+  const map=calData(), it=map[dayISO]||{evs:[],dues:[]};
+  pop.innerHTML=`
+    <div class="dp-title">${fmtFull(dayISO)}</div>
+    ${it.dues.map(p=>`<div class="dp-due" onclick="closeDay();openProj('${p.id}')">
+      마감 · ${esc(p.name)} <span class="muted">${esc(p.owners.join(', ')||'미정')}</span></div>`).join('')}
+    ${it.evs.map(ev=>`<div class="dp-ev">
+      <span ${ce(`upEvent('${ev.id}',this.innerText)`,'일정')}>${esc(ev.title)}</span>
+      <button class="icon-btn" onclick="delEvent('${ev.id}')">✕</button></div>`).join('')}
+    ${(!it.dues.length && !it.evs.length)?'<div class="muted" style="padding:2px 0 4px">등록된 일정이 없습니다</div>':''}
+    <div class="dp-new">
+      <input type="text" placeholder="새 일정 입력 후 Enter" onkeydown="if(event.key==='Enter')addEvent(this)">
+      <button class="mini-btn" onclick="addEvent(this.previousElementSibling)">추가</button>
+    </div>`;
+}
+function addEvent(inp){
+  const v=inp.value.trim(); if(!v) return;
+  DB.events.push({id:'E'+(++DB.seqE), date:dayISO, title:v});
+  inp.value=''; save(); renderDayPop(); rCal();
+  document.getElementById('dayPop').querySelector('.dp-new input').focus();
+}
+function upEvent(id,v){
+  const ev=DB.events.find(e=>e.id===id); if(!ev) return;
+  v=v.trim();
+  if(!v) return renderDayPop();
+  ev.title=v; save(); renderDayPop(); rCal();
+}
+function delEvent(id){
+  DB.events=DB.events.filter(e=>e.id!==id);
+  save(); renderDayPop(); rCal();
+}
+function closeDay(){
+  const pop=document.getElementById('dayPop');
+  if(pop.style.display==='none') return;
+  pop.style.display='none'; dayISO=null;
+}
+document.addEventListener('click', e=>{
+  const pop=document.getElementById('dayPop');
+  if(pop.style.display!=='none' && !pop.contains(e.target)) closeDay();
+});
 
 /* ═══════════════ 운영 문서 ═══════════════ */
 function rSop(){
