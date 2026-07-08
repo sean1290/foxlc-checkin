@@ -106,15 +106,14 @@ tr.dragging td{opacity:.4}
 .pbar{height:5px;background:var(--line2);border-radius:99px;overflow:hidden;margin-top:3px}
 .pbar>div{height:100%;background:linear-gradient(90deg,#fb923c,#f97316);border-radius:99px}
 
-/* project detail row */
-.detail td{background:#fbfcfe;padding:14px 18px}
-.detail-grid{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:18px}
-@media(max-width:900px){.detail-grid{grid-template-columns:1fr}}
-.dlabel{font-size:11px;font-weight:800;color:var(--fox-deep);letter-spacing:.5px;margin-bottom:6px}
-.chk{display:flex;align-items:center;gap:7px;padding:3px 0}
-.chk input{accent-color:var(--green);cursor:pointer}
-.chk .del{opacity:0;color:var(--faint)}
-.chk:hover .del{opacity:1}
+/* 프로젝트 하위 단계(브랜치) */
+tr.branch td{background:#fbfcff;border-bottom:1px solid var(--line2)}
+tr.branch:hover td{background:#f5f8fd}
+tr.branch td:first-child{box-shadow:inset 3.5px 0 0 #fdba74}
+.br-name{display:flex;align-items:center;gap:5px}
+.tree{color:var(--fox);font-weight:800;margin-left:9px;font-size:13px}
+tr.br-add td{background:#fbfcff;border-bottom:1.5px solid var(--line)}
+tr.br-add td:first-child{box-shadow:inset 3.5px 0 0 #fdba74}
 .mini-btn{font-size:11.5px;font-weight:700;color:var(--fox-deep);background:var(--fox-soft);border-radius:6px;padding:4px 10px}
 .mini-btn:hover{background:#ffe4cc}
 .mini-btn.gray{background:var(--gray-bg);color:var(--gray)}
@@ -338,6 +337,12 @@ function normalize(){
   // 담당자 단일(owner 문자열) → 다중(owners 배열) 이관
   DB.projects.forEach(p=>{ if(!Array.isArray(p.owners)){ p.owners = p.owner ? [p.owner] : []; delete p.owner; } });
   DB.sops.forEach(s=>{ if(!Array.isArray(s.owners)){ s.owners = s.owner ? [s.owner] : []; delete s.owner; } });
+  // 프로젝트 하위 단계(브랜치) 필드 보정
+  if(typeof DB.seqB!=='number') DB.seqB=0;
+  DB.projects.forEach(p=>{
+    if(!Array.isArray(p.branches)) p.branches=[];
+    p.branches.forEach(b=>{ if(!Array.isArray(b.owners)) b.owners=[]; });
+  });
   // 구버전 연간 캘린더(월별 텍스트) → 일정(events)으로 이관
   if(!Array.isArray(DB.events)) DB.events=[];
   if(typeof DB.seqE!=='number') DB.seqE=DB.events.length;
@@ -491,7 +496,11 @@ function P(id){ return DB.projects.find(p=>p.id===id); }
 
 /* ── 담당자 다중 선택 (칩 + 팝업) ── */
 let PICK = null; // {type:'proj'|'sop', key}
-function ownersOf(type,key){ return type==='proj' ? P(key).owners : DB.sops[key].owners; }
+function ownersOf(type,key){
+  if(type==='proj') return P(key).owners;
+  if(type==='br'){ const [pid,bid]=key.split('|'); return P(pid).branches.find(b=>b.id===bid).owners; }
+  return DB.sops[key].owners;
+}
 function ownerCell(owners, type, key){
   return `<div class="own-wrap">
     ${owners.map((o,i)=>`<span class="own-chip">${esc(o)}<button title="제외" onclick="event.stopPropagation();rmOwner('${type}','${key}',${i})">✕</button></span>`).join('')}
@@ -588,7 +597,13 @@ function rDash(){
   const op = openProjects();
   const top = op.filter(p=>p.due && p.due<=sun && p.status!=='hold')
     .sort((a,b)=> (a.due<b.due?-1:a.due>b.due?1:0) || (PRIO[a.prio].o-PRIO[b.prio].o)).slice(0,5);
-  const blockers = op.filter(p=>p.blocker && p.blocker.trim());
+  const blockers = [];
+  op.forEach(p=>{
+    if(p.blocker && p.blocker.trim()) blockers.push({txt:p.blocker, who:p.name, owners:p.owners});
+    (p.branches||[]).forEach(b=>{
+      if(b.issue && b.issue.trim() && b.status!=='done') blockers.push({txt:b.issue, who:p.name+' › '+b.name, owners:b.owners});
+    });
+  });
   const people = DB.members.map(m=>{
     const mine = op.filter(p=>p.owners.includes(m));
     return { m,
@@ -622,10 +637,10 @@ function rDash(){
 
     <div class="card">
       <h3>이슈사항 <span class="cnt">${blockers.length}건</span></h3>
-      ${blockers.length ? blockers.map(p=>`
+      ${blockers.length ? blockers.map(k=>`
         <div class="blk-item">
-          <b>${esc(p.blocker)}</b>
-          <div class="who">${esc(p.name)} · ${esc(p.owners.join(', ')||'미정')}</div>
+          <b>${esc(k.txt)}</b>
+          <div class="who">${esc(k.who)} · ${esc(k.owners.join(', ')||'미정')}</div>
         </div>`).join('') : '<div class="empty">이슈사항이 없습니다</div>'}
     </div>
   </div>
@@ -716,7 +731,7 @@ function rProj(){
   if(F.owner)  list=list.filter(p=>p.owners.includes(F.owner));
   if(F.status) list=list.filter(p=>p.status===F.status);
   if(F.prio)   list=list.filter(p=>p.prio===F.prio);
-  if(F.q){ const q=F.q.toLowerCase(); list=list.filter(p=>(p.name+p.field+p.owners.join('')+p.next+p.blocker+p.why+p.note).toLowerCase().includes(q)); }
+  if(F.q){ const q=F.q.toLowerCase(); list=list.filter(p=>(p.name+p.field+p.owners.join('')+p.next+p.blocker+p.why+p.note+(p.branches||[]).map(b=>b.name+b.note+b.issue+b.owners.join('')).join('')).toLowerCase().includes(q)); }
 
   document.getElementById('tab-proj').innerHTML = `
   <div class="toolbar">
@@ -744,7 +759,7 @@ function rProj(){
     ${list.length ? list.map(p=>projRow(p)).join('') : '<tr><td colspan="11"><div class="empty">조건에 맞는 프로젝트가 없습니다</div></td></tr>'}
   </table>
   </div></div>
-  <div class="muted">⠿ 를 잡고 위아래로 끌면 순서가 바뀝니다 · ▶ 를 누르면 Why / 완료 기준 / 시작일 / 메모를 편집할 수 있습니다 · 상태를 완료로 바꾸면 완료 탭으로 이동합니다</div>`;
+  <div class="muted">⠿ 를 잡고 위아래로 끌면 순서가 바뀝니다 · ▶ 를 누르면 프로젝트의 세부 단계를 추가·관리할 수 있습니다 · 상태를 완료로 바꾸면 완료 탭으로 이동합니다</div>`;
 }
 
 function projRow(p){
@@ -754,7 +769,7 @@ function projRow(p){
       ondragstart="dragStart(event,'${p.id}')" ondragend="dragEnd(event)"
       ondragover="dragOver(event,'${p.id}')" ondragleave="dragLeave(event,'${p.id}')" ondrop="dropRow(event,'${p.id}')">
     <td style="white-space:nowrap"><span class="handle" title="끌어서 순서 이동" onmousedown="armDrag('${p.id}')">⠿</span><button class="exp-btn" onclick="togEx('${p.id}')">${ex?'▼':'▶'}</button></td>
-    <td><div style="font-weight:600" ${ce(`upP('${p.id}','name',this.innerText)`,'프로젝트명')}>${esc(p.name)}</div><div class="muted" style="font-size:11px;padding-left:6px">${p.id}</div></td>
+    <td><div style="font-weight:600" ${ce(`upP('${p.id}','name',this.innerText)`,'프로젝트명')}>${esc(p.name)}</div><div class="muted" style="font-size:11px;padding-left:6px">${p.id}${(p.branches&&p.branches.length)?` · 단계 ${p.branches.filter(b=>b.status==='done').length}/${p.branches.length}`:''}</div></td>
     <td ${ce(`upP('${p.id}','field',this.innerText)`,'분야')}>${esc(p.field)}</td>
     <td>${ownerCell(p.owners,'proj',p.id)}</td>
     <td><select class="cell b-${p.prio}" style="border-radius:6px" onchange="upP('${p.id}','prio',this.value)">
@@ -773,40 +788,43 @@ function projRow(p){
     <td><button class="icon-btn" title="삭제" onclick="delProj('${p.id}')">🗑</button></td>
   </tr>`;
   if(!ex) return main;
-  return main + `
-  <tr class="detail"><td colspan="11">
-    <div class="detail-grid">
-      <div>
-        <div class="dlabel">WHY — 왜 하는가</div>
-        <div ${ce(`upP('${p.id}','why',this.innerText)`,'이 프로젝트가 필요한 이유',1)} style="min-height:40px">${esc(p.why)}</div>
-        <div class="dlabel" style="margin-top:12px">메모</div>
-        <div ${ce(`upP('${p.id}','note',this.innerText)`,'메모',1)} style="min-height:30px">${esc(p.note)}</div>
-      </div>
-      <div>
-        <div class="dlabel">완료 기준</div>
-        ${p.crit.map((c,i)=>`
-          <div class="chk">
-            <input type="checkbox" ${c.d?'checked':''} onchange="P('${p.id}').crit[${i}].d=this.checked;save();rProj()">
-            <span style="${c.d?'text-decoration:line-through;color:var(--faint)':''}" ${ce(`upCrit('${p.id}',${i},this.innerText)`,'기준')}>${esc(c.t)}</span>
-            <button class="icon-btn del" onclick="P('${p.id}').crit.splice(${i},1);save();rProj()">✕</button>
-          </div>`).join('')}
-        <div style="display:flex;gap:6px;margin-top:8px">
-          <button class="mini-btn gray" onclick="P('${p.id}').crit.push({t:'새 기준',d:false});save();rProj()">기준 추가</button>
-          <button class="mini-btn" onclick="calcProg('${p.id}')">체크 기준으로 진행률 계산</button>
-        </div>
-      </div>
-      <div>
-        <div class="dlabel">시작일</div>
-        <input type="date" class="cell-date" value="${p.start||''}" onchange="upP('${p.id}','start',this.value)">
-        <div class="dlabel" style="margin-top:12px">요약</div>
-        <div class="muted" style="line-height:2">
-          완료 기준 <b>${p.crit.filter(c=>c.d).length}/${p.crit.length}</b> 달성<br>
-          ${p.start?`시작 ${fmtMD(p.start)} → `:''}마감 ${p.due?fmtMD(p.due):'미정'}<br>
-          ${p.blocker?`<span style="color:var(--red)">⚠ ${esc(p.blocker)}</span>`:'이슈 없음 ✓'}
-        </div>
-      </div>
-    </div>
+  const brs = (p.branches||[]).map(b=>`
+  <tr class="branch">
+    <td></td>
+    <td><div class="br-name"><span class="tree">└</span>
+      <span style="font-weight:600" ${ce(`upB('${p.id}','${b.id}','name',this.innerText)`,'단계 이름')}>${esc(b.name)}</span></div></td>
+    <td></td>
+    <td>${ownerCell(b.owners,'br',p.id+'|'+b.id)}</td>
+    <td><select class="cell b-${b.prio}" style="border-radius:6px" onchange="upB('${p.id}','${b.id}','prio',this.value)">
+      ${Object.entries(PRIO).map(([k,v])=>`<option ${b.prio===k?'selected':''} value="${k}">${v.l}</option>`).join('')}</select></td>
+    <td><select class="cell b-${b.status}" style="border-radius:6px" onchange="upB('${p.id}','${b.id}','status',this.value)">
+      ${Object.entries(STAT).map(([k,v])=>`<option ${b.status===k?'selected':''} value="${k}">${v}</option>`).join('')}</select></td>
+    <td><input type="date" class="cell-date" value="${b.due||''}" onchange="upB('${p.id}','${b.id}','due',this.value)"><br>${dueBadge(b)}</td>
+    <td></td>
+    <td ${ce(`upB('${p.id}','${b.id}','note',this.innerText)`,'메모')}>${esc(b.note)}</td>
+    <td style="${b.issue?'color:var(--red);font-weight:600':''}" ${ce(`upB('${p.id}','${b.id}','issue',this.innerText)`,'없음')}>${esc(b.issue)}</td>
+    <td><button class="icon-btn" title="단계 삭제" onclick="delBranch('${p.id}','${b.id}')">✕</button></td>
+  </tr>`).join('');
+  return main + brs + `
+  <tr class="br-add"><td></td><td colspan="10" style="padding:7px 10px">
+    <button class="mini-btn" onclick="addBranch('${p.id}')">＋ 단계 추가</button>
+    ${(p.branches&&p.branches.length)?'':'<span class="muted" style="margin-left:8px">이 프로젝트에 필요한 세부 단계를 추가하세요</span>'}
   </td></tr>`;
+}
+function addBranch(pid){
+  const p=P(pid); if(!Array.isArray(p.branches)) p.branches=[];
+  p.branches.push({id:'B'+(++DB.seqB), name:'새 단계', owners:[], prio:'medium', status:'planned', due:'', note:'', issue:''});
+  EXP.add(pid); save(); rProj();
+}
+function upB(pid,bid,k,v){
+  const b=P(pid).branches.find(x=>x.id===bid); if(!b) return;
+  b[k]=typeof v==='string'?v.trim():v;
+  save(); render();
+}
+function delBranch(pid,bid){
+  const p=P(pid), b=p.branches.find(x=>x.id===bid);
+  if(!confirm(`'${b.name}' 단계를 삭제할까요?`)) return;
+  p.branches=p.branches.filter(x=>x.id!==bid); save(); rProj();
 }
 function togEx(id){ EXP.has(id)?EXP.delete(id):EXP.add(id); rProj(); }
 function upP(id,k,v){
@@ -819,15 +837,10 @@ function upP(id,k,v){
   }
   save(); render();
 }
-function upCrit(id,i,v){ P(id).crit[i].t=v.trim()||'기준'; save(); rProj(); }
-function calcProg(id){
-  const p=P(id); if(!p.crit.length) return toast('완료 기준을 먼저 추가하세요');
-  p.prog=Math.round(p.crit.filter(c=>c.d).length/p.crit.length*20)*5; save(); rProj();
-}
 function addProj(){
   const id='P'+String(++DB.seqP).padStart(3,'0');
   DB.projects.push({id, name:'새 프로젝트', field:'', owners:[], prio:'medium', status:'planned',
-    start:todayISO(), due:'', prog:0, why:'', crit:[], next:'', blocker:'', note:'', doneAt:''});
+    start:todayISO(), due:'', prog:0, why:'', crit:[], next:'', blocker:'', note:'', doneAt:'', branches:[]});
   EXP.add(id); save(); rProj();
   setTimeout(()=>{ const r=document.getElementById('row-'+id); if(r) r.scrollIntoView({behavior:'smooth',block:'center'}); },50);
 }
