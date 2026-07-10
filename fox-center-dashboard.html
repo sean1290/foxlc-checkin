@@ -162,6 +162,29 @@ tr.br-add td:first-child{box-shadow:inset 3.5px 0 0 #fdba74}
 .pdf-link{font-weight:600;color:var(--blue);padding:3px 8px;border-radius:6px;font-size:12.5px}
 .pdf-link:hover{background:var(--blue-bg)}
 
+/* 보고 */
+.rp-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;box-shadow:var(--sh);margin-bottom:14px}
+.rp-bar select,.rp-bar input[type=date]{border:1px solid var(--line);border-radius:8px;padding:7px 9px;background:#fff}
+.rp-bar input[type=text]{flex:1;min-width:180px;border:1.5px solid var(--line);border-radius:8px;padding:8px 11px}
+.rp-bar input[type=text]:focus{outline:none;border-color:var(--fox)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{padding:7px 12px;font-weight:600;color:var(--sub);background:#fff;font-size:12.5px}
+.seg button.on{background:var(--fox);color:#fff}
+.rp-date{font-weight:800;font-size:13.5px;margin:16px 0 6px;display:flex;align-items:center;gap:8px}
+.rp-item{display:flex;align-items:flex-start;gap:7px;padding:8px 10px;border-bottom:1px solid var(--line2)}
+.rp-item:hover{background:#fafbfd}
+.rp-item .del{opacity:0}
+.rp-item:hover .del{opacity:1}
+.rp-txt{flex:1;font-size:13.5px;line-height:1.5}
+.bdg.k-daily{background:var(--gray-bg);color:var(--gray)}
+.bdg.k-weekly{background:var(--green-bg);color:var(--green)}
+.bdg.s-lab{background:var(--blue-bg);color:var(--blue)}
+.bdg.s-center{background:var(--orange-bg);color:var(--orange)}
+.rp-author{font-size:11.5px;font-weight:700;color:var(--sub);background:var(--gray-bg);border-radius:99px;padding:2px 9px;white-space:nowrap;margin-top:1px}
+.agn-item{padding:8px 10px;border-left:3px solid var(--orange);background:#fff9f2;border-radius:0 8px 8px 0;margin-bottom:8px}
+.agn-item b{font-size:13px}
+.agn-item .who{font-size:11.5px;color:var(--sub)}
+
 /* 월간 캘린더 */
 .cal-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
 .cal-head .ttl{font-size:17px;font-weight:800;min-width:120px;text-align:center}
@@ -235,6 +258,7 @@ footer button{color:var(--faint);text-decoration:underline;font-size:11.5px}
 <nav id="tabNav">
   <button data-t="dash" class="on">대시보드</button>
   <button data-t="proj">프로젝트</button>
+  <button data-t="rep">보고</button>
   <button data-t="meet">회의록</button>
   <button data-t="cal">연간 캘린더</button>
   <button data-t="sop">운영 문서</button>
@@ -244,6 +268,7 @@ footer button{color:var(--faint);text-decoration:underline;font-size:11.5px}
 <main>
   <section id="tab-dash" class="tab on"></section>
   <section id="tab-proj" class="tab"></section>
+  <section id="tab-rep" class="tab"></section>
   <section id="tab-meet" class="tab"></section>
   <section id="tab-cal" class="tab"></section>
   <section id="tab-sop" class="tab"></section>
@@ -281,7 +306,8 @@ const F = { owner:'', status:'', prio:'', q:'' };
 function defaults(){
   const y = new Date().getFullYear();
   return {
-    seqP: 6, seqM: 1, seqF: 0, seqE: 0,
+    seqP: 6, seqM: 1, seqF: 0, seqE: 0, seqR: 0,
+    reports: [],
     members: ['준모','박미현','송센터장'],
     projects: [
       {id:'P001', name:'SEL 안내 페이지 제작', field:'SEL', owners:['박미현'], prio:'critical', status:'active',
@@ -337,6 +363,9 @@ function normalize(){
   // 담당자 단일(owner 문자열) → 다중(owners 배열) 이관
   DB.projects.forEach(p=>{ if(!Array.isArray(p.owners)){ p.owners = p.owner ? [p.owner] : []; delete p.owner; } });
   DB.sops.forEach(s=>{ if(!Array.isArray(s.owners)){ s.owners = s.owner ? [s.owner] : []; delete s.owner; } });
+  // 보고 필드 보정
+  if(!Array.isArray(DB.reports)) DB.reports=[];
+  if(typeof DB.seqR!=='number') DB.seqR=DB.reports.length;
   // 프로젝트 하위 단계(브랜치) 필드 보정
   if(typeof DB.seqB!=='number') DB.seqB=0;
   DB.projects.forEach(p=>{
@@ -589,7 +618,7 @@ document.getElementById('tabNav').addEventListener('click', e=>{
   render();
 });
 function goTab(t){ document.querySelector(`#tabNav button[data-t="${t}"]`).click(); }
-function render(){ ({dash:rDash, proj:rProj, meet:rMeet, cal:rCal, sop:rSop, comp:rComp})[curTab](); }
+function render(){ ({dash:rDash, proj:rProj, rep:rRep, meet:rMeet, cal:rCal, sop:rSop, comp:rComp})[curTab](); }
 
 /* ═══════════════ 대시보드 ═══════════════ */
 function rDash(){
@@ -604,6 +633,8 @@ function rDash(){
       if(b.issue && b.issue.trim() && b.status!=='done') blockers.push({txt:b.issue, who:p.name+' › '+b.name, owners:b.owners});
     });
   });
+  const agenda=(DB.reports||[]).filter(r=>r.scope==='center' && r.date>=mon && r.date<=sun)
+    .sort((a,b)=> a.date<b.date?1 : a.date>b.date?-1 : 0);
   const people = DB.members.map(m=>{
     const mine = op.filter(p=>p.owners.includes(m));
     return { m,
@@ -623,7 +654,7 @@ function rDash(){
     <div class="stat ${s.late?'warn':''}" onclick="goTab('proj')"><div class="lb"><span class="dot" style="background:${s.late?'var(--red)':'var(--faint)'}"></span>지연</div><div class="num">${s.late}</div></div>
   </div>
 
-  <div class="grid g2">
+  <div class="grid g3">
     <div class="card">
       <h3>이번주 TOP 5 <span class="cnt">마감 임박순</span></h3>
       ${top.length ? top.map((p,i)=>`
@@ -642,6 +673,15 @@ function rDash(){
           <b>${esc(k.txt)}</b>
           <div class="who">${esc(k.who)} · ${esc(k.owners.join(', ')||'미정')}</div>
         </div>`).join('') : '<div class="empty">이슈사항이 없습니다</div>'}
+    </div>
+
+    <div class="card">
+      <h3>센터 공통 안건 <span class="cnt">이번 주 보고</span><span style="flex:1"></span><button class="mini-btn gray" onclick="goTab('rep')">보고 탭</button></h3>
+      ${agenda.length ? agenda.map(r=>`
+        <div class="agn-item">
+          <b>${esc(r.text)}</b>
+          <div class="who">${esc(r.author||'미정')} · ${fmtMD(r.date)}${r.kind==='weekly'?' · 주간':''}</div>
+        </div>`).join('') : '<div class="empty">이번 주 공통 안건이 없습니다<br>보고 탭에서 "센터 공통"으로 등록하면 여기 모입니다</div>'}
     </div>
   </div>
 
@@ -877,6 +917,99 @@ function dropRow(e,id){
 function dragEnd(e){
   dragPid=null;
   document.querySelectorAll('tr[id^="row-"]').forEach(tr=>{ tr.draggable=false; tr.classList.remove('hint-top','hint-bottom','dragging'); });
+}
+
+/* ═══════════════ 보고 (일일/주간) ═══════════════ */
+const RP = {
+  kind:'daily', scope:'lab',
+  author: localStorage.getItem('foxcenter.me')||'',
+  text:'', f_scope:'', f_kind:'', f_author:''
+};
+function rRep(){
+  let list=[...DB.reports];
+  if(RP.f_scope)  list=list.filter(r=>r.scope===RP.f_scope);
+  if(RP.f_kind)   list=list.filter(r=>r.kind===RP.f_kind);
+  if(RP.f_author) list=list.filter(r=>r.author===RP.f_author);
+  const byDate={};
+  list.forEach(r=>(byDate[r.date]=byDate[r.date]||[]).push(r));
+  const dates=Object.keys(byDate).sort().reverse();
+
+  document.getElementById('tab-rep').innerHTML = `
+  <div class="rp-bar">
+    <input type="date" id="rpDate" value="${todayISO()}">
+    <select id="rpAuthor" onchange="RP.author=this.value;localStorage.setItem('foxcenter.me',this.value)">
+      <option value="" ${!RP.author?'selected':''}>작성자</option>
+      ${DB.members.map(m=>`<option ${RP.author===m?'selected':''} value="${esc(m)}">${esc(m)}</option>`).join('')}
+    </select>
+    <span class="seg">
+      <button class="${RP.kind==='daily'?'on':''}" onclick="RP.kind='daily';segOn(this)">일일</button>
+      <button class="${RP.kind==='weekly'?'on':''}" onclick="RP.kind='weekly';segOn(this)">주간</button>
+    </span>
+    <span class="seg">
+      <button class="${RP.scope==='lab'?'on':''}" onclick="RP.scope='lab';segOn(this)">연구소 업무</button>
+      <button class="${RP.scope==='center'?'on':''}" onclick="RP.scope='center';segOn(this)">센터 공통</button>
+    </span>
+    <input type="text" id="rpText" placeholder="보고 내용 입력 후 Enter (연달아 입력 가능)" value="${esc(RP.text)}"
+      oninput="RP.text=this.value" onkeydown="if(event.key==='Enter')addReport()">
+    <button class="add-btn" onclick="addReport()">등록</button>
+  </div>
+
+  <div class="toolbar" style="margin-bottom:10px">
+    <select onchange="RP.f_scope=this.value;rRep()">
+      <option value="">구분 · 전체</option>
+      <option ${RP.f_scope==='lab'?'selected':''} value="lab">연구소 업무</option>
+      <option ${RP.f_scope==='center'?'selected':''} value="center">센터 공통</option>
+    </select>
+    <select onchange="RP.f_kind=this.value;rRep()">
+      <option value="">종류 · 전체</option>
+      <option ${RP.f_kind==='daily'?'selected':''} value="daily">일일</option>
+      <option ${RP.f_kind==='weekly'?'selected':''} value="weekly">주간</option>
+    </select>
+    <select onchange="RP.f_author=this.value;rRep()">
+      <option value="">작성자 · 전체</option>
+      ${DB.members.map(m=>`<option ${RP.f_author===m?'selected':''} value="${esc(m)}">${esc(m)}</option>`).join('')}
+    </select>
+    ${(RP.f_scope||RP.f_kind||RP.f_author)?`<button class="mini-btn gray" onclick="RP.f_scope=RP.f_kind=RP.f_author='';rRep()">필터 해제 ✕</button>`:''}
+    <span class="muted">${list.length}건</span>
+  </div>
+
+  <div class="card">
+    ${dates.length ? dates.map(d=>`
+      <div class="rp-date">${fmtFull(d)} <span class="cnt">${byDate[d].length}건</span></div>
+      ${byDate[d].map(r=>`
+        <div class="rp-item">
+          <span class="bdg k-${r.kind}">${r.kind==='daily'?'일일':'주간'}</span>
+          <span class="bdg s-${r.scope}">${r.scope==='lab'?'연구소':'센터 공통'}</span>
+          <span class="rp-author">${esc(r.author||'미정')}</span>
+          <span class="rp-txt" ${ce(`upRep('${r.id}',this.innerText)`,'내용',1)}>${esc(r.text)}</span>
+          <button class="icon-btn del" onclick="delRep('${r.id}')">✕</button>
+        </div>`).join('')}`).join('')
+    : '<div class="empty">아직 보고가 없습니다 — 위 입력줄에서 바로 등록하세요</div>'}
+  </div>
+  <div class="muted">작성자와 구분은 이 기기에 기억됩니다 · 센터 공통 보고는 대시보드의 "센터 공통 안건" 카드에 자동으로 모입니다</div>`;
+}
+function segOn(btn){ [...btn.parentNode.children].forEach(b=>b.classList.toggle('on',b===btn)); }
+function addReport(){
+  const text=(document.getElementById('rpText').value||'').trim();
+  const date=document.getElementById('rpDate').value||todayISO();
+  const author=document.getElementById('rpAuthor').value;
+  if(!author){ toast('작성자를 먼저 선택하세요'); document.getElementById('rpAuthor').focus(); return; }
+  if(!text){ document.getElementById('rpText').focus(); return; }
+  DB.reports.push({id:'R'+(++DB.seqR), date, kind:RP.kind, scope:RP.scope, author, text});
+  RP.text='';
+  save(); rRep();
+  const inp=document.getElementById('rpText'); inp.value=''; inp.focus();
+}
+function upRep(id,v){
+  const r=DB.reports.find(x=>x.id===id); if(!r) return;
+  v=v.trim();
+  if(!v) return rRep();
+  r.text=v; save(); rRep();
+}
+function delRep(id){
+  const r=DB.reports.find(x=>x.id===id);
+  if(!confirm(`이 보고를 삭제할까요?\n"${r.text.slice(0,40)}${r.text.length>40?'…':''}"`)) return;
+  DB.reports=DB.reports.filter(x=>x.id!==id); save(); rRep();
 }
 
 /* ═══════════════ 회의록 (날짜별 PDF 보관함) ═══════════════ */
