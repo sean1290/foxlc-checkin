@@ -165,8 +165,8 @@ tr.br-add td:first-child{box-shadow:inset 3.5px 0 0 #fdba74}
 /* 보고 */
 .rp-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;box-shadow:var(--sh);margin-bottom:14px}
 .rp-bar select,.rp-bar input[type=date]{border:1px solid var(--line);border-radius:8px;padding:7px 9px;background:#fff}
-.rp-bar input[type=text]{flex:1;min-width:180px;border:1.5px solid var(--line);border-radius:8px;padding:8px 11px}
-.rp-bar input[type=text]:focus{outline:none;border-color:var(--fox)}
+.rp-bar textarea{flex:1;min-width:180px;border:1.5px solid var(--line);border-radius:8px;padding:8px 11px;resize:none;line-height:1.5;height:38px;max-height:130px;overflow-y:auto}
+.rp-bar textarea:focus{outline:none;border-color:var(--fox)}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .seg button{padding:7px 12px;font-weight:600;color:var(--sub);background:#fff;font-size:12.5px}
 .seg button.on{background:var(--fox);color:#fff}
@@ -175,7 +175,7 @@ tr.br-add td:first-child{box-shadow:inset 3.5px 0 0 #fdba74}
 .rp-item:hover{background:#fafbfd}
 .rp-item .del{opacity:0}
 .rp-item:hover .del{opacity:1}
-.rp-txt{flex:1;font-size:13.5px;line-height:1.5}
+.rp-txt{flex:1;font-size:13.5px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
 .bdg.k-daily{background:var(--gray-bg);color:var(--gray)}
 .bdg.k-weekly{background:var(--green-bg);color:var(--green)}
 .bdg.s-lab{background:var(--blue-bg);color:var(--blue)}
@@ -949,8 +949,9 @@ function rRep(){
       <button class="${RP.scope==='lab'?'on':''}" onclick="RP.scope='lab';segOn(this)">연구소 업무</button>
       <button class="${RP.scope==='center'?'on':''}" onclick="RP.scope='center';segOn(this)">센터 공통</button>
     </span>
-    <input type="text" id="rpText" placeholder="보고 내용 입력 후 Enter (연달아 입력 가능)" value="${esc(RP.text)}"
-      oninput="RP.text=this.value" onkeydown="if(event.key==='Enter')addReport()">
+    <textarea id="rpText" placeholder="보고 내용 입력 후 Enter 등록 · 줄바꿈은 Shift+Enter"
+      oninput="RP.text=this.value;this.style.height='38px';this.style.height=Math.min(this.scrollHeight,130)+'px'"
+      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();addReport();}">${esc(RP.text)}</textarea>
     <button class="add-btn" onclick="addReport()">등록</button>
   </div>
 
@@ -998,7 +999,7 @@ function addReport(){
   DB.reports.push({id:'R'+(++DB.seqR), date, kind:RP.kind, scope:RP.scope, author, text});
   RP.text='';
   save(); rRep();
-  const inp=document.getElementById('rpText'); inp.value=''; inp.focus();
+  const inp=document.getElementById('rpText'); inp.value=''; inp.style.height='38px'; inp.focus();
 }
 function upRep(id,v){
   const r=DB.reports.find(x=>x.id===id); if(!r) return;
