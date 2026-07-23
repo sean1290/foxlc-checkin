@@ -260,7 +260,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);min-height:100vh
 #missionCard:empty{display:none}
 @keyframes up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 .scard{background:#fff;border-radius:32px;padding:28px 24px;margin:0;box-shadow:0 12px 40px rgba(0,0,0,.12);border:none;position:relative;overflow:hidden}
-#snapCard .snap-fox{position:absolute;right:-30px;top:-50px;height:200px;width:auto;pointer-events:none;opacity:.95;z-index:0}
+#snapCard .snap-fox{display:block;height:280px;width:auto;margin:8px auto -50px;position:relative;z-index:2;pointer-events:none}
 #snapCard .snap-hdr,#snapCard .snap-sec{position:relative;z-index:1}
 .done-seq .done-top-row{animation:up .5s cubic-bezier(.25,.46,.45,.94) .05s both}
 .done-seq #missionCard{animation:up .5s cubic-bezier(.25,.46,.45,.94) .35s both}
@@ -2192,7 +2192,6 @@ function showWeekSnapshot(entries, p) {
     : `<div class="snap-empty">${empty}</div>`;
 
   $('snapCard').innerHTML = `
-    <img src="images/sitting-fox.png" class="snap-fox" alt="">
     <div class="snap-hdr">${t('✨ 이번 주 나는!','✨ This week, I was…')}</div>
     <div class="snap-sec">
       <div class="snap-sh">${t('🪞 이번 주 나는 이런 사람이었어요','🪞 Who I was this week')}</div>
@@ -2204,6 +2203,7 @@ function showWeekSnapshot(entries, p) {
     </div>
     <div class="snap-sec">
       <div class="snap-sh">${t('🌟 한 주 정리','🌟 Week recap')}</div>
+      <img src="images/sitting-fox.png" class="snap-fox" alt="">
       <div id="snap-msg" class="snap-loading">${t('✨ 만들고 있어요...','✨ Creating...')}</div>
     </div>`;
 
