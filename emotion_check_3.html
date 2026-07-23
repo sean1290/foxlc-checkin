@@ -2188,7 +2188,7 @@ function showWeekSnapshot(entries, p) {
     : `<div class="snap-empty">${empty}</div>`;
 
   const copeHTML = copeRank.length
-    ? copeRank.map(([k])=>`<div class="snap-tag">✨ ${toEn(k)}</div>`).join('')
+    ? copeRank.map(([k])=>`<div class="snap-tag">✨ ${isEn() ? toEn(k) : k}</div>`).join('')
     : `<div class="snap-empty">${empty}</div>`;
 
   $('snapCard').innerHTML = `
