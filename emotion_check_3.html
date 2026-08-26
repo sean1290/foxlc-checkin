@@ -1813,7 +1813,24 @@ function updateNav() {
   $('navNxDsk').textContent = S.page===S.pages.length-1 ? t('제출하기 🎉','Submit 🎉') : t('다음 →','Next →');
   $('navBkDsk').textContent = t('← 이전','← Back');
 }
+
+let _isSubmitting = false;
+let _doneShown = false;
+
+// 제출 중이거나 완료 화면이 떠 있는 동안 Enter 연타를 완전히 차단
+// (버튼의 기본 click 동작까지 막아서 중복 저장/완료음 재생 방지)
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && (_isSubmitting || _doneShown)) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
+  }
+}, true);
+
 function go(dir) {
+  // 저장이 시작된 뒤에는 Enter 연타/더블클릭으로 다시 진입하지 못하게 막음
+  if (_isSubmitting) return;
+
   if(dir===1){
     const bad=S.pages[S.page].filter(q=>!answered(q));
     if(bad.length){
@@ -1841,6 +1858,16 @@ function go(dir) {
 
 // ── SUBMIT ────────────────────────────────────────
 async function submit() {
+  // 중복 저장 방지: 첫 호출이 들어오는 즉시 잠금
+  if (_isSubmitting) return;
+  _isSubmitting = true;
+
+  const submitBtn = $('navNxDsk');
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.blur();
+  }
+
   const d=new Date();
   const payload={
     timestamp:d.toISOString(),
@@ -1975,6 +2002,11 @@ const DAILY_QUOTES=[
 ];
 
 function showDone(p, saved) {
+  // 완료 처리는 한 체크당 딱 한 번만 실행
+  // 중복 호출 시 카운트 증가, 완료 효과음, confetti 모두 재실행하지 않음
+  if (_doneShown) return;
+  _doneShown = true;
+
   const am=p.session==='morning';
   const today=new Date();
   const qi=(today.getFullYear()*366+today.getMonth()*31+today.getDate())%DAILY_QUOTES.length;
@@ -2299,6 +2331,11 @@ function reset() {
   $('c-am').classList.remove('on');$('c-pm').classList.remove('on');
   $('startBtn').disabled=true;setP(0);
   show('s-land');scrollTo({top:0});
+  // 다음 학생이 새 체크를 시작할 수 있도록 제출/완료 잠금 해제
+  _isSubmitting = false;
+  _doneShown = false;
+  const submitBtn = $('navNxDsk');
+  if (submitBtn) submitBtn.disabled = false;
 }
 
 // ── SETTINGS ──────────────────────────────────────
