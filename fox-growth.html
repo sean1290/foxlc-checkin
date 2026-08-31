@@ -161,7 +161,29 @@ label.fld select,label.fld input,label.fld textarea{width:100%;border:1px solid 
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:11px 18px;border-radius:11px;font-size:13px;font-weight:600;z-index:100;opacity:0;transition:.3s;pointer-events:none}
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 
-@media print{header,.no-print,.rtabs{display:none!important}body{background:#fff}main{padding:0}.rep{border:0;box-shadow:none;max-width:100%}}
+/* sub navigation inside student page */
+.subnav{display:flex;gap:4px;margin:16px 0 4px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:5px;box-shadow:var(--shadow)}
+.subnav button{flex:1;border:0;background:transparent;padding:10px 12px;border-radius:9px;font-weight:700;font-size:13.5px;color:var(--ink2)}
+.subnav button.on{background:var(--accent);color:#fff}
+.subnav button:hover:not(.on){background:var(--line2)}
+.stepnote{font-size:11.5px;color:var(--ink3);margin:6px 2px 14px}
+/* AI paste + expert */
+.bigbox{width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:13px;line-height:1.6;resize:vertical}
+.stamp{font-size:11px;color:var(--ink3);margin-top:5px}
+.expert{border:1px solid #cfe0d6;background:#f4faf7;border-radius:12px;padding:14px 16px}
+.expert h4{margin:0 0 4px;font-size:13px;color:var(--accent-ink)}
+.flow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:11.5px;color:var(--ink3);margin-bottom:12px}
+.flow b{background:var(--accent-soft);color:var(--accent-ink);padding:3px 9px;border-radius:20px;font-weight:700}
+.flow b.done{background:var(--accent);color:#fff}
+.repsec{position:relative}
+.repopt{display:flex;gap:14px;flex-wrap:wrap;align-items:center;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:12.5px}
+.repopt label{display:flex;align-items:center;gap:5px;cursor:pointer}
+.skipprint{opacity:.45}
+.rep .evid{background:#f7f9fa;border-left:3px solid var(--line);padding:9px 12px;border-radius:0 8px 8px 0;font-size:12.5px;margin:0 0 8px;white-space:pre-wrap}
+.rep .expertblock{background:#f4faf7;border:1px solid #cfe0d6;border-radius:10px;padding:14px 16px;margin-bottom:8px}
+.rep .mrow{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:10px}
+.rep .mrow div{font-size:12.5px}.rep .mrow b{display:block;font-size:17px}
+@media print{header,.no-print,.rtabs,.subnav,.repopt,.skipprint{display:none!important}body{background:#fff}main{padding:0}.rep{border:0;box-shadow:none;max-width:100%}}
 </style>
 </head>
 <body>
@@ -170,8 +192,6 @@ label.fld select,label.fld input,label.fld textarea{width:100%;border:1px solid 
     <div class="brand" onclick="go('#/students')">폭스러닝센터<small>학생성장관리 · 관찰→발견→반응→성장</small></div>
     <nav class="tabs" id="tabs">
       <button data-v="students">학생</button>
-      <button data-v="discovery">발견·분석</button>
-      <button data-v="report">성장리포트</button>
       <button data-v="library">성장목표</button>
       <button data-v="settings">설정</button>
     </nav>
@@ -194,25 +214,6 @@ label.fld select,label.fld input,label.fld textarea{width:100%;border:1px solid 
   </section>
 
   <section class="view" id="v-student"><div id="studentPage"></div></section>
-
-  <section class="view" id="v-discovery">
-    <h2 class="title">발견 · 분석</h2>
-    <div class="sub">연구소별 관찰과 감정체크를 학생 단위로 종합하고, AI 분석용 프롬프트를 만듭니다. AI 제안은 SEL 상담가가 검토·확정합니다.</div>
-    <label class="fld" style="max-width:320px"><span class="l">학생 선택</span><select id="discStudent"></select></label>
-    <div id="discBody"></div>
-  </section>
-
-  <section class="view" id="v-report">
-    <h2 class="title">분기별 성장리포트</h2>
-    <div class="sub">누적 데이터를 바탕으로 학부모용 리포트를 자동 조립합니다. 내용을 다듬은 뒤 인쇄(PDF 저장)하세요.</div>
-    <div class="toolbar no-print">
-      <label class="fld" style="margin:0"><span class="l">학생</span><select id="repStudent"></select></label>
-      <label class="fld" style="margin:0"><span class="l">기간</span><select id="repQuarter"></select></label>
-      <button class="btn pri" id="repBuild" style="align-self:flex-end">리포트 생성</button>
-      <button class="btn" id="repPrint" style="align-self:flex-end">인쇄 / PDF</button>
-    </div>
-    <div id="repBody"></div>
-  </section>
 
   <section class="view" id="v-library">
     <h2 class="title">성장목표 라이브러리</h2>
@@ -255,8 +256,9 @@ const YEAR=2026;
 
 /* ===================== STATE ===================== */
 const RAW={obs:[],emo:[],members:{}};
-let DB={students:{},goalAssignments:{},diagnosis:{},discovery:{},reports:{},goalLibrary:null,staff:null,updatedAt:0};
+let DB={students:{},goalAssignments:{},diagnosis:{},aiAnalysis:{},expert:{},reports:{},goalLibrary:null,staff:null,updatedAt:0};
 let STUDENTS=[], labFilterSet=new Set(), curStudent=null, recTab='obs', recLab='', recLimit=30;
+let subTab='records', repQ=0;
 
 /* ===================== UTIL ===================== */
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
@@ -408,10 +410,10 @@ async function pullDB(){
   if(Date.now()<editingUntil)return;
   try{const r=await fetch(NPOINT+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;const rem=await r.json();
     if(rem&&(rem.updatedAt||0)>=(DB.updatedAt||0)){
-      const before=JSON.stringify([DB.students,DB.goalAssignments,DB.diagnosis,DB.reports,DB.goalLibrary,DB.staff]);
-      DB=Object.assign({students:{},goalAssignments:{},diagnosis:{},discovery:{},reports:{},goalLibrary:DB.goalLibrary,staff:DB.staff},rem);
+      const before=JSON.stringify([DB.students,DB.goalAssignments,DB.diagnosis,DB.aiAnalysis,DB.expert,DB.reports,DB.goalLibrary,DB.staff]);
+      DB=Object.assign({students:{},goalAssignments:{},diagnosis:{},aiAnalysis:{},expert:{},reports:{},goalLibrary:DB.goalLibrary,staff:DB.staff},rem);
       ensureDefaults();saveCache();
-      const after=JSON.stringify([DB.students,DB.goalAssignments,DB.diagnosis,DB.reports,DB.goalLibrary,DB.staff]);
+      const after=JSON.stringify([DB.students,DB.goalAssignments,DB.diagnosis,DB.aiAnalysis,DB.expert,DB.reports,DB.goalLibrary,DB.staff]);
       if(before!==after)refreshView();   // only redraw when team data actually changed
       setSync('ok','팀 공유됨');}
   }catch(e){setSync('warn','오프라인(로컬)');}
@@ -427,7 +429,7 @@ async function pushDB(){
 function ensureDefaults(){
   if(!DB.goalLibrary)DB.goalLibrary=defaultLibrary();
   if(!DB.staff)DB.staff=[{name:'센터장',role:'센터장'},{name:'Research Lead',role:'리드'},{name:'이영연',role:'연구원'},{name:'윤승희',role:'연구원'},{name:'이안나',role:'연구원'},{name:'SEL 상담가',role:'상담가'}];
-  ['students','goalAssignments','diagnosis','discovery','reports'].forEach(k=>{if(!DB[k])DB[k]={};});
+  ['students','goalAssignments','diagnosis','aiAnalysis','expert','reports'].forEach(k=>{if(!DB[k])DB[k]={};});
 }
 function defaultLibrary(){return [
   {cat:'자기표현',goals:['새로운 활동에서 자신의 의견을 자발적으로 표현한다.','자신의 생각을 말할 때 구체적인 이유나 근거를 함께 설명한다.','자신의 감정이나 상태를 적절한 말로 표현한다.']},
@@ -450,15 +452,18 @@ function refreshView(){   // redraw current view WITHOUT scrolling/navigating
   const v=on.id.replace('v-','');
   if(v==='student'&&curStudent)renderStudentPage();
   else if(v==='students')renderStudents();
-  else if(v==='discovery')renderDiscovery();
   else if(v==='library')renderLibrary();
   else if(v==='settings')renderSettings();
 }
 function route(){
   const h=location.hash||'#/students';
-  const m=h.match(/^#\/student\/(.+)$/);
+  const m=h.match(/^#\/student\/([^/]+)(?:\/(records|analysis|report))?$/);
   $$('.view').forEach(v=>v.classList.remove('on'));
-  if(m){curStudent=decodeURIComponent(m[1]);$('#v-student').classList.add('on');
+  if(m){
+    curStudent=decodeURIComponent(m[1]);
+    const t=m[2]||'records';
+    if(t!==subTab){subTab=t;recLimit=30;}
+    $('#v-student').classList.add('on');
     $$('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v==='students'));
     renderStudentPage();window.scrollTo(0,0);return;}
   const v=h.replace('#/','')||'students';
@@ -467,12 +472,11 @@ function route(){
   const name=el.id.replace('v-','');
   $$('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===name));
   if(name==='students')renderStudents();
-  if(name==='discovery')renderDiscovery();
-  if(name==='report')fillReportSel();
   if(name==='library')renderLibrary();
   if(name==='settings')renderSettings();
   window.scrollTo(0,0);
 }
+window.goSub=t=>{go(`#/student/${encodeURIComponent(curStudent)}/${t}`);};
 window.addEventListener('hashchange',route);
 $('#tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(b)go('#/'+b.dataset.v);});
 
@@ -507,23 +511,25 @@ function renderStudents(){
 $('#stSearch').addEventListener('input',renderStudents);
 
 /* ===================== STUDENT PAGE ===================== */
-function renderStudentPage(){
-  const name=curStudent;
+function studentCtx(name){
   const {obs,emo}=recordsFor(name);
   const mb=RAW.members[name]||{};
   const diag=DB.diagnosis[name]||{}, goals=DB.goalAssignments[name]||[];
+  const ai=DB.aiAnalysis[name]||{}, ex=DB.expert[name]||{};
   const labs=[...new Set(obs.map(o=>o.lab))];
   const dated=[...obs,...emo].filter(r=>r.date).map(r=>r.date).sort((a,b)=>a-b);
+  return {obs,emo,mb,diag,goals,ai,ex,labs,dated};
+}
+function renderStudentPage(){
+  const name=curStudent;
+  const {obs,emo,mb,goals,ai,ex,labs,dated}=studentCtx(name);
   const startD=parseKDate(mb.start);
   let attend='';
-  if(startD){const mo=Math.max(0,Math.round((Date.now()-startD)/2592000000));attend=`${startD.getFullYear()}.${String(startD.getMonth()+1).padStart(2,'0')}.${String(startD.getDate()).padStart(2,'0')}부터${mo?` (${mo}개월)`:''}`;}
-  const en=emo.map(e=>e._energy).filter(Boolean), fo=emo.map(e=>e._focus).filter(Boolean), re=emo.map(e=>e._relation).filter(Boolean);
-  const avg=a=>a.length?(a.reduce((x,y)=>x+y,0)/a.length).toFixed(1):'-';
-  const spark=a=>a.slice(0,14).reverse().map(v=>`<i style="height:${v/5*100}%"></i>`).join('')||'<i></i>';
-
+  if(startD){const mo=Math.max(0,Math.round((Date.now()-startD)/2592000000));attend=`${startD.getFullYear()}.${pad2(startD.getMonth()+1)}.${pad2(startD.getDate())}부터${mo?` (${mo}개월)`:''}`;}
+  const hide=subTab==='report'?'no-print':'';
   $('#studentPage').innerHTML=`
-  <div class="crumb"><a onclick="go('#/students')">← 학생 목록</a></div>
-  <div class="card pad">
+  <div class="crumb ${hide}"><a onclick="go('#/students')">← 학생 목록</a></div>
+  <div class="card pad ${hide}">
     <div class="phead">
       ${avatarHTML(name,'lg')}
       <div style="min-width:200px">
@@ -540,8 +546,22 @@ function renderStudentPage(){
       </div>
     </div>
   </div>
+  <div class="subnav">
+    <button class="${subTab==='records'?'on':''}" onclick="goSub('records')">1 · 관찰 데이터</button>
+    <button class="${subTab==='analysis'?'on':''}" onclick="goSub('analysis')">2 · 발견·분석${ai.text?' ✓':''}${ex.opinion?' · 전문가 ✓':''}</button>
+    <button class="${subTab==='report'?'on':''}" onclick="goSub('report')">3 · 성장리포트</button>
+  </div>
+  <div class="stepnote ${hide}">관찰 데이터를 확인하고 → AI로 패턴을 분석한 뒤 SEL 전문가가 소견을 확정하면 → 리포트에 자동 반영됩니다.</div>
+  <div id="subBody">${subTab==='records'?viewRecords(name):subTab==='analysis'?viewAnalysis(name):viewReport(name)}</div>`;
+}
 
-  <div class="pcols">
+/* ---------- 1. 관찰 데이터 ---------- */
+function viewRecords(name){
+  const {obs,emo,mb,diag,goals}=studentCtx(name);
+  const en=emo.map(e=>e._energy).filter(Boolean), fo=emo.map(e=>e._focus).filter(Boolean), re=emo.map(e=>e._relation).filter(Boolean);
+  const avg=a=>a.length?(a.reduce((x,y)=>x+y,0)/a.length).toFixed(1):'-';
+  const spark=a=>a.slice(0,14).reverse().map(v=>`<i style="height:${v/5*100}%"></i>`).join('')||'<i></i>';
+  return `<div class="pcols">
     <div>
       <div class="card pad" style="margin-bottom:14px">
         <div class="sec-h">기본 정보 <span class="act" style="font-size:10px;color:var(--ink3);font-weight:600">Member_DB</span></div>
@@ -555,7 +575,6 @@ function renderStudentPage(){
           ${mb.project?`<dt>프로젝트</dt><dd>${esc(mb.project)}</dd>`:''}
         </dl>`:'<div class="empty-note">Member_DB 시트에 이 학생 정보가 없습니다.</div>'}
       </div>
-
       <div class="card pad" style="margin-bottom:14px">
         <div class="sec-h">감정 추이<span class="act" style="font-size:10px;color:var(--ink3);font-weight:600">최근 14회</span></div>
         <div class="trend">
@@ -564,18 +583,15 @@ function renderStudentPage(){
           <div class="metric"><div class="mv">${avg(re)}</div><div class="ml">또래관계</div><div class="spark">${spark(re)}</div></div>
         </div>
       </div>
-
       <div class="card pad" style="margin-bottom:14px">
         <div class="sec-h">초기 진단<button class="btn ghost sm act" onclick="editDiagnosis('${esc(name)}')">편집</button></div>
         ${diagView(diag)}
       </div>
-
       <div class="card pad">
         <div class="sec-h">활성 성장목표<button class="btn ghost sm act" onclick="editGoals('${esc(name)}')">지정</button></div>
         ${goals.length?goals.map((g,i)=>goalItem(name,g,i)).join(''):'<div class="empty-note">아직 지정된 성장목표가 없습니다.</div>'}
       </div>
     </div>
-
     <div class="card pad">
       <div class="rtabs">
         <button class="${recTab==='obs'?'on':''}" onclick="setRecTab('obs')">관찰 기록 ${obs.length}</button>
@@ -587,6 +603,143 @@ function renderStudentPage(){
     </div>
   </div>`;
 }
+
+/* ---------- 2. 발견·분석 (AI + SEL 전문가) ---------- */
+function viewAnalysis(name){
+  const {obs,emo,ai,ex,goals}=studentCtx(name);
+  const byLab={};obs.forEach(o=>{(byLab[o.lab]=byLab[o.lab]||[]).push(o);});
+  const strengths=[...new Set(obs.flatMap(o=>o.fields.filter(([k])=>k.includes('강점')).map(([,v])=>v)))];
+  return `
+  <div class="flow"><b class="done">관찰 ${obs.length}건 · 감정 ${emo.length}회</b> → <b class="${ai.text?'done':''}">AI 패턴 분석</b> → <b class="${ex.opinion?'done':''}">SEL 전문가 확정</b> → <b>성장리포트</b></div>
+  <div class="pcols" style="grid-template-columns:1fr 1fr;margin-bottom:14px">
+    <div class="card pad"><div class="sec-h">연구소별 관찰 종합</div>
+      ${Object.keys(byLab).length?Object.entries(byLab).map(([l,a])=>`<div style="margin-bottom:11px"><b>${esc(l)}</b> <span style="color:var(--ink3);font-size:12px">${a.length}건</span>
+        <div style="font-size:12.5px;color:var(--ink2);margin-top:3px;white-space:pre-wrap">${esc(a.filter(x=>x.note).slice(0,2).map(x=>x.note).join('\n— ')||'관찰 내용 기재 대기')}</div></div>`).join(''):'<div class="empty-note">관찰 없음</div>'}
+    </div>
+    <div class="card pad"><div class="sec-h">돋보인 강점 (관찰 기반)</div>
+      ${strengths.length?`<div style="display:flex;flex-wrap:wrap;gap:5px">${strengths.map(s=>`<span class="gchip">${esc(s)}</span>`).join('')}</div>`:'<div class="empty-note">기록된 강점 없음</div>'}
+      <div class="sec-h" style="margin-top:16px">현재 성장목표</div>
+      ${goals.length?goals.map(g=>`<div class="goal-item"><div class="gt">${esc(g.text)}</div></div>`).join(''):'<div class="empty-note">미설정 — 관찰 데이터 탭에서 지정</div>'}
+    </div>
+  </div>
+
+  <div class="card pad" style="margin-bottom:14px">
+    <div class="sec-h">① AI 분석 프롬프트<button class="btn pri sm act" onclick="copyPrompt()">프롬프트 복사</button></div>
+    <div class="sub" style="margin:0 0 8px">복사해서 ChatGPT·Claude에 붙여넣고, 받은 답변을 아래 ②에 붙여넣으세요.</div>
+    <textarea id="aiPrompt" rows="6" class="bigbox" style="font-size:12px;line-height:1.5">${esc(buildPrompt(name))}</textarea>
+  </div>
+
+  <div class="card pad" style="margin-bottom:14px">
+    <div class="sec-h">② AI 분석 결과 붙여넣기<span class="act"><button class="btn pri sm" onclick="saveAI('${esc(name)}')">저장</button></span></div>
+    <div class="sub" style="margin:0 0 8px">GPT·Claude에서 받은 결과를 그대로 붙여넣고 저장하면 팀 전체에 공유되고 리포트에 반영됩니다.</div>
+    <textarea id="aiResult" rows="14" class="bigbox" placeholder="여기에 AI 분석 결과를 붙여넣으세요…">${esc(ai.text||'')}</textarea>
+    <div class="stamp">${ai.at?`최종 저장: ${esc(ai.by||'')} · ${new Date(ai.at).toLocaleString('ko-KR')}`:'아직 저장된 AI 분석이 없습니다.'}</div>
+  </div>
+
+  <div class="card pad">
+    <div class="sec-h">③ SEL 전문가 소견 <span style="font-weight:600;color:var(--ink3)">— AI 제안을 검토·수정·확정</span><span class="act"><button class="btn pri sm" onclick="saveExpert('${esc(name)}')">저장</button></span></div>
+    <div class="expert">
+      <div class="dfield"><label>전문 소견 · 해석 (관찰 → 근거 → 해석)</label><textarea id="exOpinion" rows="4" class="bigbox">${esc(ex.opinion||'')}</textarea></div>
+      <div class="dfield"><label>발견된 가능성 (단정하지 않고 가능성으로)</label><textarea id="exPossibility" rows="3" class="bigbox">${esc(ex.possibility||'')}</textarea></div>
+      <div class="dfield"><label>교육적 반응 · 지원 방향</label><textarea id="exResponse" rows="3" class="bigbox">${esc(ex.response||'')}</textarea></div>
+      <div class="dfield"><label>다음 성장 방향</label><textarea id="exNext" rows="2" class="bigbox">${esc(ex.next||'')}</textarea></div>
+      <div class="dfield"><label>가정에서의 지원 제안 (학부모용)</label><textarea id="exHome" rows="3" class="bigbox">${esc(ex.home||'')}</textarea></div>
+      <div class="stamp">${ex.at?`확정: ${esc(ex.reviewer||'')} · ${new Date(ex.at).toLocaleString('ko-KR')}`:'아직 전문가 소견이 없습니다.'}</div>
+    </div>
+  </div>`;
+}
+window.saveAI=name=>{DB.aiAnalysis[name]={text:trim($('#aiResult').value),at:Date.now(),by:$('#meName').value};commit();renderStudentPage();toast('AI 분석 저장됨');};
+window.saveExpert=name=>{DB.expert[name]={opinion:trim($('#exOpinion').value),possibility:trim($('#exPossibility').value),response:trim($('#exResponse').value),next:trim($('#exNext').value),home:trim($('#exHome').value),reviewer:$('#meName').value,at:Date.now()};commit();renderStudentPage();toast('전문가 소견 저장됨');};
+
+/* ---------- 3. 성장리포트 ---------- */
+function viewReport(name){
+  const opts=[[0,'전체 기간'],[1,`${YEAR} 1분기 (1~3월)`],[2,`${YEAR} 2분기 (4~6월)`],[3,`${YEAR} 3분기 (7~9월)`],[4,`${YEAR} 4분기 (10~12월)`]];
+  return `<div class="repopt no-print">
+      <label>기간
+        <select id="repQ" onchange="setRepQ(this.value)">${opts.map(([v,l])=>`<option value="${v}" ${repQ===v?'selected':''}>${l}</option>`).join('')}</select></label>
+      <label><input type="checkbox" id="incAI" checked onchange="toggleSec('secAI',this.checked)"> AI 분석 원문 포함</label>
+      <label><input type="checkbox" id="incEvid" checked onchange="toggleSec('secEvid',this.checked)"> 관찰 근거 상세 포함</label>
+      <button class="btn pri sm" onclick="saveReport('${esc(name)}')">리포트 저장</button>
+      <button class="btn sm" onclick="window.print()">인쇄 / PDF</button>
+      <span style="color:var(--ink3);margin-left:auto">본문을 클릭해 직접 수정할 수 있습니다</span>
+    </div>
+    <div id="repHost">${buildReport(name,repQ)}</div>`;
+}
+window.setRepQ=v=>{repQ=+v;$('#repHost').innerHTML=buildReport(curStudent,repQ);};
+window.toggleSec=(id,on)=>{const el=document.getElementById(id);if(el)el.classList.toggle('skipprint',!on);};
+function buildReport(name,q){
+  const {obs,emo,mb,diag,goals,ai,ex}=studentCtx(name);
+  const inQ=r=>q===0?true:quarterOf(r.date)===q;
+  const qObs=obs.filter(inQ), qEmo=emo.filter(inQ);
+  const undated=obs.filter(o=>!o.date).length+emo.filter(e=>!e.date).length;
+  const labs=[...new Set(qObs.map(o=>o.lab))];
+  const strengths=[...new Set(qObs.flatMap(o=>o.fields.filter(([k])=>k.includes('강점')).map(([,v])=>v)))].slice(0,8);
+  const saved=(DB.reports[name]&&DB.reports[name][q])||{};
+  const notes=qObs.filter(o=>o.note);
+  const early=notes.filter(o=>o.date).sort((a,b)=>a.date-b.date)[0];
+  const late=notes.filter(o=>o.date).sort((a,b)=>b.date-a.date)[0];
+  const label=q===0?'전체 기간':`${q}분기`;
+  const en=qEmo.map(e=>e._energy).filter(Boolean), fo=qEmo.map(e=>e._focus).filter(Boolean), re=qEmo.map(e=>e._relation).filter(Boolean);
+  const avg=a=>a.length?(a.reduce((x,y)=>x+y,0)/a.length).toFixed(1):'-';
+  const stD=parseKDate(mb.start);
+  const byLab={};qObs.forEach(o=>{(byLab[o.lab]=byLab[o.lab]||[]).push(o);});
+  const gLabel={clear:'명확하게 나타남',partial:'부분적으로 나타남',none:'관찰되지 않음',support:'지원이 필요함'};
+  const warn=(qObs.length+qEmo.length)===0?`<div class="warnbox no-print">선택한 ${label}에 기록이 없습니다. 전체 기록은 관찰 ${obs.length}건·감정 ${emo.length}회입니다 — 다른 기간을 선택하세요.${undated?` (날짜 미기재 ${undated}건은 분기 집계에서 제외)`:''}</div>`:'';
+  const ed=(k,txt)=>`<p contenteditable="true" data-k="${k}">${esc(saved[k]||txt)}</p>`;
+
+  return warn+`<div class="rep" id="repDoc">
+    <div class="rh">
+      <h1>${esc(name)} 성장 리포트</h1>
+      <div style="color:#667;font-size:13px">${YEAR}년 ${esc(label)} · 폭스러닝센터</div>
+      <div style="color:#667;font-size:12px;margin-top:4px">${[mb.age?mb.age+'세':'',mb.school,stD?`${stD.getFullYear()}.${pad2(stD.getMonth()+1)}.${pad2(stD.getDate())} 등록`:'',labs.length?labs.join(' · '):''].filter(Boolean).map(esc).join(' · ')}</div>
+    </div>
+
+    <h3>Student Snapshot · 학생 현황</h3>
+    ${ed('snapshot',`${name} 학생은 ${labs.length?labs.map(l=>l.replace('연구소','')).join('·')+' 활동에 참여하고 있으며, ':''}${label} 동안 관찰 ${qObs.length}건·감정체크 ${qEmo.length}회가 기록되었습니다.${strengths.length?' 여러 활동에서 '+strengths.slice(0,3).join(', ')+' 등의 모습이 돋보였습니다.':''}`)}
+    <div class="mrow">
+      <div><b>${qObs.length}</b>관찰 기록</div><div><b>${qEmo.length}</b>감정체크</div>
+      <div><b>${avg(en)}</b>평균 에너지</div><div><b>${avg(fo)}</b>평균 집중도</div><div><b>${avg(re)}</b>또래 관계</div>
+    </div>
+
+    <h3>Initial Diagnosis · 초기 진단과 기준점</h3>
+    ${ed('diagnosis',[['학습 특성',diag.learning],['SEL',diag.sel],['성향·기질',diag.temperament],['관심·흥미',diag.interest],['영어 역량',diag.english]].filter(x=>x[1]).map(x=>x[0]+': '+x[1]).join('\n')||'초기 진단이 아직 입력되지 않았습니다. (관찰 데이터 탭에서 입력)')}
+
+    <h3>Growth Goals · 분기 성장목표</h3>
+    ${ed('goals',goals.length?goals.map(g=>`• ${g.text}${g.status?`  → ${gLabel[g.status]}`:''}`).join('\n'):'설정된 성장목표가 없습니다.')}
+
+    <h3>Observation &amp; Discovery · 관찰과 발견</h3>
+    ${ed('discovery',ex.opinion||ex.possibility?[ex.opinion,ex.possibility].filter(Boolean).join('\n\n'):(notes.slice(0,4).map(o=>`• [${o.lab}] ${o.note}`).join('\n')||'이번 기간 관찰 내용을 종합해 주요 발견을 기술하세요.'))}
+    <div id="secEvid">
+      ${Object.keys(byLab).length?`<div style="font-size:11.5px;color:#8a93a1;font-weight:700;margin:12px 0 6px">연구소별 관찰 근거</div>`+Object.entries(byLab).map(([l,a])=>{
+        const t=a.filter(x=>x.note).slice(0,2).map(x=>`${fmtDate(x.date)} — ${x.note}`).join('\n');
+        return `<div class="evid"><b>${esc(l)}</b> (${a.length}건)${t?'\n'+esc(t):''}</div>`;}).join(''):''}
+    </div>
+
+    ${ai.text?`<div id="secAI"><h3>종합 분석 <span style="font-size:11px;color:#8a93a1;font-weight:600">· AI 초안, SEL 상담가 검토</span></h3>${ed('ai',ai.text)}</div>`:''}
+
+    <h3>SEL 전문가 소견</h3>
+    <div class="expertblock">
+      ${ed('expert',[ex.opinion&&'[해석] '+ex.opinion,ex.possibility&&'[가능성] '+ex.possibility,ex.response&&'[교육적 반응] '+ex.response].filter(Boolean).join('\n\n')||'SEL 전문가 소견이 아직 입력되지 않았습니다. (발견·분석 탭에서 입력)')}
+      ${ex.reviewer?`<div style="font-size:11px;color:#8a93a1;margin-top:6px">검토·확정: ${esc(ex.reviewer)}${ex.at?' · '+new Date(ex.at).toLocaleDateString('ko-KR'):''}</div>`:''}
+    </div>
+
+    <h3>Before → After · 변화</h3>
+    <div class="ba">
+      <div><h5>Before ${early?'('+fmtDate(early.date)+')':''}</h5>${ed('before',early?.note||'초기 관찰 상태')}</div>
+      <div><h5>After ${late?'('+fmtDate(late.date)+')':''}</h5>${ed('after',late?.note||'현재 관찰 상태')}</div>
+    </div>
+
+    <h3>다음 성장 방향</h3>
+    ${ed('next',ex.next||'다음 분기에 지원할 방향을 기술하세요.')}
+
+    <h3>가정에서의 지원 제안</h3>
+    ${ed('home',ex.home||'가정에서 함께 실천할 수 있는 제안을 기술하세요.')}
+  </div>`;
+}
+window.saveReport=name=>{
+  const o={};$$('#repDoc [data-k]').forEach(e=>o[e.dataset.k]=e.innerText.trim());
+  DB.reports[name]=DB.reports[name]||{};DB.reports[name][repQ]=o;commit();toast('리포트 저장됨');
+};
 window.setRecTab=t=>{recTab=t;recLimit=30;recLab='';renderStudentPage();};
 window.setRecLab=l=>{recLab=l;recLimit=30;renderStudentPage();};
 window.moreRecs=()=>{recLimit+=50;$('#recList').innerHTML=renderRecords(curStudent);};
@@ -671,38 +824,6 @@ window.editGoals=name=>{
     commit();renderStudentPage();toast('저장됨');});
 };
 
-/* ===================== DISCOVERY ===================== */
-function fillSel(sel,val){sel.innerHTML='<option value="">— 학생 선택 —</option>'+STUDENTS.map(s=>`<option ${s.name===val?'selected':''}>${esc(s.name)}</option>`).join('');}
-function renderDiscovery(){
-  const s=$('#discStudent');fillSel(s,s.value);
-  s.onchange=()=>drawDiscovery(s.value);drawDiscovery(s.value);
-}
-function drawDiscovery(name){
-  const box=$('#discBody');
-  if(!name){box.innerHTML='<div class="loader">학생을 선택하면 연구소별 종합과 AI 프롬프트가 표시됩니다.</div>';return;}
-  const {obs,emo}=recordsFor(name);
-  const byLab={};obs.forEach(o=>{(byLab[o.lab]=byLab[o.lab]||[]).push(o);});
-  const strengths=[...new Set(obs.flatMap(o=>o.fields.filter(([k])=>k.includes('강점')).map(([,v])=>v)))];
-  const goals=DB.goalAssignments[name]||[];
-  box.innerHTML=`
-    <div class="pcols" style="grid-template-columns:1fr 1fr;margin-bottom:16px">
-      <div class="card pad"><div class="sec-h">연구소별 관찰 종합</div>
-        ${Object.keys(byLab).length?Object.entries(byLab).map(([l,a])=>`<div style="margin-bottom:11px"><b>${esc(l)}</b> <span style="color:var(--ink3);font-size:12px">${a.length}건</span>
-          <div style="font-size:12.5px;color:var(--ink2);margin-top:3px;white-space:pre-wrap">${esc(a.filter(x=>x.note).slice(0,2).map(x=>x.note).join('\n— ')||'관찰 내용 기재 대기')}</div></div>`).join(''):'<div class="empty-note">관찰 없음</div>'}
-      </div>
-      <div class="card pad"><div class="sec-h">돋보인 강점 (관찰 기반)</div>
-        ${strengths.length?`<div style="display:flex;flex-wrap:wrap;gap:5px">${strengths.map(s=>`<span class="gchip">${esc(s)}</span>`).join('')}</div>`:'<div class="empty-note">기록된 강점 없음</div>'}
-        <div class="sec-h" style="margin-top:16px">현재 성장목표</div>
-        ${goals.length?goals.map(g=>`<div class="goal-item"><div class="gt">${esc(g.text)}</div></div>`).join(''):'<div class="empty-note">미설정</div>'}
-        <div style="margin-top:12px"><button class="btn sm" onclick="go('#/student/${encodeURIComponent(name)}')">학생 페이지 열기 →</button></div>
-      </div>
-    </div>
-    <div class="card pad">
-      <div class="sec-h">AI 분석 프롬프트<button class="btn pri sm act" onclick="copyPrompt()">프롬프트 복사</button></div>
-      <div class="sub" style="margin:0 0 8px">복사해 ChatGPT·Claude에 붙여넣으세요. <b>AI 제안은 SEL 상담가가 검토·확정합니다.</b></div>
-      <textarea id="aiPrompt" rows="12" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:12px;line-height:1.55">${esc(buildPrompt(name))}</textarea>
-    </div>`;
-}
 function buildPrompt(name){
   const {obs,emo}=recordsFor(name);
   const d=DB.diagnosis[name]||{}, mb=RAW.members[name]||{};
@@ -809,48 +930,6 @@ ${eL||'(없음)'}
 }
 window.copyPrompt=()=>{const t=$('#aiPrompt');t.select();navigator.clipboard?.writeText(t.value).then(()=>toast('복사됨'),()=>{document.execCommand('copy');toast('복사됨');});};
 
-/* ===================== REPORT ===================== */
-function fillReportSel(){
-  fillSel($('#repStudent'),$('#repStudent').value);
-  const q=$('#repQuarter');
-  if(!q.options.length)q.innerHTML=[1,2,3,4].map(n=>`<option value="${n}">${YEAR} ${n}분기 (${n*3-2}~${n*3}월)</option>`).join('')+'<option value="0">전체 기간</option>';
-}
-$('#repBuild').onclick=()=>{const n=$('#repStudent').value;if(!n){toast('학생을 선택하세요');return;}buildReport(n,+$('#repQuarter').value);};
-$('#repPrint').onclick=()=>{if(!$('#repBody').innerHTML.trim()){toast('먼저 리포트를 생성하세요');return;}window.print();};
-function buildReport(name,q){
-  const {obs,emo}=recordsFor(name);
-  const inQ=r=>q===0?true:quarterOf(r.date)===q;
-  const qObs=obs.filter(inQ), qEmo=emo.filter(inQ);
-  const undated=obs.filter(o=>!o.date).length+emo.filter(e=>!e.date).length;
-  const d=DB.diagnosis[name]||{}, mb=RAW.members[name]||{}, goals=DB.goalAssignments[name]||[];
-  const labs=[...new Set(qObs.map(o=>o.lab))];
-  const strengths=[...new Set(qObs.flatMap(o=>o.fields.filter(([k])=>k.includes('강점')).map(([,v])=>v)))].slice(0,6);
-  const saved=(DB.reports[name]&&DB.reports[name][q])||{};
-  const notes=qObs.filter(o=>o.note);
-  const early=notes.filter(o=>o.date).sort((a,b)=>a.date-b.date)[0];
-  const late=notes.filter(o=>o.date).sort((a,b)=>b.date-a.date)[0];
-  const label=q===0?'전체 기간':`${q}분기`;
-  const warn=(qObs.length+qEmo.length)===0?`<div class="warnbox no-print">선택한 ${label}에 기록이 없습니다. 전체 기록은 관찰 ${obs.length}건·감정 ${emo.length}회입니다 — 다른 분기를 선택하거나 '전체 기간'으로 생성하세요.${undated?` (날짜 미기재 ${undated}건은 분기 집계에서 제외됩니다)`:''}</div>`:'';
-  $('#repBody').innerHTML=warn+`<div class="rep" id="repDoc">
-    <div class="rh"><h1>${esc(name)} 성장 리포트</h1>
-      <div style="color:#667;font-size:13px">${YEAR}년 ${esc(label)} · 폭스러닝센터${mb.age?' · '+esc(mb.age)+'세':''}${mb.school?' · '+esc(mb.school):''}</div></div>
-    <h3>Student Snapshot</h3>
-    <p contenteditable="true" data-k="snapshot">${esc(saved.snapshot||`${name} 학생은 ${labs.length?labs.map(l=>l.replace('연구소','')).join('·')+' 활동에 참여하고 있으며, ':''}${label} 동안 관찰 ${qObs.length}건·감정체크 ${qEmo.length}회가 기록되었습니다.${strengths.length?' 여러 활동에서 '+strengths.slice(0,3).join(', ')+' 등의 모습이 돋보였습니다.':''}`)}</p>
-    <h3>Initial Diagnosis · 기준점</h3>
-    <p contenteditable="true" data-k="diagnosis">${esc(saved.diagnosis||[['학습특성',d.learning],['SEL',d.sel],['성향·기질',d.temperament],['관심·흥미',d.interest]].filter(x=>x[1]).map(x=>x[0]+': '+x[1]).join(' / ')||'초기 진단을 학생 페이지에서 입력하세요.')}</p>
-    <h3>Growth Goals</h3>
-    <p contenteditable="true" data-k="goals">${esc(saved.goals||(goals.length?goals.map(g=>'• '+g.text+(g.status?` (${({clear:'명확히 나타남',partial:'부분적으로 나타남',none:'관찰되지 않음',support:'지원 필요'})[g.status]})`:'')).join('\n'):'설정된 성장목표가 없습니다.'))}</p>
-    <h3>Observation &amp; Discovery</h3>
-    <p contenteditable="true" data-k="discovery">${esc(saved.discovery||notes.slice(0,4).map(o=>`• [${o.lab}] ${o.note}`).join('\n')||'이번 기간 관찰 내용을 종합해 주요 발견을 기술하세요.')}</p>
-    <h3>Before → After</h3>
-    <div class="ba">
-      <div><h5>Before ${early?'('+fmtDate(early.date)+')':''}</h5><p contenteditable="true" data-k="before">${esc(saved.before||early?.note||'초기 관찰 상태')}</p></div>
-      <div><h5>After ${late?'('+fmtDate(late.date)+')':''}</h5><p contenteditable="true" data-k="after">${esc(saved.after||late?.note||'현재 관찰 상태')}</p></div>
-    </div>
-    <div class="no-print" style="margin-top:20px;text-align:right"><button class="btn pri sm" onclick="saveReport('${esc(name)}',${q})">리포트 저장</button></div>
-  </div>`;
-}
-window.saveReport=(n,q)=>{const o={};$$('#repDoc [data-k]').forEach(e=>o[e.dataset.k]=e.innerText.trim());DB.reports[n]=DB.reports[n]||{};DB.reports[n][q]=o;commit();toast('리포트 저장됨');};
 
 /* ===================== LIBRARY / SETTINGS ===================== */
 function renderLibrary(){
