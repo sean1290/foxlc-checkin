@@ -183,6 +183,20 @@ label.fld select,label.fld input,label.fld textarea{width:100%;border:1px solid 
 .rep .expertblock{background:#f4faf7;border:1px solid #cfe0d6;border-radius:10px;padding:14px 16px;margin-bottom:8px}
 .rep .mrow{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:10px}
 .rep .mrow div{font-size:12.5px}.rep .mrow b{display:block;font-size:17px}
+/* 연구소별 지표 요약 */
+.ldig{border-bottom:1px solid var(--line2);padding:11px 0}
+.ldig:first-child{padding-top:0}
+.ldig:last-child{border-bottom:0;padding-bottom:0}
+.ldig .lh{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.ldig .ln{font-weight:800;font-size:13.5px}
+.ldig .lc{font-size:11.5px;color:var(--ink3);margin-left:auto}
+.mbar{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:8px}
+.mb{background:#f7f9fa;border:1px solid var(--line2);border-radius:8px;padding:6px 9px}
+.mb b{font-size:16px;font-weight:800;display:block;line-height:1.15;letter-spacing:-.02em}
+.mb span{font-size:10.5px;color:var(--ink3)}
+.mb i{display:block;height:3px;border-radius:2px;background:var(--accent);margin-top:5px;opacity:.8}
+.lmeta{font-size:11.5px;color:var(--ink2);margin-top:7px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.lmeta em{font-style:normal;color:var(--ink3)}
 @media print{header,.no-print,.rtabs,.subnav,.repopt,.skipprint{display:none!important}body{background:#fff}main{padding:0}.rep{border:0;box-shadow:none;max-width:100%}}
 </style>
 </head>
@@ -618,16 +632,61 @@ function viewRecords(name){
 }
 
 /* ---------- 2. 발견·분석 (AI + SEL 전문가) ---------- */
+/* ---- 연구소별 지표 집계 ----
+   시트 값이 "3. 기본적인 집중 유지" 형태라 앞 숫자만 취한다.
+   열 밀림으로 "13:00","스페셜" 같은 값이 섞여 있어 척도 밖 값은 버린다. */
+const COMPLY={'지속적인 개입 필요':1,'반복적인 안내 필요':2,'기본적인 조절 가능':3,'대부분 스스로 조절하며 잘 따름':4};
+function scale5(v){const m=trim(v).match(/^([1-5])\./);return m?+m[1]:null;}
+function fieldOf(o,key){const f=o.fields.find(([k])=>k.replace(/\s/g,'').includes(key));return f?f[1]:'';}
+function avgOf(arr){return arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:null;}
+function metricBox(label,val,max,n){
+  if(val==null)return `<div class="mb"><b style="color:var(--ink3)">-</b><span>${label}</span></div>`;
+  return `<div class="mb"><b>${val.toFixed(1)}</b><span>${label} <em style="color:var(--ink3)">n=${n}</em></span>
+    <i style="width:${Math.round(val/max*100)}%"></i></div>`;
+}
+function renderLabDigest(obs){
+  const byLab={};obs.forEach(o=>{(byLab[o.lab]=byLab[o.lab]||[]).push(o);});
+  if(!Object.keys(byLab).length)return '<div class="empty-note">관찰 없음</div>';
+  return Object.entries(byLab).sort((a,b)=>b[1].length-a[1].length).map(([lab,a])=>{
+    const focus=a.map(o=>scale5(fieldOf(o,'활동집중도'))).filter(Boolean);
+    const peer =a.map(o=>scale5(fieldOf(o,'또래상호작용'))).filter(Boolean);
+    const comply=a.map(o=>COMPLY[trim(fieldOf(o,'규칙과연구원의안내수용도'))]).filter(Boolean);
+    // 어려운 상황
+    const hardVals=a.map(o=>trim(fieldOf(o,'어려운상황이있었는가'))).filter(v=>v==='있음'||v==='없음');
+    const hardN=hardVals.filter(v=>v==='있음').length;
+    const hardTypes={};
+    a.forEach(o=>{const t=trim(o.fields.filter(([k])=>k.includes('(있음)')).map(([,v])=>v)[0]||'');if(t)hardTypes[t]=(hardTypes[t]||0)+1;});
+    const topHard=Object.entries(hardTypes).sort((x,y)=>y[1]-x[1]).slice(0,2).map(([k,v])=>`${k} ${v}`).join(' · ');
+    // 강점 빈도 (쉼표/슬래시로 여러 개 기재됨)
+    const st={};
+    a.forEach(o=>{const s=fieldOf(o,'강점또는돋보인모습');if(!s)return;
+      s.split(/[,/·]/).map(x=>trim(x)).filter(Boolean).forEach(x=>st[x]=(st[x]||0)+1);});
+    const topSt=Object.entries(st).sort((x,y)=>y[1]-x[1]).slice(0,3);
+    // 기간
+    const ds=a.filter(o=>o.date).map(o=>o.date).sort((x,y)=>x-y);
+    const noted=a.filter(o=>o.note).length;
+    const hasMetric=focus.length||peer.length||comply.length;
+    return `<div class="ldig">
+      <div class="lh"><span class="ln">${esc(lab)}</span>
+        <span class="lc">${a.length}건${noted<a.length?` <em style="color:var(--ink3)">(내용 ${noted})</em>`:''}${ds.length?` · ${fmtDate(ds[0])}~${fmtDate(ds[ds.length-1])}`:''}</span></div>
+      ${hasMetric?`<div class="mbar">
+        ${metricBox('집중도',avgOf(focus),5,focus.length)}
+        ${metricBox('또래',avgOf(peer),5,peer.length)}
+        ${metricBox('수용도',avgOf(comply),4,comply.length)}
+      </div>`:'<div class="lmeta"><em>척도 지표 기록 없음</em></div>'}
+      ${hardVals.length?`<div class="lmeta">어려운 상황 <b>${hardN}/${hardVals.length}</b> (${Math.round(hardN/hardVals.length*100)}%)${topHard?` <em>· ${esc(topHard)}</em>`:''}</div>`:''}
+      ${topSt.length?`<div class="lmeta">강점 ${topSt.map(([k,v])=>`<span class="gchip" style="font-size:10.5px">${esc(k)} ${v}</span>`).join(' ')}</div>`:''}
+    </div>`;
+  }).join('');
+}
 function viewAnalysis(name){
   const {obs,emo,ai,ex,goals}=studentCtx(name);
-  const byLab={};obs.forEach(o=>{(byLab[o.lab]=byLab[o.lab]||[]).push(o);});
   const strengths=[...new Set(obs.flatMap(o=>o.fields.filter(([k])=>k.includes('강점')).map(([,v])=>v)))];
   return `
   <div class="flow"><b class="done">관찰 ${obs.length}건 · 감정 ${emo.length}회</b> → <b class="${ai.text?'done':''}">AI 패턴 분석</b> → <b class="${ex.opinion?'done':''}">SEL 전문가 확정</b> → <b>성장리포트</b></div>
   <div class="pcols" style="grid-template-columns:1fr 1fr;margin-bottom:14px">
-    <div class="card pad"><div class="sec-h">연구소별 관찰 종합</div>
-      ${Object.keys(byLab).length?Object.entries(byLab).map(([l,a])=>`<div style="margin-bottom:11px"><b>${esc(l)}</b> <span style="color:var(--ink3);font-size:12px">${a.length}건</span>
-        <div style="font-size:12.5px;color:var(--ink2);margin-top:3px;white-space:pre-wrap">${esc(a.filter(x=>x.note).slice(0,2).map(x=>x.note).join('\n— ')||'관찰 내용 기재 대기')}</div></div>`).join(''):'<div class="empty-note">관찰 없음</div>'}
+    <div class="card pad"><div class="sec-h">연구소별 관찰 종합<span class="act" style="font-size:10px;color:var(--ink3);font-weight:600">지표 요약 · 원문은 1번 탭</span></div>
+      ${renderLabDigest(obs)}
     </div>
     <div class="card pad"><div class="sec-h">돋보인 강점 (관찰 기반)</div>
       ${strengths.length?`<div style="display:flex;flex-wrap:wrap;gap:5px">${strengths.map(s=>`<span class="gchip">${esc(s)}</span>`).join('')}</div>`:'<div class="empty-note">기록된 강점 없음</div>'}
