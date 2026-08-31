@@ -208,6 +208,9 @@ label.fld select,label.fld input,label.fld textarea{width:100%;border:1px solid 
     <div class="sub" id="studSub">데이터 불러오는 중…</div>
     <div class="toolbar">
       <div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8a93a1" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/></svg><input id="stSearch" placeholder="학생 이름 · 학교 검색"></div>
+      <div id="sortBar" style="display:flex;gap:6px"></div>
+    </div>
+    <div class="toolbar" style="margin-top:-6px">
       <div id="labFilter" style="display:flex;gap:6px;flex-wrap:wrap"></div>
     </div>
     <div id="studGrid" class="grid"></div>
@@ -258,7 +261,8 @@ const YEAR=2026;
 const RAW={obs:[],emo:[],members:{}};
 let DB={students:{},goalAssignments:{},diagnosis:{},aiAnalysis:{},expert:{},reports:{},goalLibrary:null,staff:null,updatedAt:0};
 let STUDENTS=[], labFilterSet=new Set(), curStudent=null, recTab='obs', recLab='', recLimit=30;
-let subTab='records', repQ=0;
+let subTab='records', repQ=0, lastSheetSync=0;
+let sortMode='name';   // name | recent (실제 값은 boot()에서 복원)
 
 /* ===================== UTIL ===================== */
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
@@ -402,7 +406,7 @@ const recordsFor=n=>{
 
 /* ===================== SYNC ===================== */
 const LKEY='foxgrowth.cache.v1';
-const setSync=(s,t)=>{$('#syncDot').className='dot '+(s||'');$('#syncTxt').textContent=t;};
+const setSync=(s,t)=>{$('#syncDot').className='dot '+(s||'');$('#syncTxt').textContent=t+(lastSheetSync&&s==='ok'?' · 시트 '+new Date(lastSheetSync).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}):'');};
 function loadCache(){try{const c=JSON.parse(lsGet(LKEY));if(c)DB=Object.assign(DB,c);}catch(e){}}
 function saveCache(){lsSet(LKEY,JSON.stringify(DB));}
 let pushTimer=null, editingUntil=0;
@@ -490,11 +494,20 @@ function avatarHTML(name,cls){
   const p=DB.students[name]?.photo;
   return `<div class="avatar ${cls||''}">${p?`<img src="${esc(p)}" alt="" onerror="this.remove()">`:esc(initials(name))}</div>`;
 }
+window.setSort=m=>{sortMode=m;lsSet('foxgrowth.sort',m);renderStudents();};
 function renderStudents(){
   const q=trim($('#stSearch').value);
   let list=STUDENTS.filter(s=>!q||s.name.includes(q)||(s.member?.school||'').includes(q));
   if(labFilterSet.size)list=list.filter(s=>s.labs.some(l=>labFilterSet.has(l)));
+  const recent=sortMode==='recent';
+  list=list.slice().sort(recent
+    ? (a,b)=>(b.last?.getTime()||0)-(a.last?.getTime()||0)||a.name.localeCompare(b.name,'ko')
+    : (a,b)=>a.name.localeCompare(b.name,'ko'));
   $('#studSub').innerHTML=`총 <b>${STUDENTS.length}</b>명 · 관찰 ${RAW.obs.length}건 · 감정체크 ${RAW.emo.length}회`;
+  $('#sortBar').innerHTML=`
+    <span class="chip ${recent?'':'on'}" onclick="setSort('name')">가나다순</span>
+    <span class="chip ${recent?'on':''}" onclick="setSort('recent')">최근 기록순</span>`;
+  const dateStyle=recent?'margin-left:auto;color:var(--accent-ink);font-weight:700':'margin-left:auto';
   $('#studGrid').innerHTML=list.map(s=>{
     const g=DB.goalAssignments[s.name]||[], mb=s.member;
     return `<div class="scard" onclick="go('#/student/${encodeURIComponent(s.name)}')">
@@ -504,7 +517,7 @@ function renderStudents(){
         <div class="meta">${mb?[mb.age?mb.age+'세':'',mb.school].filter(Boolean).join(' · '):'기본정보 없음'}</div>
         <div class="labtags">${s.labs.map(l=>`<span class="lt">${esc(l.replace('연구소',''))}</span>`).join('')}</div>
         <div class="labtags">${g.length?g.map(x=>`<span class="gchip">${esc((x.short||x.text).slice(0,12))}</span>`).join(''):'<span class="gchip empty">목표 미설정</span>'}</div>
-        <div class="foot"><span>관찰 <b>${s.obsN}</b></span><span>감정 <b>${s.emoN}</b></span><span style="margin-left:auto">${s.last?fmtDate(s.last):''}</span></div>
+        <div class="foot"><span>관찰 <b>${s.obsN}</b></span><span>감정 <b>${s.emoN}</b></span><span style="${dateStyle}">${s.last?fmtDate(s.last):'기록 없음'}</span></div>
       </div></div>`;
   }).join('')||'<div class="loader">검색 결과가 없습니다.</div>';
 }
@@ -951,8 +964,9 @@ function renderSettings(){
     <dt>관찰기록</dt><dd>${OBS_TABS.length}개 연구소 탭 · <b>${RAW.obs.length}건</b>${noDate?` <span style="color:var(--warn)">(날짜 미기재 ${noDate}건)</span>`:''}</dd>
     <dt>감정체크</dt><dd>입실·퇴실 · <b>${RAW.emo.length}회</b></dd>
     <dt>기본정보</dt><dd>Member_DB · <b>${Object.keys(RAW.members).length}명</b></dd>
-    <dt>팀 공유</dt><dd>npoint.io 실시간 동기화</dd></dl>
-    <div class="empty-note" style="margin-top:8px">시트는 읽기 전용으로만 접근합니다.</div>`;
+    <dt>팀 공유</dt><dd>npoint.io 실시간 동기화</dd>
+    <dt>시트 갱신</dt><dd>${lastSheetSync?`마지막 <b>${new Date(lastSheetSync).toLocaleTimeString('ko-KR')}</b> · 5분마다 자동 갱신`:'대기 중'}</dd></dl>
+    <div class="empty-note" style="margin-top:8px">시트는 읽기 전용으로만 접근합니다. 5분마다, 그리고 다른 창을 보다 돌아올 때 자동으로 다시 읽습니다(입력 중에는 건너뜀).</div>`;
   renderStaff();
 }
 function renderStaff(){
@@ -983,18 +997,38 @@ $('#modal').addEventListener('click',e=>{if(e.target.id==='modal')closeModal();}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
 
 /* ===================== BOOT ===================== */
-async function loadAllSheets(){
+/* 시트 자동 갱신: 5분 주기 + 탭 복귀 시(2분 이상 지났으면).
+   입력 중이거나 탭이 숨겨져 있으면 건너뛰고 다음 주기에 다시 시도한다. */
+const SHEET_MS=300000, SHEET_STALE=120000;
+function isEditing(){
+  const a=document.activeElement;
+  return !!a&&(a.tagName==='TEXTAREA'||a.tagName==='INPUT'||a.isContentEditable);
+}
+async function loadAllSheets(opt){
+  const silent=!!(opt&&opt.silent);
   try{await Promise.all([loadMembers(),loadObservations(),loadEmotions()]);}catch(e){console.error(e);}
-  buildStudents();renderLabFilter();route();
+  buildStudents();renderLabFilter();
+  lastSheetSync=Date.now();
+  if(silent)refreshView(); else route();
   setSync('ok',DB.updatedAt?'팀 공유됨':'로컬');
 }
+async function autoRefreshSheets(){
+  if(document.hidden||isEditing())return;          // 입력 중이면 화면을 갈아엎지 않는다
+  setSync('load','시트 확인 중…');
+  await loadAllSheets({silent:true});
+}
 async function boot(){
+  sortMode=lsGet('foxgrowth.sort')||'name';
   loadCache();ensureDefaults();fillMe();
   setSync('load','불러오는 중…');
   route();
   await pullDB();ensureDefaults();fillMe();
   await loadAllSheets();
-  setInterval(pullDB,8000);
+  setInterval(pullDB,8000);                        // 팀 데이터(앱 입력분)
+  setInterval(autoRefreshSheets,SHEET_MS);         // 구글시트 원본
+  document.addEventListener('visibilitychange',()=>{
+    if(!document.hidden&&Date.now()-lastSheetSync>SHEET_STALE)autoRefreshSheets();
+  });
 }
 boot();
 </script>
