@@ -524,6 +524,11 @@ main{max-width:1200px;margin:0;padding:28px 36px 90px 300px}
 .estate{text-align:center;padding:44px 20px;border:1px dashed var(--line);border-radius:11px;background:#fbfcfd;grid-column:1/-1}
 .estate b{display:block;font-size:14px;color:var(--ink2);margin-bottom:5px}
 .estate span{font-size:12.5px;color:var(--ink3)}
+/* 활동 상태 배지 */
+.act-regular,.act-occasional,.act-dormant{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:5px;white-space:nowrap}
+.act-regular{background:#e7f2ec;color:#1f5c40}
+.act-occasional{background:#eef2f7;color:#4a5568}
+.act-dormant{background:#f3f4f6;color:#9aa3af}
 @media print{
   #sidebar,#sbToggle,header,.no-print,.rtabs,.subnav,.repopt,.skipprint{display:none!important}
   body{background:#fff}main{padding:0}
@@ -550,7 +555,6 @@ main{max-width:1200px;margin:0;padding:28px 36px 90px 300px}
     <button data-v="dash"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="11" width="7" height="10" rx="1.5"/><rect x="3" y="15" width="7" height="6" rx="1.5"/></svg>대시보드</button>
     <div class="sgrp">학생</div>
     <button data-v="students"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><path d="M16 11.5a3 3 0 1 0-1.5-5.6"/><path d="M17 19c0-2.2-.8-3.6-2-4.5"/></svg>전체 학생<i id="navStud"></i></button>
-    <button data-v="attention"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 4.5 21 19H3z"/><path d="M12 10v4M12 16.5v.01"/></svg>조치 필요<i id="navTodo" class="warn"></i></button>
     <div class="sgrp">성장</div>
     <button data-v="library"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5z"/><path d="M20 5.5A1.5 1.5 0 0 0 18.5 4H13v16h5.5a1.5 1.5 0 0 0 1.5-1.5z"/></svg>성장목표</button>
     <div class="sgrp">시스템</div>
@@ -569,11 +573,14 @@ main{max-width:1200px;margin:0;padding:28px 36px 90px 300px}
     <div id="dashBody"></div>
   </section>
   <section class="view" id="v-students">
-    <h2 class="title">학생</h2>
+    <h2 class="title">전체 학생</h2>
     <div class="sub" id="studSub">데이터 불러오는 중…</div>
     <div class="toolbar">
       <div class="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8a93a1" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/></svg><input id="stSearch" placeholder="학생 이름 · 학교 검색"></div>
       <div id="sortBar" style="display:flex;gap:6px"></div>
+    </div>
+    <div class="toolbar" style="margin-top:-6px">
+      <div id="actBar" style="display:flex;gap:6px;flex-wrap:wrap"></div>
     </div>
     <div class="toolbar" style="margin-top:-6px">
       <div id="labFilter" style="display:flex;gap:6px;flex-wrap:wrap"></div>
@@ -631,7 +638,7 @@ let DB={students:{},goalAssignments:{},diagnosis:{},aiAnalysis:{},expert:{},repo
 let STUDENTS=[], labFilterSet=new Set(), curStudent=null, recTab='obs', recLab='', recLimit=30;
 let subTab='records', repQ=0, lastSheetSync=0;
 let sortMode='name';   // name | recent (실제 값은 boot()에서 복원)
-let onlyTodo=false;    // '조치 필요' 화면 여부
+let actFilter='';   // '' | regular | occasional | dormant
 
 /* ===================== UTIL ===================== */
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
@@ -909,7 +916,7 @@ function refreshView(){   // redraw current view WITHOUT scrolling/navigating
 }
 function drawView(name){
   if(name==='dash')renderDash();
-  else if(name==='students'||name==='attention')renderStudents();
+  else if(name==='students')renderStudents();
   else if(name==='library')renderLibrary();
   else if(name==='settings')renderSettings();
 }
@@ -925,13 +932,12 @@ function route(){
     $('#v-student').classList.add('on');
     $$('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v==='students'));
     renderStudentPage();window.scrollTo(0,0);return;}
-  let v=h.replace('#/','')||'dash';
-  onlyTodo=(v==='attention');
-  const el=$('#v-'+(v==='attention'?'students':v))||$('#v-dash');
+  const v=h.replace('#/','')||'dash';
+  const el=$('#v-'+v)||$('#v-dash');
   el.classList.add('on');
   const name=el.id.replace('v-','');
-  $$('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
-  drawView(v==='attention'?'attention':name);
+  $$('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===name));
+  drawView(name);
   window.scrollTo(0,0);
 }
 window.goSub=t=>{go(`#/student/${encodeURIComponent(curStudent)}/${t}`);};
@@ -959,18 +965,30 @@ function trendOf(name){
   const d=b-a;
   return {ok:true,n:scored.length,delta:d,dir:d>0.2?'up':d<-0.2?'down':'flat',a:a.toFixed(1),b:b.toFixed(1)};
 }
+/* 활동 상태: 최근 8주 중 기록이 있는 주 수로 판단.
+   센터를 그만뒀거나 주 1회 한 연구소만 오는 학생이 많아, 데이터가 적은 것은
+   문제가 아니라 참여 형태다. 따라서 '조치 필요'로 분리하지 않고 상태로만 구분한다. */
+const ACT_WEEKS=8;
+function activityOf(s){
+  const {obs,emo}=recordsFor(s.name);
+  const now=Date.now(), W=604800000;
+  const wk=new Set([...obs,...emo].filter(x=>x.date&&now-x.date<ACT_WEEKS*W).map(x=>Math.floor(x.date/W)));
+  const n=wk.size;
+  const k=n===0?'dormant':n>=6?'regular':'occasional';
+  return {weeks:n,k,label:k==='regular'?'정기 활동':k==='occasional'?'간헐 활동':'활동 없음'};
+}
 function studentSignals(s){
   const {obs,emo}=recordsFor(s.name);
   const goals=DB.goalAssignments[s.name]||[];
   const rep=DB.reports[s.name]||{};
   const days=s.last?Math.floor((Date.now()-s.last)/86400000):null;
   const scored=obs.filter(scaleOf).length;
-  const todo=[];
-  if(!goals.length)todo.push({k:'goal',t:'성장목표 미설정',w:3});
-  if(days!=null&&days>STALE_DAYS)todo.push({k:'stale',t:`최근 관찰 ${days}일 전`,w:2});
-  if(obs.length&&scored/obs.length<0.4)todo.push({k:'scale',t:`척도 기재 ${scored}/${obs.length}`,w:1});
-  if(goals.length&&!Object.keys(rep).length)todo.push({k:'report',t:'리포트 미작성',w:1});
-  return {obs,emo,goals,days,scored,todo,weight:todo.reduce((a,b)=>a+b.w,0),trend:trendOf(s.name)};
+  const act=activityOf(s);
+  // 다음 단계 제안은 '기록이 충분히 쌓인 학생'에게만 의미가 있다
+  const ready=act.k!=='dormant'&&obs.length>=10;
+  const next=ready&&!goals.length?{k:'goal',t:'성장목표 설정 가능'}
+    :goals.length&&!Object.keys(rep).length?{k:'report',t:'리포트 작성 가능'}:null;
+  return {obs,emo,goals,days,scored,act,ready,next,trend:trendOf(s.name)};
 }
 let DASH=null;
 function buildDash(){
@@ -990,7 +1008,10 @@ function buildDash(){
     reports:rows.filter(r=>Object.keys(DB.reports[r.s.name]||{}).length).length,
     findings:rows.filter(r=>{const q=DB.reports[r.s.name]||{};return Object.values(q).some(x=>x&&x.discovery);}).length,
     expert:Object.keys(DB.expert||{}).length,
-    todo:rows.filter(r=>r.weight>0).sort((a,b)=>b.weight-a.weight||(b.obs.length-a.obs.length)),
+    regular:rows.filter(r=>r.act.k==='regular').length,
+    occasional:rows.filter(r=>r.act.k==='occasional').length,
+    dormant:rows.filter(r=>r.act.k==='dormant').length,
+    next:rows.filter(r=>r.next).sort((a,b)=>b.obs.length-a.obs.length),
     recent:rows.filter(r=>r.s.last).sort((a,b)=>b.s.last-a.s.last).slice(0,8)
   };
   return DASH;
@@ -1004,9 +1025,9 @@ function renderDash(){
   const stat=(v,l,sub,tone)=>`<div class="dstat ${tone||''}"><b>${v}</b><span>${l}</span>${sub?`<em>${sub}</em>`:''}</div>`;
   $('#dashBody').innerHTML=`
   <div class="dstats">
-    ${stat(d.total,'관리 중인 학생',`관찰 ${d.obsTotal.toLocaleString()}건 · 감정 ${d.emoTotal.toLocaleString()}회`)}
-    ${stat(d.withGoal,'성장목표 설정됨',`전체 ${d.total}명 중`,d.withGoal/d.total<0.5?'warn':'')}
-    ${stat(d.todo.length,'조치가 필요한 학생','목표·관찰·리포트 기준',d.todo.length?'warn':'')}
+    ${stat(d.total,'등록 학생',`관찰 ${d.obsTotal.toLocaleString()}건 · 감정 ${d.emoTotal.toLocaleString()}회`)}
+    ${stat(d.regular,'정기 활동',`최근 8주 중 6주 이상 · 간헐 ${d.occasional} · 활동없음 ${d.dormant}`)}
+    ${stat(d.withGoal,'성장목표 설정됨',`기록이 충분한 학생 중심으로`)}
     ${stat(d.reports,'리포트 작성됨',`전문가 소견 ${d.expert}건`)}
   </div>
 
@@ -1024,15 +1045,16 @@ function renderDash(){
 
   <div class="dcols">
     <div class="card pad">
-      <div class="sec-h">조치가 필요한 학생 <span class="act"><a onclick="go('#/students')">전체 보기</a></span></div>
-      ${d.todo.length?`<div class="dlist">${d.todo.slice(0,8).map(r=>`
+      <div class="sec-h">다음 단계를 진행할 수 있는 학생 <span class="act"><a onclick="go('#/students')">전체 보기</a></span></div>
+      ${d.next.length?`<div class="dlist">${d.next.slice(0,8).map(r=>`
         <div class="drow" onclick="go('#/student/${encodeURIComponent(r.s.name)}')">
           ${avatarHTML(r.s.name)}
-          <div class="dinfo"><b>${esc(r.s.name)}</b><span>${esc(r.s.labs.map(l=>l.replace('연구소','')).join(' · ')||'활동 없음')}</span></div>
-          <div class="dtags">${r.todo.map(t=>`<span class="tg ${t.k}">${esc(t.t)}</span>`).join('')}</div>
+          <div class="dinfo"><b>${esc(r.s.name)}</b><span>관찰 ${r.obs.length}건 · ${esc(r.s.labs.map(l=>l.replace('연구소','')).join(' · ')||'-')}</span></div>
+          <div class="dtags"><span class="act-${r.act.k}">${r.act.label}</span><span class="tg ${r.next.k}">${esc(r.next.t)}</span></div>
         </div>`).join('')}</div>
-        ${d.todo.length>8?`<div class="dmore">외 ${d.todo.length-8}명</div>`:''}`
-      :'<div class="empty-note">지금 조치가 필요한 학생이 없습니다.</div>'}
+        ${d.next.length>8?`<div class="dmore">외 ${d.next.length-8}명</div>`:''}`
+      :'<div class="empty-note">기록이 충분히 쌓인 학생에 모두 다음 단계가 진행되어 있습니다.</div>'}
+      <div class="empty-note" style="margin-top:10px">관찰이 10건 이상 쌓이고 최근 활동이 있는 학생만 표시합니다. 주 1회 참여하거나 활동을 멈춘 학생은 기록이 적은 것이 자연스러우므로 제외했습니다.</div>
     </div>
 
     <div class="card pad">
@@ -1070,19 +1092,21 @@ function renderStudents(){
   const sig={};STUDENTS.forEach(s=>sig[s.name]=studentSignals(s));
   let list=STUDENTS.filter(s=>!q||s.name.includes(q)||(s.member?.school||'').includes(q));
   if(labFilterSet.size)list=list.filter(s=>s.labs.some(l=>labFilterSet.has(l)));
-  if(onlyTodo)list=list.filter(s=>sig[s.name].weight>0);
+  if(actFilter)list=list.filter(s=>sig[s.name].act.k===actFilter);
   const recent=sortMode==='recent';
-  list=list.slice().sort(onlyTodo?(a,b)=>sig[b.name].weight-sig[a.name].weight||a.name.localeCompare(b.name,'ko')
-    :recent
+  list=list.slice().sort(recent
     ? (a,b)=>(b.last?.getTime()||0)-(a.last?.getTime()||0)||a.name.localeCompare(b.name,'ko')
     : (a,b)=>a.name.localeCompare(b.name,'ko'));
-  $('.view.on h2.title').textContent=onlyTodo?'조치 필요':'전체 학생';
-  $('#studSub').innerHTML=onlyTodo
-    ? `성장목표·관찰·리포트 기준으로 확인이 필요한 <b>${list.length}</b>명입니다. 학생을 평가한 것이 아니라 <b>직원이 할 일</b>을 표시합니다.`
-    : `총 <b>${STUDENTS.length}</b>명 · 관찰 ${RAW.obs.length.toLocaleString()}건 · 감정체크 ${RAW.emo.length.toLocaleString()}회`;
+  const cnt=k=>STUDENTS.filter(s=>sig[s.name].act.k===k).length;
+  $('#studSub').innerHTML=`총 <b>${STUDENTS.length}</b>명 · 관찰 ${RAW.obs.length.toLocaleString()}건 · 감정체크 ${RAW.emo.length.toLocaleString()}회`;
   $('#sortBar').innerHTML=`
     <span class="chip ${recent?'':'on'}" onclick="setSort('name')">가나다순</span>
     <span class="chip ${recent?'on':''}" onclick="setSort('recent')">최근 기록순</span>`;
+  $('#actBar').innerHTML=`
+    <span class="chip ${!actFilter?'on':''}" onclick="setAct('')">전체 ${STUDENTS.length}</span>
+    <span class="chip ${actFilter==='regular'?'on':''}" onclick="setAct('regular')">정기 활동 ${cnt('regular')}</span>
+    <span class="chip ${actFilter==='occasional'?'on':''}" onclick="setAct('occasional')">간헐 활동 ${cnt('occasional')}</span>
+    <span class="chip ${actFilter==='dormant'?'on':''}" onclick="setAct('dormant')">활동 없음 ${cnt('dormant')}</span>`;
   const dateStyle=recent?'margin-left:auto;color:var(--accent-ink);font-weight:700':'margin-left:auto';
   $('#studGrid').innerHTML=list.map(s=>{
     const g=DB.goalAssignments[s.name]||[], mb=s.member;
@@ -1092,15 +1116,17 @@ function renderStudents(){
         <div class="nm">${esc(s.name)}</div>
         <div class="meta">${mb?[mb.age?mb.age+'세':'',mb.school].filter(Boolean).join(' · '):'기본정보 없음'}</div>
         <div class="labtags">${s.labs.map(l=>`<span class="lt">${esc(l.replace('연구소',''))}</span>`).join('')}</div>
-        <div class="labtags">${g.length?g.map(x=>`<span class="gchip">${esc((x.short||x.text).slice(0,12))}</span>`).join(''):'<span class="gchip empty">목표 미설정</span>'}</div>
-        ${sig[s.name].todo.length?`<div class="labtags">${sig[s.name].todo.map(t=>`<span class="tg ${t.k}">${esc(t.t)}</span>`).join('')}</div>`:''}
+        <div class="labtags">
+          <span class="act-${sig[s.name].act.k}">${sig[s.name].act.label}</span>
+          ${g.length?g.map(x=>`<span class="gchip">${esc((x.short||x.text).slice(0,12))}</span>`).join(''):''}
+          ${sig[s.name].next?`<span class="tg ${sig[s.name].next.k}">${esc(sig[s.name].next.t)}</span>`:''}
+        </div>
         <div class="foot"><span>관찰 <b>${s.obsN}</b></span><span>감정 <b>${s.emoN}</b></span>${trendChip(sig[s.name].trend)}<span style="${dateStyle}">${s.last?fmtDate(s.last):'기록 없음'}</span></div>
       </div></div>`;
-  }).join('')||`<div class="estate"><b>${onlyTodo?'조치가 필요한 학생이 없습니다.':'검색 결과가 없습니다.'}</b><span>${onlyTodo?'모든 학생에 성장목표가 설정되어 있고 최근 관찰도 이어지고 있습니다.':'다른 이름이나 학교로 검색해 보세요.'}</span></div>`;
-  const t=$('#navTodo'), st=$('#navStud');
-  if(st)st.textContent=STUDENTS.length||'';
-  if(t){const n=STUDENTS.filter(s=>sig[s.name].weight>0).length;t.textContent=n||'';}
+  }).join('')||`<div class="estate"><b>해당하는 학생이 없습니다.</b><span>다른 이름·학교로 검색하거나 필터를 바꿔보세요.</span></div>`;
+  const st=$('#navStud');if(st)st.textContent=STUDENTS.length||'';
 }
+window.setAct=k=>{actFilter=k;renderStudents();};
 $('#stSearch').addEventListener('input',renderStudents);
 
 /* ===================== STUDENT PAGE ===================== */
