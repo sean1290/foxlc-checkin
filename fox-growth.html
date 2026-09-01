@@ -405,12 +405,38 @@ label.fld select,label.fld input,label.fld textarea{width:100%;border:1px solid 
 .aBA th em{font-style:normal;font-weight:600;opacity:.75;margin-left:5px}
 .aBA td{border:1px solid var(--line);padding:9px 11px;vertical-align:top;line-height:1.6;color:#5b6472}
 .aBA td:last-child{background:#fbfdfc}
+/* 감정체크 섹션 */
+.emet{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:9px;margin-bottom:14px}
+.emc{background:#f7f9fa;border:1px solid var(--line2);border-radius:9px;padding:10px 12px}
+.emc b{display:block;font-size:20px;font-weight:800;color:#203462;line-height:1.1;letter-spacing:-.02em}
+.emc span{font-size:10.5px;color:#5b6472;font-weight:600}
+.emc em{font-style:normal;color:#a8b0ba;font-weight:500}
+.evoice{background:linear-gradient(135deg,#fdf6e8 0%,#fbeed6 100%);border:1px solid #eddcb8;border-radius:11px;padding:16px 19px;margin-bottom:14px}
+.evoice .evl{font-size:11px;font-weight:800;letter-spacing:.08em;color:#96712c;margin-bottom:10px}
+.evlist{display:flex;flex-wrap:wrap;gap:7px}
+.evi{background:#fff;border:1px solid #eddcb8;border-radius:999px;padding:6px 14px;font-size:13px;font-weight:700;color:#7a5a1e}
+.evi.top{background:#96712c;border-color:#96712c;color:#fff}
+.evi em{font-style:normal;font-weight:600;opacity:.7;margin-left:5px;font-size:11.5px}
+.evn{font-size:11px;color:#96712c;opacity:.85;margin-top:10px}
+.egrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.ecard{border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.ecard>b{display:block;font-size:11px;font-weight:800;color:#8a93a1;letter-spacing:.05em;margin-bottom:9px}
+.ebar{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12px}
+.ebar span{flex:0 0 74px;color:#5b6472;font-weight:600}
+.ebar i{height:9px;background:#72c0a1;border-radius:5px;min-width:4px}
+.ebar u{text-decoration:none;font-size:11px;color:#8a93a1;font-weight:700}
+.etags{display:flex;flex-wrap:wrap;gap:4px}
+.ecard .ep{font-size:12.5px;line-height:1.7;margin:0 0 5px;color:#5b6472}
+.ecard .ep b{color:#203462}
+.esum{margin-top:4px;padding-top:12px;border-top:1px solid var(--line)}
+.esum .lsl{font-size:10.5px;font-weight:800;color:#4e8f74;letter-spacing:.08em;margin-bottom:5px}
+@media(max-width:720px){.egrid{grid-template-columns:1fr}}
 @media print{
   header,.no-print,.rtabs,.subnav,.repopt,.skipprint{display:none!important}
   body{background:#fff}main{padding:0}
   .rep{border:0;box-shadow:none;max-width:100%;border-radius:0}
   .rcover{border-radius:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .rstrength,.rexp,.rstat,.rlab .lhd,.rgbadge,.rint,.rintro,.iloop .il,.rstage span,.rsign,.aH1 span,.aH2,.aEvid,.aInterp,.aBA th,.aBA td:last-child{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .rstrength,.rexp,.rstat,.rlab .lhd,.rgbadge,.rint,.rintro,.iloop .il,.rstage span,.rsign,.aH1 span,.aH2,.aEvid,.aInterp,.aBA th,.aBA td:last-child,.evoice,.evi.top,.ebar i,.emc{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .rep section{page-break-inside:avoid}
   @page{margin:14mm}
 }
@@ -969,7 +995,7 @@ window.distributeAI=name=>{
   if(!raw){toast('먼저 AI 결과를 붙여넣고 저장하세요');return;}
   const s=parseAISections(raw);
   if(!Object.keys(s).length){toast('[요약] 같은 머리말을 찾지 못했습니다');return;}
-  const map={'요약':'headline','발견':'discovery','처음과 지금':'change','지원':'response','다음 방향':'next','가정 지원':'home'};
+  const map={'요약':'headline','감정':'emotion','발견':'discovery','처음과 지금':'change','지원':'response','다음 방향':'next','가정 지원':'home'};
   const {obs}=recordsFor(name);
   const labs=[...new Set(obs.map(o=>o.lab))];
   const filled=[];
@@ -1045,6 +1071,38 @@ window.toggleSec=(id,on)=>{const el=document.getElementById(id);if(el)el.classLi
 /* 붙여넣은 긴 AI 분석문을 구조에 맞게 렌더.
    패턴: "1) 대제목" / "① 소제목" / "A. 소제목" / 라벨(관찰 근거·Before·After·해석 등) */
 const A_LABELS=['관찰 근거','선정 근거','근거','연구소 간 차이','해석','Before','After'];
+/* 감정체크(아이 자기보고) 집계 — 전부 실제 응답을 세는 것이라 추정이 없다 */
+function emoField(e,key){const f=e.fields.find(([k])=>k.replace(/\s/g,'').includes(key));return f?trim(f[1]):'';}
+function emoTop(list,key,n){
+  const c={};
+  list.forEach(e=>{let v=emoField(e,key);if(!v)return;
+    v=v.split('//')[0].trim();               // "설렘 // 오늘처럼 열심히 하기" → "설렘"
+    if(!v||v==='직접 적기')return;
+    c[v]=(c[v]||0)+1;});
+  return Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0,n||5);
+}
+function emoYes(list,key){
+  const v=list.map(e=>emoField(e,key).toLowerCase()).filter(x=>x==='yes'||x==='no');
+  return v.length?{yes:v.filter(x=>x==='yes').length,total:v.length}:null;
+}
+function emotionDigest(qEmo){
+  const inn=qEmo.filter(e=>e.io==='입실'), out=qEmo.filter(e=>e.io==='퇴실');
+  const avgOf=a=>a.length?(a.reduce((x,y)=>x+y,0)/a.length).toFixed(1):null;
+  return {
+    n:qEmo.length, nIn:inn.length, nOut:out.length,
+    energy:avgOf(inn.map(e=>e._energy).filter(Boolean)),
+    focus:avgOf(out.map(e=>e._focus).filter(Boolean)),
+    relation:avgOf(out.map(e=>e._relation).filter(Boolean)),
+    emoIn:emoTop(inn,'감정',5),
+    emoOut:emoTop(out,'감정',5),
+    proud:emoTop(out,'자랑스러운',4),
+    goal:emoTop(inn,'오늘목표',4),
+    attitude:emoTop(inn,'오늘의좋은태도',3),
+    regulate:emoYes(out,'감정조절여부'),
+    conflict:emoYes(out,'친구와갈등'),
+    worry:emoYes(inn,'걱정여부')
+  };
+}
 function renderAnalysisDoc(text){
   const src=trim(text); if(!src)return '';
   const lines=src.split(/\r?\n/);
@@ -1160,6 +1218,7 @@ function buildReport(name,q){
   const strengths=Object.entries(stAll).sort((a,b)=>b[1]-a[1]).slice(0,8);
 
   // 감정체크 지표
+  const ec=emotionDigest(qEmo);
   const en=avg(qEmo.map(e=>e._energy).filter(Boolean));
   const fo=avg(qEmo.map(e=>e._focus).filter(Boolean));
   const re=avg(qEmo.map(e=>e._relation).filter(Boolean));
@@ -1330,6 +1389,45 @@ function buildReport(name,q){
         </div>`;}).join('')
       :'<div class="rnote2">이 기간에 기록된 관찰이 없습니다.</div>'}
       <div class="rnote2">위 수치는 연구원이 활동마다 기록한 평가를 ${esc(label)} 전체로 집계한 값입니다. n은 해당 항목이 기재된 관찰 수입니다.</div>
+    </section>
+
+    <section>
+      ${sec('감정체크 · 아이가 스스로 남긴 기록',`입실 ${ec.nIn}회 · 퇴실 ${ec.nOut}회`)}
+      ${ec.n?`
+      <div class="emet">
+        ${ec.energy?`<div class="emc"><b>${ec.energy}</b><span>등원 시 에너지 <em>/5</em></span></div>`:''}
+        ${ec.focus?`<div class="emc"><b>${ec.focus}</b><span>스스로 느낀 집중도 <em>/5</em></span></div>`:''}
+        ${ec.relation?`<div class="emc"><b>${ec.relation}</b><span>친구들과의 관계 <em>/5</em></span></div>`:''}
+        ${ec.regulate?`<div class="emc"><b>${Math.round(ec.regulate.yes/ec.regulate.total*100)}<em style="font-size:13px">%</em></b><span>감정을 조절했다고 답함 <em>${ec.regulate.yes}/${ec.regulate.total}</em></span></div>`:''}
+      </div>
+
+      ${ec.proud.length?`<div class="evoice">
+        <div class="evl">아이가 스스로 뿌듯해한 것</div>
+        <div class="evlist">${ec.proud.map(([k,v],i)=>`<span class="evi ${i===0?'top':''}">${esc(k)}<em>${v}회</em></span>`).join('')}</div>
+        <div class="evn">하원할 때 “오늘 스스로 가장 자랑스러운 것”으로 아이가 직접 고른 답변입니다.</div>
+      </div>`:''}
+
+      <div class="egrid">
+        ${ec.emoIn.length?`<div class="ecard"><b>등원할 때의 마음</b>
+          ${ec.emoIn.map(([k,v])=>`<div class="ebar"><span>${esc(k)}</span><i style="width:${Math.round(v/ec.emoIn[0][1]*100)}%"></i><u>${v}</u></div>`).join('')}</div>`:''}
+        ${ec.emoOut.length?`<div class="ecard"><b>하원할 때의 마음</b>
+          ${ec.emoOut.map(([k,v])=>`<div class="ebar"><span>${esc(k)}</span><i style="width:${Math.round(v/ec.emoOut[0][1]*100)}%"></i><u>${v}</u></div>`).join('')}</div>`:''}
+      </div>
+
+      <div class="egrid">
+        ${ec.goal.length?`<div class="ecard"><b>아이가 그날 세운 목표</b>
+          <div class="etags">${ec.goal.map(([k,v])=>`<span class="otag">${esc(k)} ${v}</span>`).join('')}</div></div>`:''}
+        <div class="ecard"><b>또래 관계</b>
+          ${ec.conflict?`<p class="ep">친구와 갈등이 <b>없었다</b>고 답한 날이 ${ec.conflict.total-ec.conflict.yes}일 / ${ec.conflict.total}일입니다.</p>`:'<p class="ep">관련 응답이 없습니다.</p>'}
+          ${ec.worry?`<p class="ep">등원할 때 걱정이 <b>있다</b>고 답한 날은 ${ec.worry.yes}일 / ${ec.worry.total}일입니다.</p>`:''}
+        </div>
+      </div>
+      <div class="rnote2">감정체크는 아이가 등원·하원 때 직접 선택해 남긴 기록입니다. 연구원의 관찰과 함께 보면 같은 시기를 아이 스스로는 어떻게 느꼈는지 견주어 볼 수 있습니다.</div>
+      <div class="esum">
+        <div class="lsl">감정 기록 요약</div>
+        ${ed('emotion','아이의 자기보고에서 눈에 띄는 점을 서술하세요. (발견·분석 탭에서 AI 결과를 반영하면 자동으로 채워집니다)')}
+      </div>`
+      :'<div class="rnote2">이 기간에 기록된 감정체크가 없습니다.</div>'}
     </section>
 
     <div class="rstage"><span>발견</span> 관찰을 연결해 무엇을 알게 되었나</div>
@@ -1622,6 +1720,11 @@ ${eL||'(없음)'}
  날짜나 활동명 같은 구체적 근거를 1~2개 자연스럽게 포함하세요.)
 미술연구소: (내용)
 언어연구소: (내용)
+
+[감정]
+(2~3문장. 아이가 등원·하원 때 직접 남긴 감정체크에서 눈에 띄는 점.
+ 아이가 스스로 뿌듯해한 것, 스스로 세운 목표, 감정 조절에 대한 자기 응답 등을
+ 연구원의 관찰과 견주어 서술하세요. 수치는 리포트가 자동 표시하므로 반복하지 마세요.)
 
 [발견]
 (여러 연구소의 관찰을 연결해 반복적으로 나타난 모습을 2~4개 찾아,
