@@ -431,6 +431,8 @@ label.fld select,label.fld input,label.fld textarea{width:100%;border:1px solid 
 .esum{margin-top:4px;padding-top:12px;border-top:1px solid var(--line)}
 .esum .lsl{font-size:10.5px;font-weight:800;color:#4e8f74;letter-spacing:.08em;margin-bottom:5px}
 @media(max-width:720px){.egrid{grid-template-columns:1fr}}
+.phbtn{display:flex;gap:6px;align-items:center;margin-top:6px}
+.phbtn .btn{cursor:pointer}
 @media print{
   header,.no-print,.rtabs,.subnav,.repopt,.skipprint{display:none!important}
   body{background:#fff}main{padding:0}
@@ -498,6 +500,9 @@ label.fld select,label.fld input,label.fld textarea{width:100%;border:1px solid 
     <div class="card pad" style="margin-bottom:14px">
       <div class="sec-h">데이터 소스</div><div id="srcStatus"></div>
       <div style="margin-top:12px;display:flex;gap:8px"><button class="btn pri sm" id="reloadSheets">시트 새로고침</button><button class="btn sm" id="exportData">앱 데이터 내보내기</button></div>
+    </div>
+    <div class="card pad" style="margin-bottom:14px">
+      <div class="sec-h">학생 사진</div><div id="photoMgr"></div>
     </div>
     <div class="card pad">
       <div class="sec-h">직원 명단</div>
@@ -672,6 +677,87 @@ const recordsFor=n=>{
 };
 
 /* ===================== SYNC ===================== */
+/* ===== 학생 사진 =====
+   파일을 업로드하면 브라우저에서 작게 줄여(150px JPEG) 별도 공유 저장소에 보관한다.
+   메인 DB(8초 폴링)와 분리해 동기화를 무겁게 하지 않는다. */
+const NPOINT_PHOTOS='https://api.npoint.io/5b6d74031b7c97370723';
+const PKEY='foxgrowth.photos.v1';
+let PHOTOS={};
+function loadPhotoCache(){try{const c=JSON.parse(lsGet(PKEY));if(c&&typeof c==='object')PHOTOS=c;}catch(e){}}
+function savePhotoCache(){lsSet(PKEY,JSON.stringify(PHOTOS));}
+async function loadPhotos(){
+  try{const r=await fetch(NPOINT_PHOTOS+'?t='+Date.now(),{cache:'no-store'});
+    if(!r.ok)throw 0;const d=await r.json();
+    if(d&&d.photos&&typeof d.photos==='object'){PHOTOS=d.photos;savePhotoCache();}
+  }catch(e){console.warn('photos load',e);}
+}
+async function pushPhotos(){
+  const body=JSON.stringify({photos:PHOTOS,updatedAt:Date.now()});
+  const kb=Math.round(body.length/1024);
+  const r=await fetch(NPOINT_PHOTOS,{method:'POST',headers:{'Content-Type':'application/json'},body});
+  if(!r.ok)throw new Error('저장 실패 ('+kb+'KB)');
+  savePhotoCache();return kb;
+}
+// 파일 → 정사각 썸네일 data URI (가운데 잘라내기)
+function fileToThumb(file,size,q){
+  size=size||150;q=q||0.72;
+  return new Promise((res,rej)=>{
+    if(!/^image\//.test(file.type))return rej(new Error('이미지 파일이 아닙니다'));
+    const fr=new FileReader();
+    fr.onerror=()=>rej(new Error('파일을 읽지 못했습니다'));
+    fr.onload=()=>{
+      const img=new Image();
+      img.onerror=()=>rej(new Error('이미지를 열지 못했습니다'));
+      img.onload=()=>{
+        const s=Math.min(img.width,img.height);
+        const sx=(img.width-s)/2, sy=(img.height-s)/2;
+        const c=document.createElement('canvas');c.width=c.height=size;
+        const x=c.getContext('2d');
+        x.fillStyle='#fff';x.fillRect(0,0,size,size);
+        x.drawImage(img,sx,sy,s,s,0,0,size,size);
+        res(c.toDataURL('image/jpeg',q));
+      };
+      img.src=fr.result;
+    };
+    fr.readAsDataURL(file);
+  });
+}
+window.uploadPhoto=async(name,input)=>{
+  const f=input.files&&input.files[0];if(!f)return;
+  try{
+    toast('사진 처리 중…');
+    PHOTOS[name]=await fileToThumb(f);
+    const kb=await pushPhotos();
+    renderStudentPage();toast(`사진 저장됨 · 전체 ${kb}KB`);
+  }catch(e){toast('실패: '+e.message);}
+};
+window.removePhoto=async name=>{
+  if(!PHOTOS[name])return;
+  delete PHOTOS[name];
+  try{await pushPhotos();renderStudentPage();toast('사진 삭제됨');}
+  catch(e){toast('실패: '+e.message);}
+};
+/* 일괄 등록: 파일명(확장자 제외)이 학생 이름 */
+window.bulkPhotos=async input=>{
+  const files=[...(input.files||[])];if(!files.length)return;
+  const names=new Set(STUDENTS.map(s=>s.name));
+  let ok=0,skip=[],fail=[];
+  const st=$('#bulkStat');
+  for(let i=0;i<files.length;i++){
+    const f=files[i];
+    const nm=f.name.replace(/\.[^.]+$/,'').trim();
+    if(st)st.textContent=`처리 중 ${i+1}/${files.length} — ${nm}`;
+    if(!names.has(nm)){skip.push(nm);continue;}
+    try{PHOTOS[nm]=await fileToThumb(f);ok++;}catch(e){fail.push(nm);}
+  }
+  try{
+    const kb=await pushPhotos();
+    if(st)st.innerHTML=`<b>${ok}명 등록 완료</b> · 저장소 ${kb}KB`
+      +(skip.length?`<br><span style="color:var(--warn)">앱에 없는 이름 ${skip.length}명: ${esc(skip.slice(0,8).join(', '))}${skip.length>8?' 외':''}</span>`:'')
+      +(fail.length?`<br><span style="color:var(--warn)">처리 실패 ${fail.length}명: ${esc(fail.join(', '))}</span>`:'');
+    renderSettings();toast(`${ok}명 사진 등록됨`);
+  }catch(e){if(st)st.textContent='저장 실패: '+e.message;}
+};
 const LKEY='foxgrowth.cache.v1';
 const setSync=(s,t)=>{$('#syncDot').className='dot '+(s||'');$('#syncTxt').textContent=t+(lastSheetSync&&s==='ok'?' · 시트 '+new Date(lastSheetSync).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}):'');};
 function loadCache(){try{const c=JSON.parse(lsGet(LKEY));if(c)DB=Object.assign(DB,c);}catch(e){}}
@@ -758,7 +844,7 @@ function renderLabFilter(){
   $('#labFilter').querySelectorAll('.chip').forEach(c=>c.onclick=()=>{const l=c.dataset.lab;labFilterSet.has(l)?labFilterSet.delete(l):labFilterSet.add(l);renderLabFilter();renderStudents();});
 }
 function avatarHTML(name,cls){
-  const p=DB.students[name]?.photo;
+  const p=PHOTOS[name]||DB.students[name]?.photo;
   return `<div class="avatar ${cls||''}">${p?`<img src="${esc(p)}" alt="" onerror="this.remove()">`:esc(initials(name))}</div>`;
 }
 window.setSort=m=>{sortMode=m;lsSet('foxgrowth.sort',m);renderStudents();};
@@ -816,7 +902,11 @@ function renderStudentPage(){
         <div class="pnm">${esc(name)}</div>
         <div class="pinfo">${[mb.age?`<b>${esc(mb.age)}</b>세`:'',mb.school?esc(mb.school):'',mb.membership?esc(mb.membership):''].filter(Boolean).join(' · ')||'<span style="color:var(--ink3)">Member_DB에 기본정보 없음</span>'}</div>
         <div class="pinfo" style="color:var(--ink3);font-size:12px">${attend?esc(attend):''}${labs.length?(attend?' · ':'')+esc(labs.join(' · ')):''}</div>
-        <button class="btn ghost sm" style="margin-top:6px;padding-left:0" onclick="editPhoto('${esc(name)}')">사진 ${DB.students[name]?.photo?'변경':'등록'}</button>
+        <div class="phbtn">
+          <label class="btn ghost sm">${PHOTOS[name]?'사진 변경':'사진 등록'}
+            <input type="file" accept="image/*" hidden onchange="uploadPhoto('${esc(name)}',this)"></label>
+          ${PHOTOS[name]?`<button class="btn ghost sm" onclick="removePhoto('${esc(name)}')">삭제</button>`:''}
+        </div>
       </div>
       <div class="pstats">
         <div class="stat"><b>${obs.length}</b><span>관찰 기록</span></div>
@@ -1595,13 +1685,6 @@ function goalItem(name,g,i){
 }
 window.setGoalStatus=(n,i,s)=>{const g=DB.goalAssignments[n];if(g&&g[i]){g[i].status=g[i].status===s?'':s;commit();renderStudentPage();}};
 window.removeGoal=(n,i)=>{DB.goalAssignments[n].splice(i,1);commit();renderStudentPage();};
-window.editPhoto=name=>{
-  const cur=DB.students[name]?.photo||'';
-  openModal('사진 등록 · '+name,
-    `<label class="fld"><span class="l">이미지 URL (Google Drive 공개 링크·이미지 주소)</span><input id="phUrl" value="${esc(cur)}" placeholder="https://..."></label>
-     <div class="empty-note">시트에는 사진 항목이 없어 앱에서 관리합니다. 등록하면 팀 전체에 공유됩니다.</div>`,
-    ()=>{const v=trim($('#phUrl').value);DB.students[name]=Object.assign(DB.students[name]||{},{photo:v});commit();renderStudentPage();});
-};
 window.editDiagnosis=name=>{
   const d=DB.diagnosis[name]||{};
   const F=[['학습 특성','learning'],['SEL','sel'],['성향·기질','temperament'],['관심·흥미','interest'],['영어 역량','english']];
@@ -1785,6 +1868,18 @@ function renderSettings(){
     <dt>팀 공유</dt><dd>npoint.io 실시간 동기화</dd>
     <dt>시트 갱신</dt><dd>${lastSheetSync?`마지막 <b>${new Date(lastSheetSync).toLocaleTimeString('ko-KR')}</b> · 5분마다 자동 갱신`:'대기 중'}</dd></dl>
     <div class="empty-note" style="margin-top:8px">시트는 읽기 전용으로만 접근합니다. 5분마다, 그리고 다른 창을 보다 돌아올 때 자동으로 다시 읽습니다(입력 중에는 건너뜀).</div>`;
+  const ph=Object.keys(PHOTOS).length;
+  const phKb=Math.round(JSON.stringify(PHOTOS).length/1024);
+  const noPh=STUDENTS.filter(s=>!PHOTOS[s.name]).length;
+  $('#photoMgr').innerHTML=`<dl class="kv" style="grid-template-columns:120px 1fr">
+      <dt>등록된 사진</dt><dd><b>${ph}명</b> · 저장소 ${phKb}KB${noPh?` <span style="color:var(--ink3)">(미등록 ${noPh}명)</span>`:''}</dd></dl>
+    <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <label class="btn pri sm">사진 일괄 등록
+        <input type="file" accept="image/*" multiple hidden onchange="bulkPhotos(this)"></label>
+      <span class="empty-note" style="margin:0">파일 이름이 학생 이름이어야 합니다 (예: 김도영.png)</span>
+    </div>
+    <div id="bulkStat" class="empty-note" style="margin-top:8px"></div>
+    <div class="empty-note" style="margin-top:6px">사진은 150px로 줄여 팀 공유 저장소에 보관되며, 외부 사이트에 올리지 않습니다.</div>`;
   renderStaff();
 }
 function renderStaff(){
@@ -1837,10 +1932,10 @@ async function autoRefreshSheets(){
 }
 async function boot(){
   sortMode=lsGet('foxgrowth.sort')||'name';
-  loadCache();ensureDefaults();fillMe();
+  loadCache();loadPhotoCache();ensureDefaults();fillMe();
   setSync('load','불러오는 중…');
   route();
-  await pullDB();ensureDefaults();fillMe();
+  await Promise.all([pullDB(),loadPhotos()]);ensureDefaults();fillMe();
   await loadAllSheets();
   setInterval(pullDB,8000);                        // 팀 데이터(앱 입력분)
   setInterval(autoRefreshSheets,SHEET_MS);         // 구글시트 원본
