@@ -376,12 +376,41 @@ label.fld select,label.fld input,label.fld textarea{width:100%;border:1px solid 
 .rsign p{font-size:13px;line-height:1.75;margin:0}
 .rsign .sig{margin-top:12px;padding-top:10px;border-top:1px solid #cfe3d8;font-size:11.5px;color:#5b6472;text-align:right}
 .rsign .sig b{color:#203462}
+/* 종합 분석 문서 포맷 */
+.aDoc{font-size:13.5px;line-height:1.75}
+.aDoc .aP{margin:0 0 9px}
+.aDoc .aMeta{font-size:11.5px;color:#8a93a1;background:#f7f9fa;border-radius:7px;padding:7px 11px;margin-bottom:12px}
+.aH1{display:flex;align-items:center;gap:9px;font-size:15.5px;font-weight:800;color:#203462;letter-spacing:-.02em;margin:26px 0 12px;padding-bottom:8px;border-bottom:2px solid #e2e6ec}
+.aH1:first-child{margin-top:0}
+.aH1 span{flex:0 0 22px;height:22px;background:#203462;color:#fff;border-radius:6px;font-size:11.5px;display:inline-flex;align-items:center;justify-content:center}
+.aH2{display:flex;gap:8px;align-items:baseline;font-size:14px;font-weight:800;color:#2b6b52;background:#eef7f2;border-left:3px solid #72c0a1;border-radius:0 8px 8px 0;padding:9px 13px;margin:16px 0 10px;line-height:1.5}
+.aH2 i{font-style:normal;color:#72c0a1;font-weight:800;flex:0 0 auto}
+.aH2.alt{color:#7a4f9c;background:#f4f0fa;border-left-color:#a98bd0}
+.aH2.alt i{color:#a98bd0}
+.aEvid{background:#f7f9fa;border:1px solid var(--line2);border-radius:9px;padding:11px 14px;margin:0 0 12px}
+.aEvid>b{display:block;font-size:10.5px;font-weight:800;color:#8a93a1;letter-spacing:.06em;margin-bottom:7px}
+.aEvid .ev{font-size:12.5px;line-height:1.6;padding:4px 0;border-top:1px dashed #e2e6ec;color:#5b6472}
+.aEvid .ev:first-of-type{border-top:0}
+.aDoc .evd{display:inline-block;background:#fff;border:1px solid var(--line);border-radius:5px;padding:1px 7px;font-size:11px;font-weight:700;color:#203462;margin-right:7px;margin-bottom:2px;white-space:nowrap}
+.aInterp{background:#f4faf7;border:1px solid #a9d7c4;border-radius:9px;padding:12px 15px;margin:0 0 12px}
+.aInterp>b{display:block;font-size:10.5px;font-weight:800;color:#4e8f74;letter-spacing:.08em;margin-bottom:5px}
+.aInterp p{margin:0;font-weight:700;color:#203462;font-size:13.5px;line-height:1.7}
+.aNote{margin:0 0 12px}
+.aNote>b{display:block;font-size:11px;font-weight:800;color:#8a93a1;letter-spacing:.04em;margin-bottom:4px}
+.aNote p{margin:0;font-size:13px;line-height:1.7;color:#5b6472}
+.aBA{margin:0 0 14px;overflow-x:auto}
+.aBA table{width:100%;min-width:420px;border-collapse:collapse;font-size:12.5px}
+.aBA th{background:#f7f9fa;border:1px solid var(--line);padding:8px 11px;text-align:left;font-size:11px;font-weight:800;color:#8a93a1;letter-spacing:.05em;width:50%}
+.aBA th:last-child{background:#f4faf7;color:#4e8f74}
+.aBA th em{font-style:normal;font-weight:600;opacity:.75;margin-left:5px}
+.aBA td{border:1px solid var(--line);padding:9px 11px;vertical-align:top;line-height:1.6;color:#5b6472}
+.aBA td:last-child{background:#fbfdfc}
 @media print{
   header,.no-print,.rtabs,.subnav,.repopt,.skipprint{display:none!important}
   body{background:#fff}main{padding:0}
   .rep{border:0;box-shadow:none;max-width:100%;border-radius:0}
   .rcover{border-radius:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .rstrength,.rexp,.rstat,.rlab .lhd,.rgbadge,.rint,.rintro,.iloop .il,.rstage span,.rsign{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .rstrength,.rexp,.rstat,.rlab .lhd,.rgbadge,.rint,.rintro,.iloop .il,.rstage span,.rsign,.aH1 span,.aH2,.aEvid,.aInterp,.aBA th,.aBA td:last-child{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .rep section{page-break-inside:avoid}
   @page{margin:14mm}
 }
@@ -1013,6 +1042,70 @@ function applyPrintPrefs(){
 window.toggleSec=(id,on)=>{const el=document.getElementById(id);if(el)el.classList.toggle('skipprint',!on);};
 /* [발견] 텍스트를 "발견/근거/가능성" 세트로 파싱.
    형식이 맞지 않으면 null을 돌려 기존 문단 표시로 폴백한다. */
+/* 붙여넣은 긴 AI 분석문을 구조에 맞게 렌더.
+   패턴: "1) 대제목" / "① 소제목" / "A. 소제목" / 라벨(관찰 근거·Before·After·해석 등) */
+const A_LABELS=['관찰 근거','선정 근거','근거','연구소 간 차이','해석','Before','After'];
+function renderAnalysisDoc(text){
+  const src=trim(text); if(!src)return '';
+  const lines=src.split(/\r?\n/);
+  let html='', mode=null, buf=[], ba={before:[],after:[]};
+  const esc2=s=>esc(s);
+  const flush=()=>{
+    if(mode==='evidence'&&buf.length){
+      html+=`<div class="aEvid"><b>관찰 근거</b>${buf.map(l=>{
+        const m=l.match(/^(\d{1,2}월\s*\d{1,2}일[^:：]*)[:：]\s*(.+)$/);
+        return m?`<div class="ev"><span class="evd">${esc2(trim(m[1]))}</span>${esc2(trim(m[2]))}</div>`
+                :`<div class="ev">${esc2(l)}</div>`;}).join('')}</div>`;
+    } else if(mode==='interp'&&buf.length){
+      html+=`<div class="aInterp"><b>해석</b><p>${esc2(buf.join(' '))}</p></div>`;
+    } else if(mode==='note'&&buf.length){
+      html+=`<div class="aNote"><b>${esc2(noteLabel)}</b><p>${esc2(buf.join(' '))}</p></div>`;
+    } else if(buf.length){
+      html+=buf.map(l=>`<p class="aP">${esc2(l)}</p>`).join('');
+    }
+    buf=[];
+  };
+  const flushBA=()=>{
+    if(!ba.before.length&&!ba.after.length)return;
+    const n=Math.max(ba.before.length,ba.after.length);
+    const cell=l=>{if(!l)return '';const m=l.match(/^(\d{1,2}월\s*\d{1,2}일[^:：]*)[:：]\s*(.+)$/);
+      return m?`<span class="evd">${esc2(trim(m[1]))}</span>${esc2(trim(m[2]))}`:esc2(l);};
+    html+=`<div class="aBA"><table><thead><tr><th>Before <em>기간 초반</em></th><th>After <em>기간 후반</em></th></tr></thead><tbody>`;
+    for(let i=0;i<n;i++)html+=`<tr><td>${cell(ba.before[i])}</td><td>${cell(ba.after[i])}</td></tr>`;
+    html+=`</tbody></table></div>`;
+    ba={before:[],after:[]};
+  };
+  let noteLabel='';
+  lines.forEach(raw=>{
+    const l=trim(raw);
+    if(!l)return;
+    let m;
+    if((m=l.match(/^(\d+)\)\s*(.+)$/))){                    // 1) 대제목
+      flush();flushBA();mode=null;
+      html+=`<h4 class="aH1"><span>${m[1]}</span>${esc2(m[2])}</h4>`;return;}
+    if((m=l.match(/^([①-⑳])\s*(.+)$/))){                    // ① 소제목
+      flush();flushBA();mode=null;
+      html+=`<div class="aH2"><i>${m[1]}</i>${esc2(m[2])}</div>`;return;}
+    if((m=l.match(/^([A-Z])\.\s+(.+)$/))){                  // A. 소제목
+      flush();flushBA();mode=null;
+      html+=`<div class="aH2 alt"><i>${m[1]}</i>${esc2(m[2])}</div>`;return;}
+    if(/^Before$/i.test(l)){flush();mode='before';return;}
+    if(/^After$/i.test(l)){flush();mode='after';return;}
+    if(/^(관찰 근거|선정 근거|근거)$/.test(l)){flush();flushBA();mode='evidence';return;}
+    if(/^해석$/.test(l)){flush();flushBA();mode='interp';return;}
+    if(/^(연구소 간 차이|현재 관찰 단계.*|SEL 전문 상담가.*|분석 핵심 요약)$/.test(l)){
+      flush();flushBA();noteLabel=l;mode='note';return;}
+    if(mode==='before'){ba.before.push(l);return;}
+    if(mode==='after'){ba.after.push(l);return;}
+    if(mode==='evidence'||mode==='interp'||mode==='note'){buf.push(l);return;}
+    // 메타 줄 (관찰 기간: ... 형태)
+    if(/^[^:：]{2,20}[:：]\s*.+$/.test(l)&&l.length<120&&!/[.!?]$/.test(l)){
+      flush();html+=`<div class="aMeta">${esc2(l)}</div>`;return;}
+    buf.push(l);
+  });
+  flush();flushBA();
+  return html;
+}
 function parseFindings(text){
   const t=trim(text);if(!t)return null;
   const items=[];let cur=null;
@@ -1310,15 +1403,17 @@ function buildReport(name,q){
       ${ex.opinion?`<p>${esc(ex.opinion)}</p>`:''}
       ${ex.reviewer?`<div class="sig">검토·확정 <b>${esc(ex.reviewer)}</b>${ex.at?` · ${new Date(ex.at).toLocaleDateString('ko-KR')}`:''}</div>`:''}
     </div>`:''}
-
     ${(()=>{ // 머리말이 있는 결과는 각 칸으로 분배되므로 원문을 다시 싣지 않는다
-      if(!ai.text)return '';
-      const ps=parseAISections(ai.text);
+      const src=saved.ai||ai.text;
+      if(!src)return '';
+      const ps=parseAISections(src);
       const known=['요약','연구소별','발견','처음과 지금','다음 방향','가정 지원'];
       if(known.some(k=>ps[k]))return '';
+      const body=renderAnalysisDoc(src);
       return `<section id="secAI">
         ${sec('종합 분석','관찰 데이터 기반 · SEL 상담가 검토')}
-        ${ed('ai',ai.text)}
+        <div class="aDoc">${body||`<p class="aP">${esc(src)}</p>`}</div>
+        <div class="rnote2 no-print">이 내용은 발견·분석 탭의 「AI 분석 결과」에서 수정할 수 있습니다.</div>
       </section>`;})()}
 
     <section id="secEvid"><div class="rint">
