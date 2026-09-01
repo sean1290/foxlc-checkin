@@ -529,6 +529,27 @@ main{max-width:1200px;margin:0;padding:28px 36px 90px 300px}
 .act-regular{background:#e7f2ec;color:#1f5c40}
 .act-occasional{background:#eef2f7;color:#4a5568}
 .act-dormant{background:#f3f4f6;color:#9aa3af}
+/* 리포트 목록 테이블 */
+.rtable{background:#fff;border:1px solid var(--line);border-radius:11px;overflow:hidden;box-shadow:var(--shadow)}
+.rth,.rtr{display:grid;grid-template-columns:minmax(150px,1.4fr) 120px minmax(150px,1fr) 130px 110px;align-items:center;gap:12px;padding:11px 16px}
+.rth{background:#f7f9fa;border-bottom:1px solid var(--line);font-size:10.5px;font-weight:800;color:var(--ink3);letter-spacing:.05em}
+.rtr{border-top:1px solid var(--line2);cursor:pointer;font-size:13px}
+.rtr:hover{background:#f7f9fa}
+.rtn{display:flex;align-items:center;gap:9px;min-width:0}
+.rtn b{font-weight:700;font-size:13.5px;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rtn .avatar{width:30px;height:30px;flex-basis:30px;border-radius:8px;font-size:12px}
+.rbadge{font-style:normal;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:5px;margin-right:4px;white-space:nowrap;display:inline-block}
+.rbadge.done{background:#e7f2ec;color:#1f5c40}
+.rbadge.draft{background:#fdf3d9;color:#8a6408}
+.rbadge.rev{background:#e8f0fa;color:#2563a8}
+.rtm{font-size:12px;color:var(--ink2)}
+.rtm i{display:block;font-style:normal;font-size:10.5px;color:var(--ink3)}
+.rta{text-align:right}
+@media(max-width:860px){
+  .rth{display:none}
+  .rtr{grid-template-columns:1fr;gap:6px;padding:13px 15px}
+  .rta{text-align:left}
+}
 @media print{
   #sidebar,#sbToggle,header,.no-print,.rtabs,.subnav,.repopt,.skipprint{display:none!important}
   body{background:#fff}main{padding:0}
@@ -556,6 +577,7 @@ main{max-width:1200px;margin:0;padding:28px 36px 90px 300px}
     <div class="sgrp">학생</div>
     <button data-v="students"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><path d="M16 11.5a3 3 0 1 0-1.5-5.6"/><path d="M17 19c0-2.2-.8-3.6-2-4.5"/></svg>전체 학생<i id="navStud"></i></button>
     <div class="sgrp">성장</div>
+    <button data-v="reports"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M6 3h8l4 4v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v4h4"/><path d="M8.5 13.5l2 2 4-4.5"/></svg>성장 리포트<i id="navRep"></i></button>
     <button data-v="library"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5z"/><path d="M20 5.5A1.5 1.5 0 0 0 18.5 4H13v16h5.5a1.5 1.5 0 0 0 1.5-1.5z"/></svg>성장목표</button>
     <div class="sgrp">시스템</div>
     <button data-v="settings"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M21 12h-2.5M5.5 12H3M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8M18.4 18.4l-1.8-1.8M7.4 7.4 5.6 5.6"/></svg>설정 · 데이터</button>
@@ -590,6 +612,12 @@ main{max-width:1200px;margin:0;padding:28px 36px 90px 300px}
 
   <section class="view" id="v-student"><div id="studentPage"></div></section>
 
+  <section class="view" id="v-reports">
+    <h2 class="title">성장 리포트</h2>
+    <div class="sub" id="repSub">불러오는 중…</div>
+    <div class="toolbar"><div id="repFilterBar" style="display:flex;gap:6px;flex-wrap:wrap"></div></div>
+    <div id="repList"></div>
+  </section>
   <section class="view" id="v-library">
     <h2 class="title">성장목표 라이브러리</h2>
     <div class="sub">FOX 공통 성장목표. 추상적 역량이 아닌 <b>관찰 가능한 행동</b>으로 기술합니다.</div>
@@ -917,20 +945,22 @@ function refreshView(){   // redraw current view WITHOUT scrolling/navigating
 function drawView(name){
   if(name==='dash')renderDash();
   else if(name==='students')renderStudents();
+  else if(name==='reports')renderReports();
   else if(name==='library')renderLibrary();
   else if(name==='settings')renderSettings();
 }
 function route(){
   const h=location.hash||'#/dash';
-  const m=h.match(/^#\/student\/([^/]+)(?:\/(records|analysis|report))?$/);
+  const m=h.match(/^#\/student\/([^/]+)(?:\/(records|analysis|report))?(?:\/(\d))?$/);
   $$('.view').forEach(v=>v.classList.remove('on'));
   document.body.classList.remove('sbopen');
   if(m){
     curStudent=decodeURIComponent(m[1]);
     const t=m[2]||'records';
     if(t!==subTab){subTab=t;recLimit=30;}
+    if(t==='report'&&m[3]!=null)repQ=+m[3];
     $('#v-student').classList.add('on');
-    $$('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v==='students'));
+    $$('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===(t==='report'?'reports':'students')));
     renderStudentPage();window.scrollTo(0,0);return;}
   const v=h.replace('#/','')||'dash';
   const el=$('#v-'+v)||$('#v-dash');
@@ -940,7 +970,7 @@ function route(){
   drawView(name);
   window.scrollTo(0,0);
 }
-window.goSub=t=>{go(`#/student/${encodeURIComponent(curStudent)}/${t}`);};
+window.goSub=t=>{go(`#/student/${encodeURIComponent(curStudent)}/${t}`+(t==='report'?`/${repQ}`:''));};
 window.addEventListener('hashchange',route);
 $('#tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(b)go('#/'+b.dataset.v);});
 
@@ -1077,6 +1107,54 @@ function renderDash(){
   </div>`;
 }
 /* ===================== STUDENT LIST ===================== */
+/* ===== 성장 리포트 목록 =====
+   저장된 리포트를 모아 보여주고, 클릭하면 해당 학생·기간 리포트로 바로 이동한다. */
+const qLabel=q=>(+q===0?'전체 기간':`${YEAR} ${q}분기`);
+function allReports(){
+  const out=[];
+  Object.entries(DB.reports||{}).forEach(([name,byQ])=>{
+    Object.entries(byQ||{}).forEach(([q,r])=>{
+      if(!r||typeof r!=='object')return;
+      // [리포트 저장]을 누른 것만 목록에 올린다.
+      // AI 결과 반영은 모든 분기에 값을 채우므로 저장 여부로 구분해야 한다.
+      if(!r._at&&!r._done)return;
+      const filled=Object.entries(r).filter(([k,v])=>k[0]!=='_'&&trim(v)).length;
+      if(!filled)return;
+      const ex=DB.expert[name]||{};
+      out.push({name,q:+q,r,filled,at:r._at||0,by:r._by||'',done:!!r._done,
+        doneAt:r._doneAt||0,doneBy:r._doneBy||'',reviewed:!!ex.opinion,reviewer:ex.reviewer||''});
+    });
+  });
+  return out.sort((a,b)=>(b.done-a.done)||(b.at-a.at)||a.name.localeCompare(b.name,'ko'));
+}
+let repFilter='';   // '' | done | draft
+window.setRepFilter=k=>{repFilter=k;renderReports();};
+function renderReports(){
+  let list=allReports();
+  const nDone=list.filter(x=>x.done).length, nDraft=list.length-nDone;
+  if(repFilter==='done')list=list.filter(x=>x.done);
+  if(repFilter==='draft')list=list.filter(x=>!x.done);
+  $('#repSub').innerHTML=`저장된 리포트 <b>${nDone+nDraft}</b>건 · 완료 ${nDone} · 작성 중 ${nDraft}`;
+  $('#repFilterBar').innerHTML=`
+    <span class="chip ${!repFilter?'on':''}" onclick="setRepFilter('')">전체 ${nDone+nDraft}</span>
+    <span class="chip ${repFilter==='done'?'on':''}" onclick="setRepFilter('done')">완료 ${nDone}</span>
+    <span class="chip ${repFilter==='draft'?'on':''}" onclick="setRepFilter('draft')">작성 중 ${nDraft}</span>`;
+  $('#repList').innerHTML=list.length?`
+    <div class="rtable">
+      <div class="rth"><span>학생</span><span>기간</span><span>상태</span><span>최종 저장</span><span></span></div>
+      ${list.map(x=>`<div class="rtr" onclick="go('#/student/${encodeURIComponent(x.name)}/report/${x.q}')">
+        <span class="rtn">${avatarHTML(x.name)}<b>${esc(x.name)}</b></span>
+        <span>${esc(qLabel(x.q))}</span>
+        <span>${x.done?`<em class="rbadge done">완료</em>`:`<em class="rbadge draft">작성 중</em>`}
+              ${x.reviewed?`<em class="rbadge rev">전문가 검토</em>`:''}</span>
+        <span class="rtm">${x.at?new Date(x.at).toLocaleDateString('ko-KR'):'-'}${x.by?`<i>${esc(x.by)}</i>`:''}</span>
+        <span class="rta"><button class="btn sm" onclick="event.stopPropagation();toggleDone('${esc(x.name)}',${x.q})">${x.done?'완료 해제':'완료 처리'}</button></span>
+      </div>`).join('')}
+    </div>`
+  :`<div class="estate"><b>${repFilter==='done'?'완료된 리포트가 없습니다.':repFilter==='draft'?'작성 중인 리포트가 없습니다.':'저장된 리포트가 없습니다.'}</b>
+     <span>학생 페이지의 <b>3 · 성장리포트</b> 탭에서 내용을 다듬고 [리포트 저장]을 누르면 여기에 모입니다.</span></div>`;
+  const n=$('#navRep');if(n)n.textContent=nDone||'';
+}
 function renderLabFilter(){
   const labs=[...new Set(STUDENTS.flatMap(s=>s.labs))];
   $('#labFilter').innerHTML=labs.map(l=>`<span class="chip ${labFilterSet.has(l)?'on':''}" data-lab="${esc(l)}">${esc(l)}</span>`).join('');
@@ -1394,9 +1472,10 @@ function viewReport(name){
       <label><input type="checkbox" id="incEvid" onchange="toggleSec('secEvid',this.checked)"> 관찰 원문 <em style="color:var(--ink3);font-style:normal">(내부용)</em></label>
       <label><input type="checkbox" id="incAI" checked onchange="toggleSec('secAI',this.checked)"> 종합 분석</label>
       <button class="btn pri sm" onclick="saveReport('${esc(name)}')">리포트 저장</button>
+      ${((DB.reports[name]||{})[repQ])?`<button class="btn sm" onclick="toggleDone('${esc(name)}',${repQ})">${(DB.reports[name][repQ]._done)?'완료 해제':'완료 처리'}</button>`:''}
       <button class="btn sm" onclick="checkTone()">표현 점검</button>
       <button class="btn sm" onclick="window.print()">인쇄 / PDF</button>
-      <span style="color:var(--ink3);margin-left:auto">본문을 클릭해 직접 수정할 수 있습니다</span>
+      <span style="color:var(--ink3);margin-left:auto">${((DB.reports[name]||{})[repQ]||{})._done?'<b style="color:var(--accent-ink)">완료된 리포트입니다</b>':'본문을 클릭해 직접 수정할 수 있습니다'}</span>
     </div>
     <div id="toneCheck" class="no-print"></div>
     <div id="repHost">${buildReport(name,repQ)}</div>`;
@@ -1874,7 +1953,14 @@ function buildReport(name,q){
 }
 window.saveReport=name=>{
   const o={};$$('#repDoc [data-k]').forEach(e=>o[e.dataset.k]=e.innerText.trim());
+  const prev=(DB.reports[name]||{})[repQ]||{};
+  o._at=Date.now();o._by=$('#meName')?.value||'';o._done=prev._done||false;
   DB.reports[name]=DB.reports[name]||{};DB.reports[name][repQ]=o;commit();toast('리포트 저장됨');
+};
+window.toggleDone=(name,q)=>{
+  const r=(DB.reports[name]||{})[q];if(!r)return;
+  r._done=!r._done;r._doneAt=r._done?Date.now():null;r._doneBy=r._done?($('#meName')?.value||''):'';
+  commit();refreshView();toast(r._done?'완료 처리됨':'완료 해제됨');
 };
 window.setRecTab=t=>{recTab=t;recLimit=30;recLab='';renderStudentPage();};
 window.setRecLab=l=>{recLab=l;recLimit=30;renderStudentPage();};
