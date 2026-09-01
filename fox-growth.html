@@ -252,7 +252,7 @@ label.fld select,label.fld input,label.fld textarea{width:100%;border:1px solid 
 .robs .od span{color:#c3c9d1;margin:0 5px}
 .robs .ot{font-weight:700;font-size:12.5px;color:#203462;margin-bottom:2px}
 .robs .on{font-size:13px;line-height:1.65;white-space:pre-wrap}
-.robs .otag{display:inline-block;background:var(--accent-soft);color:var(--accent-ink);border-radius:5px;padding:1px 7px;font-size:10.5px;font-weight:700;margin-top:4px;margin-right:4px}
+.rep .otag{display:inline-block;background:var(--accent-soft);color:var(--accent-ink);border-radius:5px;padding:2px 8px;font-size:11px;font-weight:700;margin:2px 5px 2px 0}
 
 /* 목표 */
 .rgoal{border:1px solid var(--line);border-left:4px solid #72c0a1;border-radius:8px;padding:12px 15px;margin-bottom:9px;page-break-inside:avoid}
@@ -299,6 +299,26 @@ label.fld select,label.fld input,label.fld textarea{width:100%;border:1px solid 
   .rdiag,.rba{grid-template-columns:1fr}
   .rba .arw{display:none}
 }
+/* 연구소별 활동 분석 */
+.rlab .lmet{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:13px}
+.rlab .lmc{background:#f7f9fa;border:1px solid var(--line2);border-radius:9px;padding:9px 11px}
+.rlab .lmc b{display:block;font-size:20px;font-weight:800;color:#203462;letter-spacing:-.02em;line-height:1.1}
+.rlab .lmc span{font-size:10.5px;color:#5b6472;font-weight:600}
+.rlab .lmc em{font-style:normal;color:#a8b0ba;font-weight:500}
+.ldist{background:#fbfcfd;border:1px solid var(--line2);border-radius:9px;padding:10px 12px;margin-bottom:12px}
+.ldist .dlab{font-size:10.5px;font-weight:800;color:#8a93a1;letter-spacing:.05em;margin-bottom:7px}
+.ldist .dlab em{font-style:normal;font-weight:500;opacity:.8}
+.dbars{display:flex;gap:8px;align-items:flex-end;height:52px}
+.db{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;position:relative}
+.db i{display:block;width:100%;max-width:34px;background:#72c0a1;border-radius:3px 3px 0 0;min-height:2px}
+.db span{font-size:10px;color:#8a93a1;margin-top:3px;font-weight:700}
+.db u{position:absolute;top:-2px;font-size:10px;color:#5b6472;text-decoration:none;font-weight:700}
+.lrow{display:flex;gap:10px;font-size:12.5px;padding:6px 0;border-top:1px dashed var(--line2);align-items:baseline}
+.lrow b{flex:0 0 108px;font-size:10.5px;color:#8a93a1;font-weight:800;letter-spacing:.03em}
+.lrow span{flex:1;line-height:1.65}
+.lsum{margin-top:11px;padding-top:11px;border-top:1px solid var(--line)}
+.lsum .lsl{font-size:10.5px;font-weight:800;color:#4e8f74;letter-spacing:.08em;margin-bottom:5px}
+.lsum p{font-size:13px;line-height:1.7;margin:0}
 @media print{
   header,.no-print,.rtabs,.subnav,.repopt,.skipprint{display:none!important}
   body{background:#fff}main{padding:0}
@@ -991,37 +1011,57 @@ function buildReport(name,q){
     </section>
 
     <section>
-      ${sec('연구소별 활동과 관찰',`${labEntries.length}개 연구소 · 각 최근 3건`)}
+      ${sec('연구소별 활동 분석',`${labEntries.length}개 연구소 · ${label} 전체 ${qObs.length}건 집계`)}
       ${labEntries.length?labEntries.map(([lab,a])=>{
-        const f=avg(a.map(o=>scale5(fieldOf(o,'활동집중도'))).filter(Boolean));
-        const p=avg(a.map(o=>scale5(fieldOf(o,'또래상호작용'))).filter(Boolean));
-        const c=avg(a.map(o=>COMPLY[trim(fieldOf(o,'규칙과연구원의안내수용도'))]).filter(Boolean));
-        const shown=a.filter(o=>o.note).sort((x,y)=>(y.date?.getTime()||0)-(x.date?.getTime()||0)).slice(0,3);
+        const fv=a.map(o=>scale5(fieldOf(o,'활동집중도'))).filter(Boolean);
+        const pv=a.map(o=>scale5(fieldOf(o,'또래상호작용'))).filter(Boolean);
+        const cv=a.map(o=>COMPLY[trim(fieldOf(o,'규칙과연구원의안내수용도'))]).filter(Boolean);
+        const f=avg(fv), p=avg(pv), c=avg(cv);
+        // 집중도 분포 (1~5)
+        const dist=[1,2,3,4,5].map(v=>fv.filter(x=>x===v).length);
+        const distMax=Math.max(1,...dist);
+        // 어려운 상황
+        const hv=a.map(o=>trim(fieldOf(o,'어려운상황이있었는가'))).filter(v=>v==='있음'||v==='없음');
+        const hn=hv.filter(v=>v==='있음').length;
+        const ht={};a.forEach(o=>{const t=trim(o.fields.filter(([k])=>k.includes('(있음)')).map(([,v])=>v)[0]||'');if(t)ht[t]=(ht[t]||0)+1;});
+        const topHt=Object.entries(ht).sort((x,y)=>y[1]-x[1]).slice(0,3);
+        // 강점 빈도
+        const ls={};a.forEach(o=>{const s=fieldOf(o,'강점또는돋보인모습');if(!s)return;
+          s.split(/[,/·]/).map(x=>trim(x)).filter(Boolean).forEach(x=>ls[x]=(ls[x]||0)+1);});
+        const topLs=Object.entries(ls).sort((x,y)=>y[1]-x[1]).slice(0,5);
+        // 실제 진행한 활동 주제 (사실 그대로, 빈도순)
+        const tp={};a.forEach(o=>{const t=trim(o.topic).replace(/\s*\n+\s*/g,' ');if(t)tp[t]=(tp[t]||0)+1;});
+        const topTp=Object.entries(tp).sort((x,y)=>y[1]-x[1]).slice(0,6);
+        const ld=a.filter(o=>o.date).map(o=>o.date).sort((x,y)=>x-y);
+        const key='lab_'+lab;
         return `<div class="rlab">
           <div class="lhd">
-            <span class="lnm">${esc(lab)}</span><span class="lct">관찰 ${a.length}건</span>
-            <span class="lms">
-              ${f?`<span class="lm">집중도 <b>${f}</b>/5</span>`:''}
-              ${p?`<span class="lm">또래 <b>${p}</b>/5</span>`:''}
-              ${c?`<span class="lm">수용도 <b>${c}</b>/4</span>`:''}
-            </span>
+            <span class="lnm">${esc(lab)}</span>
+            <span class="lct">관찰 ${a.length}건${ld.length?` · ${fmtDate(ld[0])}~${fmtDate(ld[ld.length-1])}`:''}</span>
           </div>
           <div class="lbd">
-            ${shown.length?shown.map(o=>{
-              const st=fieldOf(o,'강점또는돋보인모습');
-              return `<div class="robs">
-                <div class="od">${fmtDate(o.date)}${o.author?`<span>·</span>${esc(o.author)}`:''}${o.program?`<span>·</span>${esc(o.program)}`:''}</div>
-                ${o.topic?`<div class="ot">${esc(o.topic)}</div>`:''}
-                <div class="on">${esc(o.note)}</div>
-                ${st?st.split(/[,/·]/).map(x=>trim(x)).filter(Boolean).map(x=>`<span class="otag">${esc(x)}</span>`).join(''):''}
-              </div>`;}).join('')
-            :`<div class="rnote2">이 기간 기록된 관찰 내용이 없습니다.</div>`}
+            <div class="lmet">
+              ${f?`<div class="lmc"><b>${f}</b><span>평균 집중도 <em>/5 · n=${fv.length}</em></span></div>`:''}
+              ${p?`<div class="lmc"><b>${p}</b><span>또래 상호작용 <em>/5 · n=${pv.length}</em></span></div>`:''}
+              ${c?`<div class="lmc"><b>${c}</b><span>안내 수용도 <em>/4 · n=${cv.length}</em></span></div>`:''}
+              ${hv.length?`<div class="lmc"><b>${Math.round(hn/hv.length*100)}<em style="font-size:13px">%</em></b><span>지원 필요 상황 <em>${hn}/${hv.length}회</em></span></div>`:''}
+            </div>
+            ${fv.length?`<div class="ldist">
+              <div class="dlab">집중도 분포 <em>1(낮음) → 5(높음)</em></div>
+              <div class="dbars">${dist.map((v,i)=>`<div class="db"><i style="height:${v/distMax*100}%"></i><span>${i+1}</span><u>${v}</u></div>`).join('')}</div>
+            </div>`:''}
+            ${topTp.length?`<div class="lrow"><b>진행한 활동</b><span>${topTp.map(([t,n])=>esc(t)+(n>1?` (${n}회)`:'')).join(' · ')}</span></div>`:''}
+            ${topLs.length?`<div class="lrow"><b>돋보인 모습</b><span>${topLs.map(([k,v])=>`<span class="otag">${esc(k)} ${v}</span>`).join('')}</span></div>`:''}
+            ${topHt.length?`<div class="lrow"><b>지원이 필요했던 상황</b><span>${topHt.map(([k,v])=>`${esc(k)} ${v}회`).join(' · ')}</span></div>`:''}
+            <div class="lsum">
+              <div class="lsl">활동 요약</div>
+              ${ed(key,saved[key]||'이 연구소 활동에 대한 요약을 작성하거나, 발견·분석 탭의 AI 결과에서 해당 연구소 문단을 붙여넣으세요.')}
+            </div>
           </div>
         </div>`;}).join('')
       :'<div class="rnote2">이 기간에 기록된 관찰이 없습니다.</div>'}
-      <div class="rnote2">각 연구소에서 가장 최근에 기록된 관찰 3건을 실었습니다. 전체 기록은 센터에 보관되어 있습니다.</div>
+      <div class="rnote2">위 수치는 연구원이 활동마다 기록한 평가를 ${esc(label)} 전체로 집계한 값입니다. n은 해당 항목이 기재된 관찰 수입니다.</div>
     </section>
-
     <section>
       ${sec('관찰을 통해 발견한 것','종합 해석')}
       ${ed('discovery',ex.opinion||ex.possibility
@@ -1264,7 +1304,24 @@ ${eL||'(없음)'}
    (예: "발표 전 짝과 1분간 연습할 시간을 제공하고, 이후 준비 시간을 점차 줄여간다.")
    반복적·중요한 이슈로 SEL 전문 상담가의 개입이 필요해 보이면 그 이유와 함께 표시하세요.
 
-6) 학부모용 성장리포트 초안
+6) 연구소별 활동 요약 — 학부모용 (리포트에 그대로 들어갑니다)
+   위 [연구소 활동 관찰 기록]에 등장한 연구소마다 각각 3~5문장의 문단을 작성하세요.
+   반드시 다음 형식으로, 연구소 이름을 머리말로 달아 구분해 주세요.
+
+   [미술연구소]
+   (그 연구소에서 어떤 활동을 했고, 학생이 어떤 모습을 보였으며,
+    무엇이 성장했고 앞으로 무엇을 지원할지 — 관찰 근거에 기반해 서술)
+
+   작성 규칙:
+   · 학부모가 읽는 글입니다. 연구원의 내부 표현("산만함", "집중 못함", "지적함",
+     "showed poor focus" 등)을 그대로 옮기지 말고, 사실은 유지하되
+     "~한 상황에서는 ~한 지원이 도움이 되었습니다"처럼 다듬어 서술하세요.
+   · 관찰 기록에 없는 내용을 지어내지 마세요. 특정 연구소의 기록이 적으면
+     "이번 기간 기록이 적어 종합하기 어렵습니다"라고 그대로 쓰세요.
+   · 날짜·활동명 같은 구체적 근거를 1~2개 자연스럽게 포함하세요.
+   · 숫자 지표(집중도 평균 등)는 리포트가 자동으로 표시하므로 반복하지 마세요.
+
+7) 학부모용 성장리포트 초안
    아래 5개 영역 구성을 그대로 사용하고, 모든 서술은 관찰 근거(evidence)에 기반해야 합니다.
    학부모가 읽는 글이므로 따뜻하되 과장하지 않는 톤으로 작성하세요.
    · Student Snapshot — 학생의 주요 특성 및 현재 모습
