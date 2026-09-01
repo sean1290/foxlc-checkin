@@ -24,8 +24,9 @@ input,select,textarea{font-family:inherit;font-size:14px;color:var(--ink)}
 
 header{position:sticky;top:0;z-index:40;background:rgba(255,255,255,.92);backdrop-filter:saturate(1.4) blur(6px);border-bottom:1px solid var(--line)}
 .hwrap{max-width:1240px;margin:0 auto;padding:0 20px;display:flex;align-items:center;gap:16px;height:58px}
-.brand{font-weight:800;font-size:15.5px;letter-spacing:-.02em;white-space:nowrap;cursor:pointer}
-.brand small{display:block;font-weight:500;font-size:11px;color:var(--ink3)}
+.brand{cursor:pointer;display:flex;flex-direction:column;gap:2px;justify-content:center}
+.brand .logo{height:26px;width:auto;display:block}
+.brand small{display:block;font-weight:500;font-size:11px;color:var(--ink3);white-space:nowrap}
 nav.tabs{display:flex;gap:2px}
 nav.tabs button{border:0;background:transparent;color:var(--ink2);padding:8px 13px;border-radius:9px;font-weight:600;font-size:13.5px}
 nav.tabs button.on{background:var(--accent-soft);color:var(--accent-ink)}
@@ -212,13 +213,26 @@ label.fld select,label.fld input,label.fld textarea{width:100%;border:1px solid 
 .tonehit .tw{background:#f6c7ab;color:#7a3410;border-radius:5px;padding:1px 6px;font-weight:700;font-size:11px}
 .tonehit em{font-style:normal;color:#96603f}
 .toneok{background:var(--accent-soft);color:var(--accent-ink);border-radius:11px;padding:9px 15px;margin-bottom:14px;font-size:12.5px;font-weight:600}
+.nofield{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);font-size:11px;color:#b08968}
+.nofield em{font-style:normal;color:var(--ink3)}
 @media print{header,.no-print,.rtabs,.subnav,.repopt,.skipprint{display:none!important}body{background:#fff}main{padding:0}.rep{border:0;box-shadow:none;max-width:100%}}
 </style>
 </head>
 <body>
 <header>
   <div class="hwrap">
-    <div class="brand" onclick="go('#/students')">폭스러닝센터<small>학생성장관리 · 관찰→발견→반응→성장</small></div>
+    <div class="brand" onclick="go('#/students')" title="폭스러닝센터 학생성장관리">
+      <svg class="logo" viewBox="0 0 240 74" role="img" aria-label="FOX LC">
+        <g fill="#72c0a1">
+          <path d="M53 52 71 72 46 65z"/>
+          <circle cx="37" cy="37" r="37"/>
+        </g>
+        <path fill="#fff" d="M21 19 37 31 53 19 53 47 37 60 21 47z"/>
+        <text x="86" y="52" font-family="Pretendard,-apple-system,'Malgun Gothic',sans-serif" font-size="42" font-weight="800" letter-spacing="-.5" fill="#203462">FOX</text>
+        <text x="183" y="52" font-family="Pretendard,-apple-system,'Malgun Gothic',sans-serif" font-size="42" font-weight="700" letter-spacing="-.5" fill="#72c0a1">LC</text>
+      </svg>
+      <small>학생성장관리 · 관찰→발견→반응→성장</small>
+    </div>
     <nav class="tabs" id="tabs">
       <button data-v="students">학생</button>
       <button data-v="library">성장목표</button>
@@ -896,9 +910,11 @@ window.moreRecs=()=>{recLimit+=50;$('#recList').innerHTML=renderRecords(curStude
 function labChips(obs){
   const labs=[...new Set(obs.map(o=>o.lab))];
   if(labs.length<2)return '';
+  const cov=a=>{const w=a.filter(o=>o.fields.length).length;return w===a.length?'':` <em style="font-style:normal;opacity:.7">척도 ${w}/${a.length}</em>`;};
   return `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
-    <span class="chip ${!recLab?'on':''}" onclick="setRecLab('')">전체 ${obs.length}</span>
-    ${labs.map(l=>`<span class="chip ${recLab===l?'on':''}" onclick="setRecLab('${esc(l)}')">${esc(l.replace('연구소',''))} ${obs.filter(o=>o.lab===l).length}</span>`).join('')}</div>`;
+    <span class="chip ${!recLab?'on':''}" onclick="setRecLab('')">전체 ${obs.length}${cov(obs)}</span>
+    ${labs.map(l=>{const a=obs.filter(o=>o.lab===l);
+      return `<span class="chip ${recLab===l?'on':''}" onclick="setRecLab('${esc(l)}')">${esc(l.replace('연구소',''))} ${a.length}${cov(a)}</span>`;}).join('')}</div>`;
 }
 function renderRecords(name){
   const {obs,emo,all}=recordsFor(name);
@@ -926,7 +942,8 @@ function obsCard(o){
     </div>
     ${o.topic?`<div class="rtopic">${esc(o.topic)}</div>`:''}
     ${o.note?`<div class="rnote">${esc(o.note)}</div>`:'<div class="empty-note" style="margin-bottom:8px">관찰 내용 미기재</div>'}
-    ${o.fields.length?`<div class="fgrid">${o.fields.map(([k,v])=>`<div class="fg"><b>${esc(k)}</b><span>${esc(v)}</span></div>`).join('')}</div>`:''}
+    ${o.fields.length?`<div class="fgrid">${o.fields.map(([k,v])=>`<div class="fg"><b>${esc(k)}</b><span>${esc(v)}</span></div>`).join('')}</div>`
+      :'<div class="nofield">척도 항목 미기재 <em>· 집중도 · 또래 상호작용 · 수용도 · 강점</em></div>'}
   </div>`;
 }
 function emoCard(e){
