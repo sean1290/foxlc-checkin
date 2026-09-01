@@ -139,14 +139,6 @@ h2.title{font-size:20px;font-weight:800;letter-spacing:-.02em;margin:0 0 3px}
 .lib-cat h4{margin:0 0 8px;font-size:14px;font-weight:800;display:flex;align-items:center;gap:8px}
 .lib-cat h4 span{font-size:11px;color:var(--ink3);font-weight:600}
 
-.rep{background:#fff;border:1px solid var(--line);border-radius:12px;padding:26px 30px;max-width:780px;margin:0 auto}
-.rep h1{font-size:22px;margin:0 0 4px;letter-spacing:-.02em}
-.rep .rh{border-bottom:2px solid var(--ink);padding-bottom:12px;margin-bottom:18px}
-.rep h3{font-size:13px;color:var(--accent-ink);margin:20px 0 7px;border-left:3px solid var(--accent);padding-left:8px}
-.rep p{margin:0 0 8px;white-space:pre-wrap}
-.rep .ba{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.rep .ba div{border:1px solid var(--line);border-radius:9px;padding:12px}
-.rep .ba h5{margin:0 0 6px;font-size:12px;color:var(--ink3)}
 .warnbox{background:#fef6f0;border:1px solid #f2d5c2;color:#8a3b12;border-radius:10px;padding:10px 13px;font-size:12.5px;margin-bottom:12px}
 
 .loader{text-align:center;padding:60px 20px;color:var(--ink3)}
@@ -180,10 +172,6 @@ label.fld select,label.fld input,label.fld textarea{width:100%;border:1px solid 
 .repopt{display:flex;gap:14px;flex-wrap:wrap;align-items:center;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:12.5px}
 .repopt label{display:flex;align-items:center;gap:5px;cursor:pointer}
 .skipprint{opacity:.45}
-.rep .evid{background:#f7f9fa;border-left:3px solid var(--line);padding:9px 12px;border-radius:0 8px 8px 0;font-size:12.5px;margin:0 0 8px;white-space:pre-wrap}
-.rep .expertblock{background:#f4faf7;border:1px solid #cfe0d6;border-radius:10px;padding:14px 16px;margin-bottom:8px}
-.rep .mrow{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:10px}
-.rep .mrow div{font-size:12.5px}.rep .mrow b{display:block;font-size:17px}
 /* 연구소별 지표 요약 */
 .ldig{border-bottom:1px solid var(--line2);padding:11px 0}
 .ldig:first-child{padding-top:0}
@@ -199,13 +187,6 @@ label.fld select,label.fld input,label.fld textarea{width:100%;border:1px solid 
 .lmeta{font-size:11.5px;color:var(--ink2);margin-top:7px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
 .lmeta em{font-style:normal;color:var(--ink3)}
 /* 리포트 지표 표 · 표현 점검 */
-.rep .rtabwrap{overflow-x:auto}
-.rep .rtab{width:100%;min-width:430px;border-collapse:collapse;font-size:12.5px;margin-bottom:6px}
-.rep .rtab th{white-space:nowrap}
-.rep .rtab th,.rep .rtab td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
-.rep .rtab th{font-size:11px;color:var(--ink3);font-weight:700;background:#f7f9fa}
-.rep .rtab th span{font-weight:500;opacity:.7}
-.rep .rtab td:nth-child(n+2):nth-child(-n+5){text-align:center;font-variant-numeric:tabular-nums}
 .rnote2{font-size:11px;color:var(--ink3);margin-top:4px}
 .tonebox{background:#fef6f0;border:1px solid #f2d5c2;border-radius:11px;padding:12px 15px;margin-bottom:14px;font-size:12.5px;color:#8a3b12}
 .tonebox b{display:block;margin-bottom:7px}
@@ -215,7 +196,118 @@ label.fld select,label.fld input,label.fld textarea{width:100%;border:1px solid 
 .toneok{background:var(--accent-soft);color:var(--accent-ink);border-radius:11px;padding:9px 15px;margin-bottom:14px;font-size:12.5px;font-weight:600}
 .nofield{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);font-size:11px;color:#b08968}
 .nofield em{font-style:normal;color:var(--ink3)}
-@media print{header,.no-print,.rtabs,.subnav,.repopt,.skipprint{display:none!important}body{background:#fff}main{padding:0}.rep{border:0;box-shadow:none;max-width:100%}}
+/* ===== 성장리포트 (학부모 발송 문서) ===== */
+.rep{background:#fff;border:1px solid var(--line);border-radius:12px;padding:0;max-width:820px;margin:0 auto;color:#1e2530;box-shadow:var(--shadow)}
+.rep *{box-sizing:border-box}
+
+/* 표지 */
+.rcover{background:linear-gradient(135deg,#f4faf7 0%,#eaf5ef 100%);border-bottom:3px solid #72c0a1;padding:30px 40px 26px;border-radius:12px 12px 0 0}
+.rcover .rlogo{height:24px;width:auto;display:block;margin-bottom:20px}
+.rcover .rtitle{font-size:12px;font-weight:800;letter-spacing:.14em;color:#4e8f74;margin-bottom:6px}
+.rcover h1{font-size:32px;font-weight:800;letter-spacing:-.03em;margin:0 0 4px;color:#203462;line-height:1.15}
+.rcover .rperiod{font-size:14px;color:#4e8f74;font-weight:700}
+.rcover .rfacts{display:flex;flex-wrap:wrap;gap:0 22px;margin-top:16px;padding-top:14px;border-top:1px solid #cfe3d8}
+.rcover .rfacts div{font-size:12px;color:#5b6472}
+.rcover .rfacts b{display:block;font-size:13px;color:#203462;font-weight:700;margin-top:1px}
+
+.rbody{padding:6px 40px 40px}
+
+/* 섹션 */
+.rep section{padding-top:26px;page-break-inside:avoid}
+.rep .sh{display:flex;align-items:baseline;gap:9px;border-bottom:2px solid #203462;padding-bottom:7px;margin-bottom:14px}
+.rep .sn{font-size:11px;font-weight:800;color:#fff;background:#203462;width:20px;height:20px;border-radius:5px;display:inline-flex;align-items:center;justify-content:center;flex:0 0 20px;align-self:center}
+.rep .st{font-size:16px;font-weight:800;letter-spacing:-.02em;color:#203462}
+.rep .ss{font-size:11.5px;color:#8a93a1;margin-left:auto;font-weight:600}
+.rep p{margin:0 0 9px;white-space:pre-wrap;line-height:1.72;font-size:13.5px}
+.rep p:last-child{margin-bottom:0}
+
+/* 요약 통계 */
+.rstats{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;margin-bottom:6px}
+.rstat{background:#f7f9fa;border:1px solid var(--line2);border-radius:9px;padding:11px 8px;text-align:center}
+.rstat b{display:block;font-size:21px;font-weight:800;letter-spacing:-.02em;color:#203462;line-height:1.1}
+.rstat span{font-size:10.5px;color:#8a93a1;font-weight:600}
+
+/* 강점 강조 (히어로) */
+.rstrength{background:linear-gradient(135deg,#72c0a1 0%,#5aab8c 100%);border-radius:12px;padding:22px 26px;color:#fff}
+.rstrength .sl{font-size:11px;font-weight:800;letter-spacing:.12em;opacity:.85;margin-bottom:12px}
+.rstrength .slist{display:flex;flex-wrap:wrap;gap:8px}
+.rstrength .sitem{background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:6px 15px;font-size:14px;font-weight:700}
+.rstrength .sitem em{font-style:normal;opacity:.75;font-weight:600;font-size:12px;margin-left:5px}
+.rstrength .stop{background:#fff;color:#2b6b52;border-color:#fff}
+.rstrength .snote{font-size:11.5px;opacity:.9;margin-top:12px;line-height:1.6}
+
+/* 연구소 블록 */
+.rlab{border:1px solid var(--line);border-radius:11px;padding:0;margin-bottom:12px;overflow:hidden;page-break-inside:avoid}
+.rlab .lhd{background:#f7f9fa;border-bottom:1px solid var(--line);padding:10px 15px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.rlab .lnm{font-weight:800;font-size:14px;color:#203462}
+.rlab .lct{font-size:11.5px;color:#8a93a1}
+.rlab .lms{display:flex;gap:7px;margin-left:auto;flex-wrap:wrap}
+.rlab .lm{background:#fff;border:1px solid var(--line);border-radius:7px;padding:3px 9px;font-size:11px;color:#5b6472;white-space:nowrap}
+.rlab .lm b{color:#203462;font-weight:800;font-size:12.5px}
+.rlab .lbd{padding:12px 15px}
+.robs{padding:9px 0;border-bottom:1px dashed var(--line2)}
+.robs:last-child{border-bottom:0;padding-bottom:0}
+.robs:first-child{padding-top:0}
+.robs .od{font-size:11px;color:#8a93a1;font-weight:700;margin-bottom:3px}
+.robs .od span{color:#c3c9d1;margin:0 5px}
+.robs .ot{font-weight:700;font-size:12.5px;color:#203462;margin-bottom:2px}
+.robs .on{font-size:13px;line-height:1.65;white-space:pre-wrap}
+.robs .otag{display:inline-block;background:var(--accent-soft);color:var(--accent-ink);border-radius:5px;padding:1px 7px;font-size:10.5px;font-weight:700;margin-top:4px;margin-right:4px}
+
+/* 목표 */
+.rgoal{border:1px solid var(--line);border-left:4px solid #72c0a1;border-radius:8px;padding:12px 15px;margin-bottom:9px;page-break-inside:avoid}
+.rgoal .gt{font-weight:700;font-size:14px;color:#203462}
+.rgoal .gm{font-size:11.5px;color:#8a93a1;margin-top:3px}
+.rgbadge{display:inline-block;border-radius:999px;padding:3px 11px;font-size:11px;font-weight:800;margin-top:7px}
+.rgbadge.clear{background:#e7f2ec;color:#1f5c40}
+.rgbadge.partial{background:#fdf3d9;color:#8a6408}
+.rgbadge.none{background:#f1f3f5;color:#6b7280}
+.rgbadge.support{background:#fbe9df;color:#a03c0e}
+
+/* 진단 */
+.rdiag{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.rdiag div{background:#f7f9fa;border-radius:8px;padding:10px 13px}
+.rdiag b{display:block;font-size:10.5px;color:#8a93a1;font-weight:800;letter-spacing:.05em;margin-bottom:3px}
+.rdiag span{font-size:12.5px;line-height:1.6}
+
+/* Before / After */
+.rba{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:stretch}
+.rba .bx{border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.rba .bx.a{border-color:#a9d7c4;background:#f7fcfa}
+.rba h5{margin:0 0 7px;font-size:10.5px;font-weight:800;letter-spacing:.1em;color:#8a93a1}
+.rba .bx.a h5{color:#4e8f74}
+.rba .arw{align-self:center;color:#72c0a1;font-size:20px;font-weight:800}
+
+/* 전문가 소견 */
+.rexp{background:#f4faf7;border:1px solid #a9d7c4;border-radius:12px;padding:20px 24px;page-break-inside:avoid}
+.rexp .eb{margin-bottom:13px}
+.rexp .eb:last-of-type{margin-bottom:0}
+.rexp .el{font-size:10.5px;font-weight:800;letter-spacing:.08em;color:#4e8f74;margin-bottom:4px}
+.rexp .sig{margin-top:14px;padding-top:11px;border-top:1px solid #cfe3d8;font-size:11.5px;color:#5b6472;text-align:right}
+.rexp .sig b{color:#203462}
+
+/* 내부용 섹션 */
+.rint{border:1px dashed #d6b48f;border-radius:11px;padding:16px 20px;background:#fffcf7}
+.rint .ihd{font-size:10.5px;font-weight:800;letter-spacing:.08em;color:#9a6b3a;margin-bottom:9px}
+.rep .evid{background:#fff;border:1px solid var(--line2);border-radius:8px;padding:10px 13px;font-size:12px;margin-bottom:7px;white-space:pre-wrap;line-height:1.6}
+.rnote2{font-size:11px;color:#8a93a1;margin-top:5px;line-height:1.55}
+.rfoot{margin-top:30px;padding-top:14px;border-top:1px solid var(--line);font-size:10.5px;color:#8a93a1;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+
+@media(max-width:720px){
+  .rcover,.rbody{padding-left:20px;padding-right:20px}
+  .rstats{grid-template-columns:repeat(2,1fr)}
+  .rdiag,.rba{grid-template-columns:1fr}
+  .rba .arw{display:none}
+}
+@media print{
+  header,.no-print,.rtabs,.subnav,.repopt,.skipprint{display:none!important}
+  body{background:#fff}main{padding:0}
+  .rep{border:0;box-shadow:none;max-width:100%;border-radius:0}
+  .rcover{border-radius:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .rstrength,.rexp,.rstat,.rlab .lhd,.rgbadge,.rint{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .rep section{page-break-inside:avoid}
+  @page{margin:14mm}
+}
 </style>
 </head>
 <body>
@@ -783,7 +875,6 @@ function viewReport(name){
   return `<div class="repopt no-print">
       <label>기간
         <select id="repQ" onchange="setRepQ(this.value)">${opts.map(([v,l])=>`<option value="${v}" ${repQ===v?'selected':''}>${l}</option>`).join('')}</select></label>
-      <label><input type="checkbox" id="incMetric" checked onchange="toggleSec('secMetrics',this.checked)"> 활동 참여 지표</label>
       <label><input type="checkbox" id="incEvid" onchange="toggleSec('secEvid',this.checked)"> 관찰 원문 <em style="color:var(--ink3);font-style:normal">(내부용)</em></label>
       <label><input type="checkbox" id="incAI" onchange="toggleSec('secAI',this.checked)"> AI 분석 원문 <em style="color:var(--ink3);font-style:normal">(내부용)</em></label>
       <button class="btn pri sm" onclick="saveReport('${esc(name)}')">리포트 저장</button>
@@ -798,7 +889,6 @@ window.setRepQ=v=>{repQ=+v;$('#repHost').innerHTML=buildReport(curStudent,repQ);
 function applyPrintPrefs(){
   // 내부용 섹션은 기본적으로 인쇄에서 제외 (학부모 발송본 보호)
   ['secEvid','secAI'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.add('skipprint');});
-  const m=document.getElementById('secMetrics');if(m)m.classList.remove('skipprint');
   const e=$('#incEvid'),a=$('#incAI');if(e)e.checked=false;if(a)a.checked=false;
 }
 window.toggleSec=(id,on)=>{const el=document.getElementById(id);if(el)el.classList.toggle('skipprint',!on);};
@@ -807,98 +897,188 @@ function buildReport(name,q){
   const inQ=r=>q===0?true:quarterOf(r.date)===q;
   const qObs=obs.filter(inQ), qEmo=emo.filter(inQ);
   const undated=obs.filter(o=>!o.date).length+emo.filter(e=>!e.date).length;
-  const labs=[...new Set(qObs.map(o=>o.lab))];
-  const strengths=[...new Set(qObs.flatMap(o=>o.fields.filter(([k])=>k.includes('강점')).map(([,v])=>v)))].slice(0,8);
   const saved=(DB.reports[name]&&DB.reports[name][q])||{};
-  const notes=qObs.filter(o=>o.note);
-  const early=notes.filter(o=>o.date).sort((a,b)=>a.date-b.date)[0];
-  const late=notes.filter(o=>o.date).sort((a,b)=>b.date-a.date)[0];
   const label=q===0?'전체 기간':`${q}분기`;
-  const en=qEmo.map(e=>e._energy).filter(Boolean), fo=qEmo.map(e=>e._focus).filter(Boolean), re=qEmo.map(e=>e._relation).filter(Boolean);
-  const avg=a=>a.length?(a.reduce((x,y)=>x+y,0)/a.length).toFixed(1):'-';
   const stD=parseKDate(mb.start);
-  const byLab={};qObs.forEach(o=>{(byLab[o.lab]=byLab[o.lab]||[]).push(o);});
-  // 연구원이 기록한 척도·강점을 기간 평균으로 집계 (학부모 리포트에 지표로 노출)
-  const labMetricRows=Object.entries(byLab).sort((a,b)=>b[1].length-a[1].length).map(([lab,a])=>{
-    const f=a.map(o=>scale5(fieldOf(o,'활동집중도'))).filter(Boolean);
-    const p=a.map(o=>scale5(fieldOf(o,'또래상호작용'))).filter(Boolean);
-    const c=a.map(o=>COMPLY[trim(fieldOf(o,'규칙과연구원의안내수용도'))]).filter(Boolean);
-    const st={};a.forEach(o=>{const s=fieldOf(o,'강점또는돋보인모습');if(!s)return;
-      s.split(/[,/·]/).map(x=>trim(x)).filter(Boolean).forEach(x=>st[x]=(st[x]||0)+1);});
-    return {lab,n:a.length,focus:avgOf(f),peer:avgOf(p),comply:avgOf(c),
-      st:Object.entries(st).sort((x,y)=>y[1]-x[1]).slice(0,2).map(([k])=>k)};
-  }).filter(r=>r.focus!=null||r.peer!=null||r.comply!=null||r.st.length);
-  const stAll={};qObs.forEach(o=>{const s=fieldOf(o,'강점또는돋보인모습');if(!s)return;
-    s.split(/[,/·]/).map(x=>trim(x)).filter(Boolean).forEach(x=>stAll[x]=(stAll[x]||0)+1);});
-  const allSt=Object.entries(stAll).sort((a,b)=>b[1]-a[1]).slice(0,8);
-  const gLabel={clear:'명확하게 나타남',partial:'부분적으로 나타남',none:'관찰되지 않음',support:'지원이 필요함'};
-  const warn=(qObs.length+qEmo.length)===0?`<div class="warnbox no-print">선택한 ${label}에 기록이 없습니다. 전체 기록은 관찰 ${obs.length}건·감정 ${emo.length}회입니다 — 다른 기간을 선택하세요.${undated?` (날짜 미기재 ${undated}건은 분기 집계에서 제외)`:''}</div>`:'';
+  const avg=a=>a.length?(a.reduce((x,y)=>x+y,0)/a.length).toFixed(1):null;
   const ed=(k,txt)=>`<p contenteditable="true" data-k="${k}">${esc(saved[k]||txt)}</p>`;
 
+  const byLab={};qObs.forEach(o=>{(byLab[o.lab]=byLab[o.lab]||[]).push(o);});
+  const labEntries=Object.entries(byLab).sort((a,b)=>b[1].length-a[1].length);
+
+  // 강점 빈도 (전체 기간 집계) — 리포트에서 가장 강조하는 부분
+  const stAll={};qObs.forEach(o=>{const s=fieldOf(o,'강점또는돋보인모습');if(!s)return;
+    s.split(/[,/·]/).map(x=>trim(x)).filter(Boolean).forEach(x=>stAll[x]=(stAll[x]||0)+1);});
+  const strengths=Object.entries(stAll).sort((a,b)=>b[1]-a[1]).slice(0,8);
+
+  // 감정체크 지표
+  const en=avg(qEmo.map(e=>e._energy).filter(Boolean));
+  const fo=avg(qEmo.map(e=>e._focus).filter(Boolean));
+  const re=avg(qEmo.map(e=>e._relation).filter(Boolean));
+
+  // Before / After — 관찰 내용이 있는 가장 이른 기록과 가장 최근 기록
+  const noted=qObs.filter(o=>o.note&&o.date).sort((a,b)=>a.date-b.date);
+  const early=noted[0], late=noted[noted.length-1];
+
+  const gLabel={clear:'명확하게 나타남',partial:'부분적으로 나타남',none:'관찰되지 않음',support:'지원이 필요함'};
+  const dr=qObs.filter(o=>o.date).map(o=>o.date).sort((a,b)=>a-b);
+  const periodTxt=dr.length?`${fmtDate(dr[0])} ~ ${fmtDate(dr[dr.length-1])}`:'-';
+
+  const warn=(qObs.length+qEmo.length)===0
+    ?`<div class="warnbox no-print">선택한 ${label}에 기록이 없습니다. 전체 기록은 관찰 ${obs.length}건·감정 ${emo.length}회입니다 — 다른 기간을 선택하세요.${undated?` (날짜 미기재 ${undated}건은 분기 집계에서 제외)`:''}</div>`:'';
+
+  let n=0; const sec=(title,sub)=>`<div class="sh"><span class="sn">${++n}</span><span class="st">${title}</span>${sub?`<span class="ss">${sub}</span>`:''}</div>`;
+
   return warn+`<div class="rep" id="repDoc">
-    <div class="rh">
-      <h1>${esc(name)} 성장 리포트</h1>
-      <div style="color:#667;font-size:13px">${YEAR}년 ${esc(label)} · 폭스러닝센터</div>
-      <div style="color:#667;font-size:12px;margin-top:4px">${[mb.age?mb.age+'세':'',mb.school,stD?`${stD.getFullYear()}.${pad2(stD.getMonth()+1)}.${pad2(stD.getDate())} 등록`:'',labs.length?labs.join(' · '):''].filter(Boolean).map(esc).join(' · ')}</div>
+
+  <div class="rcover">
+    <svg class="rlogo" viewBox="0 0 240 74" aria-label="FOX LC">
+      <g fill="#72c0a1"><path d="M53 52 71 72 46 65z"/><circle cx="37" cy="37" r="37"/></g>
+      <path fill="#fff" d="M21 19 37 31 53 19 53 47 37 60 21 47z"/>
+      <text x="86" y="52" font-family="Pretendard,sans-serif" font-size="42" font-weight="800" fill="#203462">FOX</text>
+      <text x="183" y="52" font-family="Pretendard,sans-serif" font-size="42" font-weight="700" fill="#72c0a1">LC</text>
+    </svg>
+    <div class="rtitle">STUDENT GROWTH REPORT</div>
+    <h1>${esc(name)} 성장 리포트</h1>
+    <div class="rperiod">${YEAR}년 ${esc(label)}${dr.length?` · ${esc(periodTxt)}`:''}</div>
+    <div class="rfacts">
+      ${mb.age?`<div>나이/학년<b>${esc(mb.age)}</b></div>`:''}
+      ${mb.school?`<div>학교<b>${esc(mb.school)}</b></div>`:''}
+      ${stD?`<div>센터 등록<b>${stD.getFullYear()}.${pad2(stD.getMonth()+1)}.${pad2(stD.getDate())}</b></div>`:''}
+      ${labEntries.length?`<div>참여 연구소<b>${esc(labEntries.map(([l])=>l.replace('연구소','')).join(' · '))}</b></div>`:''}
     </div>
+  </div>
 
-    <h3>Student Snapshot · 학생 현황</h3>
-    ${ed('snapshot',`${name} 학생은 ${labs.length?labs.map(l=>l.replace('연구소','')).join('·')+' 활동에 참여하고 있으며, ':''}${label} 동안 관찰 ${qObs.length}건·감정체크 ${qEmo.length}회가 기록되었습니다.${strengths.length?' 여러 활동에서 '+strengths.slice(0,3).join(', ')+' 등의 모습이 돋보였습니다.':''}`)}
-    <div class="mrow">
-      <div><b>${qObs.length}</b>관찰 기록</div><div><b>${qEmo.length}</b>감정체크</div>
-      <div><b>${avg(en)}</b>평균 에너지</div><div><b>${avg(fo)}</b>평균 집중도</div><div><b>${avg(re)}</b>또래 관계</div>
-    </div>
+  <div class="rbody">
 
-    <h3>Initial Diagnosis · 초기 진단과 기준점</h3>
-    ${ed('diagnosis',[['학습 특성',diag.learning],['SEL',diag.sel],['성향·기질',diag.temperament],['관심·흥미',diag.interest],['영어 역량',diag.english]].filter(x=>x[1]).map(x=>x[0]+': '+x[1]).join('\n')||'초기 진단이 아직 입력되지 않았습니다. (관찰 데이터 탭에서 입력)')}
+    <section>
+      ${sec('한눈에 보기','이번 기간 활동 요약')}
+      <div class="rstats">
+        <div class="rstat"><b>${qObs.length}</b><span>관찰 기록</span></div>
+        <div class="rstat"><b>${qEmo.length}</b><span>감정체크</span></div>
+        <div class="rstat"><b>${en||'-'}</b><span>에너지 /5</span></div>
+        <div class="rstat"><b>${fo||'-'}</b><span>집중도 /5</span></div>
+        <div class="rstat"><b>${re||'-'}</b><span>또래관계 /5</span></div>
+      </div>
+      ${ed('snapshot',`${name} 학생은 ${labEntries.length?labEntries.map(([l])=>l.replace('연구소','')).join('·')+' 활동에 참여하며 ':''}${label} 동안 ${qObs.length}회의 활동이 관찰되었습니다.${strengths.length?` 여러 연구소에서 ${strengths.slice(0,3).map(([k])=>k).join(', ')}이(가) 반복적으로 돋보였습니다.`:''}`)}
+    </section>
 
-    <h3>Growth Goals · 분기 성장목표</h3>
-    ${ed('goals',goals.length?goals.map(g=>`• ${g.text}${g.status?`  → ${gLabel[g.status]}`:''}`).join('\n'):'설정된 성장목표가 없습니다.')}
+    ${strengths.length?`<section>
+      ${sec('이번 기간 돋보인 모습','연구원 관찰 기반')}
+      <div class="rstrength">
+        <div class="sl">STRENGTHS OBSERVED</div>
+        <div class="slist">${strengths.map(([k,v],i)=>`<span class="sitem ${i<3?'stop':''}">${esc(k)}<em>${v}회</em></span>`).join('')}</div>
+        <div class="snote">연구원이 활동 중 직접 관찰하여 기록한 모습입니다. 횟수는 해당 모습이 관찰된 활동 수입니다.</div>
+      </div>
+    </section>`:''}
 
-    <h3>Observation &amp; Discovery · 관찰과 발견</h3>
-    ${ed('discovery',ex.opinion||ex.possibility?[ex.opinion,ex.possibility].filter(Boolean).join('\n\n'):(notes.slice(0,4).map(o=>`• [${o.lab}] ${o.note}`).join('\n')||'이번 기간 관찰 내용을 종합해 주요 발견을 기술하세요.'))}
+    <section>
+      ${sec('초기 진단과 기준점','FOX Core Diagnosis')}
+      ${[['학습 특성',diag.learning],['SEL',diag.sel],['성향·기질',diag.temperament],['관심·흥미',diag.interest],['영어 역량',diag.english]].some(x=>x[1])
+        ?`<div class="rdiag">${[['학습 특성',diag.learning],['SEL',diag.sel],['성향·기질',diag.temperament],['관심·흥미',diag.interest],['영어 역량',diag.english]]
+          .filter(x=>x[1]).map(([l,v])=>`<div><b>${l}</b><span>${esc(v)}</span></div>`).join('')}</div>`
+        :ed('diagnosis','초기 진단이 아직 입력되지 않았습니다. (관찰 데이터 탭에서 입력)')}
+    </section>
 
-    <div id="secMetrics">
-      <h3>활동 참여 지표 · 연구소별</h3>
-      ${labMetricRows.length?`<div class="rtabwrap"><table class="rtab"><thead><tr><th>연구소</th><th>관찰</th><th>집중도<span>/5</span></th><th>또래<span>/5</span></th><th>수용도<span>/4</span></th><th>주요 강점</th></tr></thead><tbody>
-        ${labMetricRows.map(r=>`<tr><td><b>${esc(r.lab)}</b></td><td>${r.n}건</td>
-          <td>${r.focus==null?'-':r.focus.toFixed(1)}</td><td>${r.peer==null?'-':r.peer.toFixed(1)}</td><td>${r.comply==null?'-':r.comply.toFixed(1)}</td>
-          <td>${r.st.length?esc(r.st.join(', ')):'-'}</td></tr>`).join('')}
-      </tbody></table></div>
-      <div class="rnote2">연구원이 활동마다 기록한 평가를 기간 평균으로 집계한 값입니다. 기재된 항목만 집계합니다.</div>`
-      :'<div class="rnote2">이 기간에 집계할 척도 기록이 없습니다.</div>'}
-      ${allSt.length?`<div style="margin-top:10px"><b style="font-size:12px">돋보인 모습</b>
-        <div style="margin-top:5px">${allSt.map(([k,v])=>`<span class="gchip" style="margin-right:4px">${esc(k)} ${v}회</span>`).join('')}</div></div>`:''}
-    </div>
+    <section>
+      ${sec('이번 분기 성장목표','관찰 가능한 행동')}
+      ${goals.length?goals.map(g=>`<div class="rgoal">
+          <div class="gt">${esc(g.text)}</div>
+          ${g.cat?`<div class="gm">${esc(g.cat)} 역량</div>`:''}
+          ${g.status?`<span class="rgbadge ${g.status}">${gLabel[g.status]}</span>`:''}
+        </div>`).join('')
+        :ed('goals','설정된 성장목표가 없습니다.')}
+    </section>
 
-    <div id="secEvid">
-      <h3>관찰 근거 원문 <span style="font-size:11px;color:#8a93a1;font-weight:600">· 내부 검토용</span></h3>
-      <div class="rnote2">연구원이 현장에서 작성한 원문입니다. <b>학부모 발송본에는 기본적으로 포함되지 않습니다</b> — 필요한 내용은 위 '관찰과 발견'에 다듬어 옮겨 주세요.</div>
-      ${Object.keys(byLab).length?Object.entries(byLab).map(([l,a])=>{
+    <section>
+      ${sec('연구소별 활동과 관찰',`${labEntries.length}개 연구소 · 각 최근 3건`)}
+      ${labEntries.length?labEntries.map(([lab,a])=>{
+        const f=avg(a.map(o=>scale5(fieldOf(o,'활동집중도'))).filter(Boolean));
+        const p=avg(a.map(o=>scale5(fieldOf(o,'또래상호작용'))).filter(Boolean));
+        const c=avg(a.map(o=>COMPLY[trim(fieldOf(o,'규칙과연구원의안내수용도'))]).filter(Boolean));
+        const shown=a.filter(o=>o.note).sort((x,y)=>(y.date?.getTime()||0)-(x.date?.getTime()||0)).slice(0,3);
+        return `<div class="rlab">
+          <div class="lhd">
+            <span class="lnm">${esc(lab)}</span><span class="lct">관찰 ${a.length}건</span>
+            <span class="lms">
+              ${f?`<span class="lm">집중도 <b>${f}</b>/5</span>`:''}
+              ${p?`<span class="lm">또래 <b>${p}</b>/5</span>`:''}
+              ${c?`<span class="lm">수용도 <b>${c}</b>/4</span>`:''}
+            </span>
+          </div>
+          <div class="lbd">
+            ${shown.length?shown.map(o=>{
+              const st=fieldOf(o,'강점또는돋보인모습');
+              return `<div class="robs">
+                <div class="od">${fmtDate(o.date)}${o.author?`<span>·</span>${esc(o.author)}`:''}${o.program?`<span>·</span>${esc(o.program)}`:''}</div>
+                ${o.topic?`<div class="ot">${esc(o.topic)}</div>`:''}
+                <div class="on">${esc(o.note)}</div>
+                ${st?st.split(/[,/·]/).map(x=>trim(x)).filter(Boolean).map(x=>`<span class="otag">${esc(x)}</span>`).join(''):''}
+              </div>`;}).join('')
+            :`<div class="rnote2">이 기간 기록된 관찰 내용이 없습니다.</div>`}
+          </div>
+        </div>`;}).join('')
+      :'<div class="rnote2">이 기간에 기록된 관찰이 없습니다.</div>'}
+      <div class="rnote2">각 연구소에서 가장 최근에 기록된 관찰 3건을 실었습니다. 전체 기록은 센터에 보관되어 있습니다.</div>
+    </section>
+
+    <section>
+      ${sec('관찰을 통해 발견한 것','종합 해석')}
+      ${ed('discovery',ex.opinion||ex.possibility
+        ?[ex.opinion,ex.possibility].filter(Boolean).join('\n\n')
+        :'여러 연구소의 관찰을 종합한 주요 발견과 가능성을 기술하세요. (발견·분석 탭에서 전문가 소견을 입력하면 자동으로 채워집니다)')}
+    </section>
+
+    <section>
+      ${sec('처음과 지금','Before → After')}
+      <div class="rba">
+        <div class="bx"><h5>BEFORE ${early?'· '+fmtDate(early.date):''}</h5>${ed('before',early?.note||'초기 관찰 상태를 기술하세요.')}</div>
+        <div class="arw">→</div>
+        <div class="bx a"><h5>AFTER ${late?'· '+fmtDate(late.date):''}</h5>${ed('after',late?.note||'현재 관찰 상태를 기술하세요.')}</div>
+      </div>
+    </section>
+
+    <section>
+      ${sec('SEL 전문가 소견','검토·확정')}
+      <div class="rexp">
+        ${ex.opinion?`<div class="eb"><div class="el">전문 소견 · 해석</div><p>${esc(ex.opinion)}</p></div>`:''}
+        ${ex.possibility?`<div class="eb"><div class="el">발견된 가능성</div><p>${esc(ex.possibility)}</p></div>`:''}
+        ${ex.response?`<div class="eb"><div class="el">교육적 반응 · 지원 방향</div><p>${esc(ex.response)}</p></div>`:''}
+        ${!ex.opinion&&!ex.possibility&&!ex.response?ed('expert','SEL 전문가 소견이 아직 입력되지 않았습니다. (발견·분석 탭에서 입력)'):''}
+        ${ex.reviewer?`<div class="sig">검토·확정 <b>${esc(ex.reviewer)}</b>${ex.at?` · ${new Date(ex.at).toLocaleDateString('ko-KR')}`:''}</div>`:''}
+      </div>
+    </section>
+
+    <section>
+      ${sec('다음 성장 방향','')}
+      ${ed('next',ex.next||'다음 분기에 지원할 방향을 기술하세요.')}
+    </section>
+
+    <section>
+      ${sec('가정에서의 지원 제안','')}
+      ${ed('home',ex.home||'가정에서 함께 실천할 수 있는 제안을 기술하세요.')}
+    </section>
+
+    ${ai.text?`<section id="secAI"><div class="rint">
+      <div class="ihd">종합 분석 (AI 초안) · 내부 검토용</div>
+      ${ed('ai',ai.text)}
+      <div class="rnote2">AI가 관찰 데이터에서 패턴을 정리한 초안입니다. SEL 전문가가 검토·확정한 내용은 위 소견에 반영되어 있습니다.</div>
+    </div></section>`:''}
+
+    <section id="secEvid"><div class="rint">
+      <div class="ihd">관찰 근거 원문 · 내부 검토용</div>
+      <div class="rnote2" style="margin:0 0 9px">연구원이 현장에서 작성한 원문입니다. 학부모 발송본에는 기본적으로 포함되지 않습니다.</div>
+      ${labEntries.length?labEntries.map(([l,a])=>{
         const t=a.filter(x=>x.note).slice(0,2).map(x=>`${fmtDate(x.date)} — ${x.note}`).join('\n');
         return `<div class="evid"><b>${esc(l)}</b> (${a.length}건)${t?'\n'+esc(t):''}</div>`;}).join(''):'<div class="rnote2">관찰 원문 없음</div>'}
+    </div></section>
+
+    <div class="rfoot">
+      <span>폭스러닝센터 · 관찰 → 발견 → 반응 → 성장</span>
+      <span>${YEAR}년 ${esc(label)} · ${new Date().toLocaleDateString('ko-KR')} 작성</span>
     </div>
-
-    ${ai.text?`<div id="secAI"><h3>종합 분석 <span style="font-size:11px;color:#8a93a1;font-weight:600">· AI 초안, SEL 상담가 검토</span></h3>${ed('ai',ai.text)}</div>`:''}
-
-    <h3>SEL 전문가 소견</h3>
-    <div class="expertblock">
-      ${ed('expert',[ex.opinion&&'[해석] '+ex.opinion,ex.possibility&&'[가능성] '+ex.possibility,ex.response&&'[교육적 반응] '+ex.response].filter(Boolean).join('\n\n')||'SEL 전문가 소견이 아직 입력되지 않았습니다. (발견·분석 탭에서 입력)')}
-      ${ex.reviewer?`<div style="font-size:11px;color:#8a93a1;margin-top:6px">검토·확정: ${esc(ex.reviewer)}${ex.at?' · '+new Date(ex.at).toLocaleDateString('ko-KR'):''}</div>`:''}
-    </div>
-
-    <h3>Before → After · 변화</h3>
-    <div class="ba">
-      <div><h5>Before ${early?'('+fmtDate(early.date)+')':''}</h5>${ed('before',early?.note||'초기 관찰 상태')}</div>
-      <div><h5>After ${late?'('+fmtDate(late.date)+')':''}</h5>${ed('after',late?.note||'현재 관찰 상태')}</div>
-    </div>
-
-    <h3>다음 성장 방향</h3>
-    ${ed('next',ex.next||'다음 분기에 지원할 방향을 기술하세요.')}
-
-    <h3>가정에서의 지원 제안</h3>
-    ${ed('home',ex.home||'가정에서 함께 실천할 수 있는 제안을 기술하세요.')}
-  </div>`;
+  </div>
+</div>`;
 }
 window.saveReport=name=>{
   const o={};$$('#repDoc [data-k]').forEach(e=>o[e.dataset.k]=e.innerText.trim());
