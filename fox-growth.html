@@ -433,8 +433,96 @@ label.fld select,label.fld input,label.fld textarea{width:100%;border:1px solid 
 @media(max-width:720px){.egrid{grid-template-columns:1fr}}
 .phbtn{display:flex;gap:6px;align-items:center;margin-top:6px}
 .phbtn .btn{cursor:pointer}
+/* ===== 사이드바 셸 ===== */
+#sidebar{position:fixed;left:0;top:0;bottom:0;width:236px;background:#fff;border-right:1px solid var(--line);display:flex;flex-direction:column;z-index:50}
+.sbrand{padding:18px 18px 14px;border-bottom:1px solid var(--line2);cursor:pointer}
+.sbrand .logo{height:24px;width:auto;display:block}
+.sbrand small{display:block;font-size:12.5px;font-weight:600;color:var(--ink2);margin-top:7px;letter-spacing:-.01em}
+.snav{flex:1;overflow-y:auto;padding:12px 10px}
+.sgrp{font-size:10.5px;font-weight:800;color:#9aa3af;letter-spacing:.08em;padding:14px 8px 6px}
+.snav button{width:100%;display:flex;align-items:center;gap:10px;border:0;background:transparent;color:var(--ink2);
+  padding:9px 10px;border-radius:8px;font-weight:600;font-size:13.5px;text-align:left;line-height:1.3}
+.snav button svg{width:17px;height:17px;flex:0 0 17px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;opacity:.75}
+.snav button[data-v="dash"] svg{fill:currentColor;stroke:none;opacity:.6}
+.snav button:hover{background:var(--line2);color:var(--ink)}
+.snav button.on{background:#eef2f7;color:#203462}
+.snav button.on svg{opacity:1}
+.snav button i{margin-left:auto;font-style:normal;font-size:11px;font-weight:700;color:#9aa3af;background:var(--line2);border-radius:20px;padding:1px 7px;min-width:20px;text-align:center}
+.snav button i:empty{display:none}
+.snav button i.warn{background:#fbe9df;color:#a03c0e}
+.sfoot{padding:12px;border-top:1px solid var(--line2);display:flex;flex-direction:column;gap:8px}
+.sfoot .me{width:100%;justify-content:space-between}
+.sfoot .sync{font-size:11px}
+#sbToggle{display:none;position:fixed;left:12px;top:12px;z-index:60;width:38px;height:38px;border-radius:9px;border:1px solid var(--line);background:#fff;font-size:16px}
+main{max-width:1180px;margin:0;padding:26px 32px 90px 268px}
+.phead2{display:flex;align-items:flex-start;gap:16px;margin-bottom:4px}
+@media(max-width:960px){
+  #sidebar{transform:translateX(-100%);transition:transform .2s;box-shadow:0 0 40px rgba(20,30,45,.15)}
+  body.sbopen #sidebar{transform:none}
+  #sbToggle{display:block}
+  main{padding:60px 18px 90px}
+}
+/* ===== 대시보드 ===== */
+.dstats{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-bottom:14px}
+.dstat{background:#fff;border:1px solid var(--line);border-radius:10px;padding:15px 17px}
+.dstat b{display:block;font-size:27px;font-weight:800;letter-spacing:-.03em;color:#203462;line-height:1.1}
+.dstat span{display:block;font-size:12.5px;color:var(--ink2);font-weight:600;margin-top:3px}
+.dstat em{display:block;font-style:normal;font-size:11px;color:var(--ink3);margin-top:4px}
+.dstat.warn b{color:#c2410c}
+.dloop{background:#fff;border:1px solid var(--line);border-radius:10px;padding:15px 18px;margin-bottom:14px}
+.dlh{font-size:11px;font-weight:800;letter-spacing:.06em;color:var(--ink3);margin-bottom:12px}
+.dlh em{font-style:normal;font-weight:600;opacity:.8}
+.dlrow{display:flex;align-items:stretch;gap:8px}
+.dlstep{flex:1;background:#f7f9fa;border:1px solid var(--line2);border-radius:9px;padding:11px 12px;min-width:0}
+.dlstep b{display:block;font-size:11px;font-weight:800;color:#4e8f74;letter-spacing:.06em}
+.dlstep u{display:block;text-decoration:none;font-size:19px;font-weight:800;color:#203462;letter-spacing:-.02em;margin:3px 0 1px}
+.dlstep span{font-size:10.5px;color:var(--ink3)}
+.dlrow i{align-self:center;font-style:normal;color:#c3c9d1;font-weight:800}
+.dlnote{margin-top:11px;font-size:12px;color:#8a6408;background:#fdf6e3;border:1px solid #f0e0b8;border-radius:8px;padding:9px 12px}
+.dcols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:900px){.dcols{grid-template-columns:1fr}.dlrow{flex-wrap:wrap}.dlrow i{display:none}.dlstep{flex:1 1 45%}}
+.sec-h .act a{color:var(--accent-ink);font-weight:700;cursor:pointer;font-size:12px}
+.dlist{display:flex;flex-direction:column}
+.drow{display:flex;align-items:center;gap:11px;padding:9px 6px;border-top:1px solid var(--line2);cursor:pointer;border-radius:7px}
+.drow:first-child{border-top:0}
+.drow:hover{background:var(--line2)}
+.dinfo{min-width:0;flex:1}
+.dinfo b{display:block;font-size:13.5px;font-weight:700;letter-spacing:-.01em}
+.dinfo span{font-size:11px;color:var(--ink3)}
+.dtags{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;max-width:56%}
+.dmore{font-size:11.5px;color:var(--ink3);padding:8px 6px 0}
+.tg{font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:5px;background:var(--line2);color:var(--ink2);white-space:nowrap}
+.tg.goal{background:#fbe9df;color:#a03c0e}
+.tg.stale{background:#fdf3d9;color:#8a6408}
+.tg.scale{background:#eef2f7;color:#4a5568}
+.tg.report{background:#e8f0fa;color:#2563a8}
+.tchip{font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:5px;white-space:nowrap}
+.tchip.up{background:#e7f2ec;color:#1f5c40}
+.tchip.down{background:#fbe9df;color:#a03c0e}
+.tchip.flat{background:var(--line2);color:var(--ink2)}
+.tchip.na{background:transparent;color:#b6bcc5;font-weight:600}
+.dtrend{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.tsum{background:#f7f9fa;border:1px solid var(--line2);border-radius:9px;padding:10px;text-align:center}
+.tsum b{display:block;font-size:19px;font-weight:800;letter-spacing:-.02em}
+.tsum b.up{color:#2e7d59}.tsum b.down{color:#c2410c}.tsum b.flat{color:var(--ink2)}.tsum b.na{color:#b6bcc5}
+.tsum span{font-size:10.5px;color:var(--ink3)}
+/* ===== 로딩 / 빈 상태 ===== */
+.skel{background:linear-gradient(90deg,#eef0f3 25%,#f6f7f9 37%,#eef0f3 63%);background-size:400% 100%;animation:sk 1.4s ease infinite;border-radius:7px}
+@keyframes sk{0%{background-position:100% 50%}100%{background-position:0 50%}}
+.skgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-bottom:14px}
+.skcard{background:#fff;border:1px solid var(--line);border-radius:10px;padding:15px 17px}
+.skcard .s1{height:26px;width:52%;margin-bottom:9px}
+.skcard .s2{height:11px;width:74%;margin-bottom:6px}
+.skcard .s3{height:10px;width:46%}
+.skrow{display:flex;align-items:center;gap:11px;padding:10px 6px;border-top:1px solid var(--line2)}
+.skrow .a{width:38px;height:38px;border-radius:11px;flex:0 0 38px}
+.skrow .l1{height:12px;width:34%;margin-bottom:5px}
+.skrow .l2{height:10px;width:22%}
+.estate{text-align:center;padding:44px 20px;border:1px dashed var(--line);border-radius:11px;background:#fbfcfd;grid-column:1/-1}
+.estate b{display:block;font-size:14px;color:var(--ink2);margin-bottom:5px}
+.estate span{font-size:12.5px;color:var(--ink3)}
 @media print{
-  header,.no-print,.rtabs,.subnav,.repopt,.skipprint{display:none!important}
+  #sidebar,#sbToggle,header,.no-print,.rtabs,.subnav,.repopt,.skipprint{display:none!important}
   body{background:#fff}main{padding:0}
   .rep{border:0;box-shadow:none;max-width:100%;border-radius:0}
   .rcover{border-radius:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -445,33 +533,38 @@ label.fld select,label.fld input,label.fld textarea{width:100%;border:1px solid 
 </style>
 </head>
 <body>
-<header>
-  <div class="hwrap">
-    <div class="brand" onclick="go('#/students')" title="폭스러닝센터 학생성장관리">
-      <svg class="logo" viewBox="0 0 240 74" role="img" aria-label="FOX LC">
-        <g fill="#72c0a1">
-          <path d="M53 52 71 72 46 65z"/>
-          <circle cx="37" cy="37" r="37"/>
-        </g>
-        <path fill="#fff" d="M21 19 37 31 53 19 53 47 37 60 21 47z"/>
-        <text x="86" y="52" font-family="Pretendard,-apple-system,'Malgun Gothic',sans-serif" font-size="42" font-weight="800" letter-spacing="-.5" fill="#203462">FOX</text>
-        <text x="183" y="52" font-family="Pretendard,-apple-system,'Malgun Gothic',sans-serif" font-size="42" font-weight="700" letter-spacing="-.5" fill="#72c0a1">LC</text>
-      </svg>
-      <small>학생 성장관리 시스템</small>
-    </div>
-    <nav class="tabs" id="tabs">
-      <button data-v="students">학생</button>
-      <button data-v="library">성장목표</button>
-      <button data-v="settings">설정</button>
-    </nav>
-    <div class="hright">
-      <div class="sync"><span class="dot" id="syncDot"></span><span id="syncTxt">연결 중…</span></div>
-      <div class="me"><select id="meName"></select><span class="role" id="meRole">연구원</span></div>
-    </div>
+<aside id="sidebar">
+  <div class="sbrand" onclick="go('#/dash')" title="FOX LC 학생 성장관리 시스템">
+    <svg class="logo" viewBox="0 0 240 74" role="img" aria-label="FOX LC">
+      <g fill="#72c0a1"><path d="M53 52 71 72 46 65z"/><circle cx="37" cy="37" r="37"/></g>
+      <path fill="#fff" d="M21 19 37 31 53 19 53 47 37 60 21 47z"/>
+      <text x="86" y="52" font-family="Pretendard,-apple-system,'Malgun Gothic',sans-serif" font-size="42" font-weight="800" letter-spacing="-.5" fill="#203462">FOX</text>
+      <text x="183" y="52" font-family="Pretendard,-apple-system,'Malgun Gothic',sans-serif" font-size="42" font-weight="700" letter-spacing="-.5" fill="#72c0a1">LC</text>
+    </svg>
+    <small>학생 성장관리 시스템</small>
   </div>
-</header>
+  <nav class="snav" id="tabs">
+    <button data-v="dash"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="11" width="7" height="10" rx="1.5"/><rect x="3" y="15" width="7" height="6" rx="1.5"/></svg>대시보드</button>
+    <div class="sgrp">학생</div>
+    <button data-v="students"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><path d="M16 11.5a3 3 0 1 0-1.5-5.6"/><path d="M17 19c0-2.2-.8-3.6-2-4.5"/></svg>전체 학생<i id="navStud"></i></button>
+    <button data-v="attention"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 4.5 21 19H3z"/><path d="M12 10v4M12 16.5v.01"/></svg>조치 필요<i id="navTodo" class="warn"></i></button>
+    <div class="sgrp">성장</div>
+    <button data-v="library"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5z"/><path d="M20 5.5A1.5 1.5 0 0 0 18.5 4H13v16h5.5a1.5 1.5 0 0 0 1.5-1.5z"/></svg>성장목표</button>
+    <div class="sgrp">시스템</div>
+    <button data-v="settings"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M21 12h-2.5M5.5 12H3M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8M18.4 18.4l-1.8-1.8M7.4 7.4 5.6 5.6"/></svg>설정 · 데이터</button>
+  </nav>
+  <div class="sfoot">
+    <div class="me"><select id="meName"></select><span class="role" id="meRole">연구원</span></div>
+    <div class="sync"><span class="dot" id="syncDot"></span><span id="syncTxt">연결 중…</span></div>
+  </div>
+</aside>
+<button id="sbToggle" onclick="document.body.classList.toggle('sbopen')" aria-label="메뉴">☰</button>
 
 <main>
+  <section class="view" id="v-dash">
+    <div class="phead2"><div><h2 class="title">대시보드</h2><div class="sub" id="dashSub">오늘 확인할 것</div></div></div>
+    <div id="dashBody"></div>
+  </section>
   <section class="view" id="v-students">
     <h2 class="title">학생</h2>
     <div class="sub" id="studSub">데이터 불러오는 중…</div>
@@ -535,6 +628,7 @@ let DB={students:{},goalAssignments:{},diagnosis:{},aiAnalysis:{},expert:{},repo
 let STUDENTS=[], labFilterSet=new Set(), curStudent=null, recTab='obs', recLab='', recLimit=30;
 let subTab='records', repQ=0, lastSheetSync=0;
 let sortMode='name';   // name | recent (실제 값은 boot()에서 복원)
+let onlyTodo=false;    // '조치 필요' 화면 여부
 
 /* ===================== UTIL ===================== */
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
@@ -808,14 +902,19 @@ function refreshView(){   // redraw current view WITHOUT scrolling/navigating
   const on=$('.view.on');if(!on)return;
   const v=on.id.replace('v-','');
   if(v==='student'&&curStudent)renderStudentPage();
-  else if(v==='students')renderStudents();
-  else if(v==='library')renderLibrary();
-  else if(v==='settings')renderSettings();
+  else drawView(v);
+}
+function drawView(name){
+  if(name==='dash')renderDash();
+  else if(name==='students'||name==='attention')renderStudents();
+  else if(name==='library')renderLibrary();
+  else if(name==='settings')renderSettings();
 }
 function route(){
-  const h=location.hash||'#/students';
+  const h=location.hash||'#/dash';
   const m=h.match(/^#\/student\/([^/]+)(?:\/(records|analysis|report))?$/);
   $$('.view').forEach(v=>v.classList.remove('on'));
+  document.body.classList.remove('sbopen');
   if(m){
     curStudent=decodeURIComponent(m[1]);
     const t=m[2]||'records';
@@ -823,20 +922,135 @@ function route(){
     $('#v-student').classList.add('on');
     $$('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v==='students'));
     renderStudentPage();window.scrollTo(0,0);return;}
-  const v=h.replace('#/','')||'students';
-  const el=$('#v-'+v)||$('#v-students');
+  let v=h.replace('#/','')||'dash';
+  onlyTodo=(v==='attention');
+  const el=$('#v-'+(v==='attention'?'students':v))||$('#v-dash');
   el.classList.add('on');
   const name=el.id.replace('v-','');
-  $$('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===name));
-  if(name==='students')renderStudents();
-  if(name==='library')renderLibrary();
-  if(name==='settings')renderSettings();
+  $$('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  drawView(v==='attention'?'attention':name);
   window.scrollTo(0,0);
 }
 window.goSub=t=>{go(`#/student/${encodeURIComponent(curStudent)}/${t}`);};
 window.addEventListener('hashchange',route);
 $('#tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(b)go('#/'+b.dataset.v);});
 
+/* ===== 대시보드 =====
+   학생을 등급화하지 않는다. 지표 변화는 근거(척도 4건 이상)가 있을 때만 표시하고,
+   나머지는 '데이터 부족'으로 둔다. 우선순위는 아이가 아니라 '직원이 할 일'로 매긴다. */
+const SCALE_MIN=4, STALE_DAYS=14;
+function scaleOf(o){return scale5(fieldOf(o,'활동집중도'))||scale5(fieldOf(o,'또래상호작용'))||COMPLY[trim(fieldOf(o,'규칙과연구원의안내수용도'))];}
+// 전반 → 후반 지표 변화 (buildReport의 cmp와 같은 원리)
+function trendOf(name){
+  const {obs}=recordsFor(name);
+  const dd=obs.filter(o=>o.date).sort((a,b)=>a.date-b.date);
+  const scored=dd.filter(scaleOf);
+  if(scored.length<SCALE_MIN)return {ok:false,n:scored.length};
+  const t0=dd[0].date.getTime(), t1=dd[dd.length-1].date.getTime(), mid=t0+(t1-t0)/2;
+  const h1=dd.filter(o=>o.date.getTime()<=mid), h2=dd.filter(o=>o.date.getTime()>mid);
+  if(!h1.length||!h2.length)return {ok:false,n:scored.length};
+  const m=a=>{const v=a.map(o=>scale5(fieldOf(o,'활동집중도'))).filter(Boolean);
+    return v.length?v.reduce((x,y)=>x+y,0)/v.length:null;};
+  const a=m(h1), b=m(h2);
+  if(a==null||b==null)return {ok:false,n:scored.length};
+  const d=b-a;
+  return {ok:true,n:scored.length,delta:d,dir:d>0.2?'up':d<-0.2?'down':'flat',a:a.toFixed(1),b:b.toFixed(1)};
+}
+function studentSignals(s){
+  const {obs,emo}=recordsFor(s.name);
+  const goals=DB.goalAssignments[s.name]||[];
+  const rep=DB.reports[s.name]||{};
+  const days=s.last?Math.floor((Date.now()-s.last)/86400000):null;
+  const scored=obs.filter(scaleOf).length;
+  const todo=[];
+  if(!goals.length)todo.push({k:'goal',t:'성장목표 미설정',w:3});
+  if(days!=null&&days>STALE_DAYS)todo.push({k:'stale',t:`최근 관찰 ${days}일 전`,w:2});
+  if(obs.length&&scored/obs.length<0.4)todo.push({k:'scale',t:`척도 기재 ${scored}/${obs.length}`,w:1});
+  if(goals.length&&!Object.keys(rep).length)todo.push({k:'report',t:'리포트 미작성',w:1});
+  return {obs,emo,goals,days,scored,todo,weight:todo.reduce((a,b)=>a+b.w,0),trend:trendOf(s.name)};
+}
+let DASH=null;
+function buildDash(){
+  const rows=STUDENTS.map(s=>({s,...studentSignals(s)}));
+  const tr=rows.filter(r=>r.trend.ok);
+  DASH={
+    rows,
+    total:STUDENTS.length,
+    withGoal:rows.filter(r=>r.goals.length).length,
+    goalCount:rows.reduce((a,r)=>a+r.goals.length,0),
+    trendable:tr.length,
+    up:tr.filter(r=>r.trend.dir==='up').length,
+    flat:tr.filter(r=>r.trend.dir==='flat').length,
+    down:tr.filter(r=>r.trend.dir==='down').length,
+    noData:rows.filter(r=>!r.trend.ok).length,
+    obsTotal:RAW.obs.length, emoTotal:RAW.emo.length,
+    reports:rows.filter(r=>Object.keys(DB.reports[r.s.name]||{}).length).length,
+    findings:rows.filter(r=>{const q=DB.reports[r.s.name]||{};return Object.values(q).some(x=>x&&x.discovery);}).length,
+    expert:Object.keys(DB.expert||{}).length,
+    todo:rows.filter(r=>r.weight>0).sort((a,b)=>b.weight-a.weight||(b.obs.length-a.obs.length)),
+    recent:rows.filter(r=>r.s.last).sort((a,b)=>b.s.last-a.s.last).slice(0,8)
+  };
+  return DASH;
+}
+const trendChip=t=>t.ok
+  ? `<span class="tchip ${t.dir}">${t.dir==='up'?'↑':t.dir==='down'?'↓':'→'} ${t.a}→${t.b}</span>`
+  : `<span class="tchip na">데이터 부족${t.n?` (${t.n})`:''}</span>`;
+
+function renderDash(){
+  const d=buildDash();
+  const stat=(v,l,sub,tone)=>`<div class="dstat ${tone||''}"><b>${v}</b><span>${l}</span>${sub?`<em>${sub}</em>`:''}</div>`;
+  $('#dashBody').innerHTML=`
+  <div class="dstats">
+    ${stat(d.total,'관리 중인 학생',`관찰 ${d.obsTotal.toLocaleString()}건 · 감정 ${d.emoTotal.toLocaleString()}회`)}
+    ${stat(d.withGoal,'성장목표 설정됨',`전체 ${d.total}명 중`,d.withGoal/d.total<0.5?'warn':'')}
+    ${stat(d.todo.length,'조치가 필요한 학생','목표·관찰·리포트 기준',d.todo.length?'warn':'')}
+    ${stat(d.reports,'리포트 작성됨',`전문가 소견 ${d.expert}건`)}
+  </div>
+
+  <div class="dloop">
+    <div class="dlh">FOX Growth Loop <em>실제 기록 기준</em></div>
+    <div class="dlrow">
+      ${[['관찰',d.obsTotal.toLocaleString()+'건','연구원 활동 기록'],
+         ['발견',d.findings+'명','정리된 발견'],
+         ['반응',d.goalCount+'개','설정된 성장목표'],
+         ['성장',d.reports+'건','작성된 리포트']]
+        .map(([k,v,s],i)=>`<div class="dlstep"><b>${k}</b><u>${v}</u><span>${s}</span></div>${i<3?'<i>→</i>':''}`).join('')}
+    </div>
+    ${d.goalCount<d.total*0.3?`<div class="dlnote">관찰은 충분히 쌓이고 있으나 <b>발견 → 반응</b> 단계가 아직 적습니다. 성장목표를 설정하면 이후 단계가 이어집니다.</div>`:''}
+  </div>
+
+  <div class="dcols">
+    <div class="card pad">
+      <div class="sec-h">조치가 필요한 학생 <span class="act"><a onclick="go('#/students')">전체 보기</a></span></div>
+      ${d.todo.length?`<div class="dlist">${d.todo.slice(0,8).map(r=>`
+        <div class="drow" onclick="go('#/student/${encodeURIComponent(r.s.name)}')">
+          ${avatarHTML(r.s.name)}
+          <div class="dinfo"><b>${esc(r.s.name)}</b><span>${esc(r.s.labs.map(l=>l.replace('연구소','')).join(' · ')||'활동 없음')}</span></div>
+          <div class="dtags">${r.todo.map(t=>`<span class="tg ${t.k}">${esc(t.t)}</span>`).join('')}</div>
+        </div>`).join('')}</div>
+        ${d.todo.length>8?`<div class="dmore">외 ${d.todo.length-8}명</div>`:''}`
+      :'<div class="empty-note">지금 조치가 필요한 학생이 없습니다.</div>'}
+    </div>
+
+    <div class="card pad">
+      <div class="sec-h">지표 변화 <span class="act" style="font-size:11px;color:var(--ink3);font-weight:600">척도 ${SCALE_MIN}건 이상 기록된 ${d.trendable}명</span></div>
+      <div class="dtrend">
+        <div class="tsum"><b class="up">↑ ${d.up}</b><span>집중도 상승</span></div>
+        <div class="tsum"><b class="flat">→ ${d.flat}</b><span>유지</span></div>
+        <div class="tsum"><b class="down">↓ ${d.down}</b><span>하락</span></div>
+        <div class="tsum"><b class="na">${d.noData}</b><span>데이터 부족</span></div>
+      </div>
+      <div class="empty-note" style="margin-top:10px">기간 전반과 후반의 활동 집중도 평균을 비교한 값입니다. 학생을 평가하는 등급이 아니라 관찰을 이어갈 지점을 찾기 위한 참고 지표입니다.</div>
+      <div class="sec-h" style="margin-top:16px">최근 기록</div>
+      <div class="dlist">${d.recent.slice(0,5).map(r=>`
+        <div class="drow" onclick="go('#/student/${encodeURIComponent(r.s.name)}')">
+          ${avatarHTML(r.s.name)}
+          <div class="dinfo"><b>${esc(r.s.name)}</b><span>${fmtDate(r.s.last)}</span></div>
+          ${trendChip(r.trend)}
+        </div>`).join('')}</div>
+    </div>
+  </div>`;
+}
 /* ===================== STUDENT LIST ===================== */
 function renderLabFilter(){
   const labs=[...new Set(STUDENTS.flatMap(s=>s.labs))];
@@ -850,13 +1064,19 @@ function avatarHTML(name,cls){
 window.setSort=m=>{sortMode=m;lsSet('foxgrowth.sort',m);renderStudents();};
 function renderStudents(){
   const q=trim($('#stSearch').value);
+  const sig={};STUDENTS.forEach(s=>sig[s.name]=studentSignals(s));
   let list=STUDENTS.filter(s=>!q||s.name.includes(q)||(s.member?.school||'').includes(q));
   if(labFilterSet.size)list=list.filter(s=>s.labs.some(l=>labFilterSet.has(l)));
+  if(onlyTodo)list=list.filter(s=>sig[s.name].weight>0);
   const recent=sortMode==='recent';
-  list=list.slice().sort(recent
+  list=list.slice().sort(onlyTodo?(a,b)=>sig[b.name].weight-sig[a.name].weight||a.name.localeCompare(b.name,'ko')
+    :recent
     ? (a,b)=>(b.last?.getTime()||0)-(a.last?.getTime()||0)||a.name.localeCompare(b.name,'ko')
     : (a,b)=>a.name.localeCompare(b.name,'ko'));
-  $('#studSub').innerHTML=`총 <b>${STUDENTS.length}</b>명 · 관찰 ${RAW.obs.length}건 · 감정체크 ${RAW.emo.length}회`;
+  $('.view.on h2.title').textContent=onlyTodo?'조치 필요':'전체 학생';
+  $('#studSub').innerHTML=onlyTodo
+    ? `성장목표·관찰·리포트 기준으로 확인이 필요한 <b>${list.length}</b>명입니다. 학생을 평가한 것이 아니라 <b>직원이 할 일</b>을 표시합니다.`
+    : `총 <b>${STUDENTS.length}</b>명 · 관찰 ${RAW.obs.length.toLocaleString()}건 · 감정체크 ${RAW.emo.length.toLocaleString()}회`;
   $('#sortBar').innerHTML=`
     <span class="chip ${recent?'':'on'}" onclick="setSort('name')">가나다순</span>
     <span class="chip ${recent?'on':''}" onclick="setSort('recent')">최근 기록순</span>`;
@@ -870,9 +1090,13 @@ function renderStudents(){
         <div class="meta">${mb?[mb.age?mb.age+'세':'',mb.school].filter(Boolean).join(' · '):'기본정보 없음'}</div>
         <div class="labtags">${s.labs.map(l=>`<span class="lt">${esc(l.replace('연구소',''))}</span>`).join('')}</div>
         <div class="labtags">${g.length?g.map(x=>`<span class="gchip">${esc((x.short||x.text).slice(0,12))}</span>`).join(''):'<span class="gchip empty">목표 미설정</span>'}</div>
-        <div class="foot"><span>관찰 <b>${s.obsN}</b></span><span>감정 <b>${s.emoN}</b></span><span style="${dateStyle}">${s.last?fmtDate(s.last):'기록 없음'}</span></div>
+        ${sig[s.name].todo.length?`<div class="labtags">${sig[s.name].todo.map(t=>`<span class="tg ${t.k}">${esc(t.t)}</span>`).join('')}</div>`:''}
+        <div class="foot"><span>관찰 <b>${s.obsN}</b></span><span>감정 <b>${s.emoN}</b></span>${trendChip(sig[s.name].trend)}<span style="${dateStyle}">${s.last?fmtDate(s.last):'기록 없음'}</span></div>
       </div></div>`;
-  }).join('')||'<div class="loader">검색 결과가 없습니다.</div>';
+  }).join('')||`<div class="estate"><b>${onlyTodo?'조치가 필요한 학생이 없습니다.':'검색 결과가 없습니다.'}</b><span>${onlyTodo?'모든 학생에 성장목표가 설정되어 있고 최근 관찰도 이어지고 있습니다.':'다른 이름이나 학교로 검색해 보세요.'}</span></div>`;
+  const t=$('#navTodo'), st=$('#navStud');
+  if(st)st.textContent=STUDENTS.length||'';
+  if(t){const n=STUDENTS.filter(s=>sig[s.name].weight>0).length;t.textContent=n||'';}
 }
 $('#stSearch').addEventListener('input',renderStudents);
 
@@ -1922,6 +2146,7 @@ async function loadAllSheets(opt){
   try{await Promise.all([loadMembers(),loadObservations(),loadEmotions()]);}catch(e){console.error(e);}
   buildStudents();renderLabFilter();
   lastSheetSync=Date.now();
+  const ds=$('#dashSub');if(ds)ds.textContent='오늘 확인할 것';
   if(silent)refreshView(); else route();
   setSync('ok',DB.updatedAt?'팀 공유됨':'로컬');
 }
@@ -1930,11 +2155,24 @@ async function autoRefreshSheets(){
   setSync('load','시트 확인 중…');
   await loadAllSheets({silent:true});
 }
+function showSkeleton(){
+  const sk=n=>Array.from({length:n});
+  $('#v-dash').classList.add('on');
+  $('#dashBody').innerHTML=`
+    <div class="skgrid">${sk(4).map(()=>`<div class="skcard"><div class="skel s1"></div><div class="skel s2"></div><div class="skel s3"></div></div>`).join('')}</div>
+    <div class="dcols">
+      <div class="card pad"><div class="skel s2" style="height:12px;width:34%;margin-bottom:12px"></div>
+        ${sk(5).map(()=>`<div class="skrow"><div class="skel a"></div><div style="flex:1"><div class="skel l1"></div><div class="skel l2"></div></div></div>`).join('')}</div>
+      <div class="card pad"><div class="skel s2" style="height:12px;width:28%;margin-bottom:12px"></div>
+        ${sk(5).map(()=>`<div class="skrow"><div class="skel a"></div><div style="flex:1"><div class="skel l1"></div><div class="skel l2"></div></div></div>`).join('')}</div>
+    </div>`;
+  $('#dashSub').textContent='구글시트에서 관찰·감정체크 기록을 불러오는 중입니다…';
+}
 async function boot(){
   sortMode=lsGet('foxgrowth.sort')||'name';
   loadCache();loadPhotoCache();ensureDefaults();fillMe();
   setSync('load','불러오는 중…');
-  route();
+  showSkeleton();
   await Promise.all([pullDB(),loadPhotos()]);ensureDefaults();fillMe();
   await loadAllSheets();
   setInterval(pullDB,8000);                        // 팀 데이터(앱 입력분)
