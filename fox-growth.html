@@ -197,6 +197,21 @@ label.fld select,label.fld input,label.fld textarea{width:100%;border:1px solid 
 .mb i{display:block;height:3px;border-radius:2px;background:var(--accent);margin-top:5px;opacity:.8}
 .lmeta{font-size:11.5px;color:var(--ink2);margin-top:7px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
 .lmeta em{font-style:normal;color:var(--ink3)}
+/* 리포트 지표 표 · 표현 점검 */
+.rep .rtabwrap{overflow-x:auto}
+.rep .rtab{width:100%;min-width:430px;border-collapse:collapse;font-size:12.5px;margin-bottom:6px}
+.rep .rtab th{white-space:nowrap}
+.rep .rtab th,.rep .rtab td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
+.rep .rtab th{font-size:11px;color:var(--ink3);font-weight:700;background:#f7f9fa}
+.rep .rtab th span{font-weight:500;opacity:.7}
+.rep .rtab td:nth-child(n+2):nth-child(-n+5){text-align:center;font-variant-numeric:tabular-nums}
+.rnote2{font-size:11px;color:var(--ink3);margin-top:4px}
+.tonebox{background:#fef6f0;border:1px solid #f2d5c2;border-radius:11px;padding:12px 15px;margin-bottom:14px;font-size:12.5px;color:#8a3b12}
+.tonebox b{display:block;margin-bottom:7px}
+.tonehit{padding:4px 0;border-top:1px dashed #f2d5c2}
+.tonehit .tw{background:#f6c7ab;color:#7a3410;border-radius:5px;padding:1px 6px;font-weight:700;font-size:11px}
+.tonehit em{font-style:normal;color:#96603f}
+.toneok{background:var(--accent-soft);color:var(--accent-ink);border-radius:11px;padding:9px 15px;margin-bottom:14px;font-size:12.5px;font-weight:600}
 @media print{header,.no-print,.rtabs,.subnav,.repopt,.skipprint{display:none!important}body{background:#fff}main{padding:0}.rep{border:0;box-shadow:none;max-width:100%}}
 </style>
 </head>
@@ -580,6 +595,7 @@ function renderStudentPage(){
   </div>
   <div class="stepnote ${hide}">관찰 데이터를 확인하고 → AI로 패턴을 분석한 뒤 SEL 전문가가 소견을 확정하면 → 리포트에 자동 반영됩니다.</div>
   <div id="subBody">${subTab==='records'?viewRecords(name):subTab==='analysis'?viewAnalysis(name):viewReport(name)}</div>`;
+  if(subTab==='report'){applyPrintPrefs();checkTone();}
 }
 
 /* ---------- 1. 관찰 데이터 ---------- */
@@ -724,20 +740,53 @@ window.saveAI=name=>{DB.aiAnalysis[name]={text:trim($('#aiResult').value),at:Dat
 window.saveExpert=name=>{DB.expert[name]={opinion:trim($('#exOpinion').value),possibility:trim($('#exPossibility').value),response:trim($('#exResponse').value),next:trim($('#exNext').value),home:trim($('#exHome').value),reviewer:$('#meName').value,at:Date.now()};commit();renderStudentPage();toast('전문가 소견 저장됨');};
 
 /* ---------- 3. 성장리포트 ---------- */
+/* 학부모 발송 전 표현 점검: 연구원 원문이 그대로 실리면 곤란한 표현을 찾아 알린다. */
+const CAUTION=['산만','집중하지 못','집중력이 떨어','집중이 어려','지적','싫어','거부','못함','안함','힘들어','부족','떨어짐','방해','장난','짜증','다툼','싸움','혼남','poor','not focus','distract','refus','lazy','disrupt'];
+function checkTone(){
+  const host=$('#toneCheck');if(!host)return;
+  const hits=[];
+  $$('#repDoc [data-k]').forEach(el=>{
+    if(el.closest('#secEvid')||el.closest('#secAI'))return;      // 내부용 섹션은 제외
+    const sec=el.closest('div,p')&&el.previousElementSibling?.textContent||'';
+    const txt=el.innerText;
+    CAUTION.forEach(t=>{
+      const i=txt.toLowerCase().indexOf(t.toLowerCase());
+      if(i<0)return;
+      const s=Math.max(0,i-22), frag=txt.slice(s,i+t.length+22).replace(/\n/g,' ');
+      hits.push({t,frag,k:el.dataset.k});
+    });
+  });
+  const uniq=[];const seen=new Set();
+  hits.forEach(h=>{const key=h.k+h.t;if(!seen.has(key)){seen.add(key);uniq.push(h);}});
+  host.innerHTML=uniq.length?`<div class="tonebox">
+      <b>표현 점검 — 학부모 발송 전 다듬어 주세요 (${uniq.length}건)</b>
+      ${uniq.slice(0,8).map(h=>`<div class="tonehit"><span class="tw">${esc(h.t)}</span> <em>“…${esc(h.frag)}…”</em></div>`).join('')}
+      <div class="rnote2" style="margin-top:6px">연구원이 내부용으로 쓴 표현입니다. 사실은 유지하되 “~한 모습이 관찰되어 ~을 지원하고 있습니다”처럼 다듬어 주세요.</div>
+    </div>`:`<div class="toneok">표현 점검: 주의가 필요한 표현이 발견되지 않았습니다.</div>`;
+}
 function viewReport(name){
   const opts=[[0,'전체 기간'],[1,`${YEAR} 1분기 (1~3월)`],[2,`${YEAR} 2분기 (4~6월)`],[3,`${YEAR} 3분기 (7~9월)`],[4,`${YEAR} 4분기 (10~12월)`]];
   return `<div class="repopt no-print">
       <label>기간
         <select id="repQ" onchange="setRepQ(this.value)">${opts.map(([v,l])=>`<option value="${v}" ${repQ===v?'selected':''}>${l}</option>`).join('')}</select></label>
-      <label><input type="checkbox" id="incAI" checked onchange="toggleSec('secAI',this.checked)"> AI 분석 원문 포함</label>
-      <label><input type="checkbox" id="incEvid" checked onchange="toggleSec('secEvid',this.checked)"> 관찰 근거 상세 포함</label>
+      <label><input type="checkbox" id="incMetric" checked onchange="toggleSec('secMetrics',this.checked)"> 활동 참여 지표</label>
+      <label><input type="checkbox" id="incEvid" onchange="toggleSec('secEvid',this.checked)"> 관찰 원문 <em style="color:var(--ink3);font-style:normal">(내부용)</em></label>
+      <label><input type="checkbox" id="incAI" onchange="toggleSec('secAI',this.checked)"> AI 분석 원문 <em style="color:var(--ink3);font-style:normal">(내부용)</em></label>
       <button class="btn pri sm" onclick="saveReport('${esc(name)}')">리포트 저장</button>
+      <button class="btn sm" onclick="checkTone()">표현 점검</button>
       <button class="btn sm" onclick="window.print()">인쇄 / PDF</button>
       <span style="color:var(--ink3);margin-left:auto">본문을 클릭해 직접 수정할 수 있습니다</span>
     </div>
+    <div id="toneCheck" class="no-print"></div>
     <div id="repHost">${buildReport(name,repQ)}</div>`;
 }
-window.setRepQ=v=>{repQ=+v;$('#repHost').innerHTML=buildReport(curStudent,repQ);};
+window.setRepQ=v=>{repQ=+v;$('#repHost').innerHTML=buildReport(curStudent,repQ);applyPrintPrefs();checkTone();};
+function applyPrintPrefs(){
+  // 내부용 섹션은 기본적으로 인쇄에서 제외 (학부모 발송본 보호)
+  ['secEvid','secAI'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.add('skipprint');});
+  const m=document.getElementById('secMetrics');if(m)m.classList.remove('skipprint');
+  const e=$('#incEvid'),a=$('#incAI');if(e)e.checked=false;if(a)a.checked=false;
+}
 window.toggleSec=(id,on)=>{const el=document.getElementById(id);if(el)el.classList.toggle('skipprint',!on);};
 function buildReport(name,q){
   const {obs,emo,mb,diag,goals,ai,ex}=studentCtx(name);
@@ -755,6 +804,19 @@ function buildReport(name,q){
   const avg=a=>a.length?(a.reduce((x,y)=>x+y,0)/a.length).toFixed(1):'-';
   const stD=parseKDate(mb.start);
   const byLab={};qObs.forEach(o=>{(byLab[o.lab]=byLab[o.lab]||[]).push(o);});
+  // 연구원이 기록한 척도·강점을 기간 평균으로 집계 (학부모 리포트에 지표로 노출)
+  const labMetricRows=Object.entries(byLab).sort((a,b)=>b[1].length-a[1].length).map(([lab,a])=>{
+    const f=a.map(o=>scale5(fieldOf(o,'활동집중도'))).filter(Boolean);
+    const p=a.map(o=>scale5(fieldOf(o,'또래상호작용'))).filter(Boolean);
+    const c=a.map(o=>COMPLY[trim(fieldOf(o,'규칙과연구원의안내수용도'))]).filter(Boolean);
+    const st={};a.forEach(o=>{const s=fieldOf(o,'강점또는돋보인모습');if(!s)return;
+      s.split(/[,/·]/).map(x=>trim(x)).filter(Boolean).forEach(x=>st[x]=(st[x]||0)+1);});
+    return {lab,n:a.length,focus:avgOf(f),peer:avgOf(p),comply:avgOf(c),
+      st:Object.entries(st).sort((x,y)=>y[1]-x[1]).slice(0,2).map(([k])=>k)};
+  }).filter(r=>r.focus!=null||r.peer!=null||r.comply!=null||r.st.length);
+  const stAll={};qObs.forEach(o=>{const s=fieldOf(o,'강점또는돋보인모습');if(!s)return;
+    s.split(/[,/·]/).map(x=>trim(x)).filter(Boolean).forEach(x=>stAll[x]=(stAll[x]||0)+1);});
+  const allSt=Object.entries(stAll).sort((a,b)=>b[1]-a[1]).slice(0,8);
   const gLabel={clear:'명확하게 나타남',partial:'부분적으로 나타남',none:'관찰되지 않음',support:'지원이 필요함'};
   const warn=(qObs.length+qEmo.length)===0?`<div class="warnbox no-print">선택한 ${label}에 기록이 없습니다. 전체 기록은 관찰 ${obs.length}건·감정 ${emo.length}회입니다 — 다른 기간을 선택하세요.${undated?` (날짜 미기재 ${undated}건은 분기 집계에서 제외)`:''}</div>`:'';
   const ed=(k,txt)=>`<p contenteditable="true" data-k="${k}">${esc(saved[k]||txt)}</p>`;
@@ -781,10 +843,26 @@ function buildReport(name,q){
 
     <h3>Observation &amp; Discovery · 관찰과 발견</h3>
     ${ed('discovery',ex.opinion||ex.possibility?[ex.opinion,ex.possibility].filter(Boolean).join('\n\n'):(notes.slice(0,4).map(o=>`• [${o.lab}] ${o.note}`).join('\n')||'이번 기간 관찰 내용을 종합해 주요 발견을 기술하세요.'))}
+
+    <div id="secMetrics">
+      <h3>활동 참여 지표 · 연구소별</h3>
+      ${labMetricRows.length?`<div class="rtabwrap"><table class="rtab"><thead><tr><th>연구소</th><th>관찰</th><th>집중도<span>/5</span></th><th>또래<span>/5</span></th><th>수용도<span>/4</span></th><th>주요 강점</th></tr></thead><tbody>
+        ${labMetricRows.map(r=>`<tr><td><b>${esc(r.lab)}</b></td><td>${r.n}건</td>
+          <td>${r.focus==null?'-':r.focus.toFixed(1)}</td><td>${r.peer==null?'-':r.peer.toFixed(1)}</td><td>${r.comply==null?'-':r.comply.toFixed(1)}</td>
+          <td>${r.st.length?esc(r.st.join(', ')):'-'}</td></tr>`).join('')}
+      </tbody></table></div>
+      <div class="rnote2">연구원이 활동마다 기록한 평가를 기간 평균으로 집계한 값입니다. 기재된 항목만 집계합니다.</div>`
+      :'<div class="rnote2">이 기간에 집계할 척도 기록이 없습니다.</div>'}
+      ${allSt.length?`<div style="margin-top:10px"><b style="font-size:12px">돋보인 모습</b>
+        <div style="margin-top:5px">${allSt.map(([k,v])=>`<span class="gchip" style="margin-right:4px">${esc(k)} ${v}회</span>`).join('')}</div></div>`:''}
+    </div>
+
     <div id="secEvid">
-      ${Object.keys(byLab).length?`<div style="font-size:11.5px;color:#8a93a1;font-weight:700;margin:12px 0 6px">연구소별 관찰 근거</div>`+Object.entries(byLab).map(([l,a])=>{
+      <h3>관찰 근거 원문 <span style="font-size:11px;color:#8a93a1;font-weight:600">· 내부 검토용</span></h3>
+      <div class="rnote2">연구원이 현장에서 작성한 원문입니다. <b>학부모 발송본에는 기본적으로 포함되지 않습니다</b> — 필요한 내용은 위 '관찰과 발견'에 다듬어 옮겨 주세요.</div>
+      ${Object.keys(byLab).length?Object.entries(byLab).map(([l,a])=>{
         const t=a.filter(x=>x.note).slice(0,2).map(x=>`${fmtDate(x.date)} — ${x.note}`).join('\n');
-        return `<div class="evid"><b>${esc(l)}</b> (${a.length}건)${t?'\n'+esc(t):''}</div>`;}).join(''):''}
+        return `<div class="evid"><b>${esc(l)}</b> (${a.length}건)${t?'\n'+esc(t):''}</div>`;}).join(''):'<div class="rnote2">관찰 원문 없음</div>'}
     </div>
 
     ${ai.text?`<div id="secAI"><h3>종합 분석 <span style="font-size:11px;color:#8a93a1;font-weight:600">· AI 초안, SEL 상담가 검토</span></h3>${ed('ai',ai.text)}</div>`:''}
