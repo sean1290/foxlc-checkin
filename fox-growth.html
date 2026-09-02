@@ -514,7 +514,29 @@ main{max-width:1200px;margin:0;padding:28px 36px 90px 300px}
   .rtr{grid-template-columns:1fr;gap:6px;padding:13px 15px}
   .rta{text-align:left}
 }
+/* 학생 페이지 이전/다음 */
+.crumb{justify-content:space-between}
+.nav2{display:flex;align-items:center;gap:7px}
+.nav2 em{font-style:normal;font-size:11.5px;color:var(--ink3);font-weight:700;min-width:52px;text-align:center}
+.nav2 .btn[disabled]{opacity:.4;cursor:default}
+/* 리포트 표지 사진 */
+.rcvtop{display:flex;align-items:flex-start;gap:18px;justify-content:space-between}
+.rcvphoto .avatar.lg{width:78px;height:78px;flex-basis:78px;border-radius:14px;border:3px solid #fff;box-shadow:0 2px 10px rgba(20,30,45,.12)}
+/* 목표 사용 현황 */
+.guse{font-size:11px;font-weight:700;color:var(--accent-ink);background:var(--accent-soft);border-radius:20px;padding:2px 9px;white-space:nowrap}
+.guse.zero{color:#b6bcc5;background:var(--line2);font-weight:600}
+.gsts{display:flex;gap:3px}
+.gsts em{font-style:normal;font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px}
+.gsts .st-clear{background:#e7f2ec;color:#1f5c40}
+.gsts .st-partial{background:#fdf3d9;color:#8a6408}
+.gsts .st-none{background:#f1f3f5;color:#6b7280}
+.gsts .st-support{background:#fbe9df;color:#a03c0e}
+/* 기록 검색 */
+.recsearch{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-bottom:12px}
+.recsearch input{border:0;outline:none;flex:1;font-size:13.5px;background:transparent}
 @media print{
+  body.bulkmode>main,body.bulkmode>#sidebar,body.bulkmode>#sbToggle{display:none!important}
+  #bulkPrint .rep{margin-bottom:0}
   #sidebar,#sbToggle,header,.no-print,.rtabs,.subnav,.repopt,.skipprint{display:none!important}
   body{background:#fff}main{padding:0}
   .rep{border:0;box-shadow:none;max-width:100%;border-radius:0}
@@ -579,12 +601,13 @@ main{max-width:1200px;margin:0;padding:28px 36px 90px 300px}
   <section class="view" id="v-reports">
     <h2 class="title">성장 리포트</h2>
     <div class="sub" id="repSub">불러오는 중…</div>
-    <div class="toolbar"><div id="repFilterBar" style="display:flex;gap:6px;flex-wrap:wrap"></div></div>
+      <div id="repFilterBar" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+      <button class="btn sm" style="margin-left:auto" onclick="printDone()">완료본 일괄 인쇄</button>
     <div id="repList"></div>
   </section>
   <section class="view" id="v-library">
     <h2 class="title">성장목표 라이브러리</h2>
-    <div class="sub">FOX 공통 성장목표. 추상적 역량이 아닌 <b>관찰 가능한 행동</b>으로 기술합니다.</div>
+    <div class="sub" id="libSub">FOX 공통 성장목표. 추상적 역량이 아닌 <b>관찰 가능한 행동</b>으로 기술합니다.</div>
     <div class="toolbar"><button class="btn pri sm" id="addCat">+ 역량 추가</button></div>
     <div id="libBody"></div>
   </section>
@@ -628,7 +651,7 @@ const YEAR=2026;
 const RAW={obs:[],emo:[],members:{}};
 let DB={students:{},goalAssignments:{},diagnosis:{},aiAnalysis:{},expert:{},reports:{},goalLibrary:null,staff:null,updatedAt:0};
 let STUDENTS=[], labFilterSet=new Set(), curStudent=null, recTab='obs', recLab='', recLimit=30;
-let subTab='records', repQ=0, lastSheetSync=0;
+let subTab='records', repQ=0, lastSheetSync=0, recQuery='';
 let sortMode='name';   // name | recent (실제 값은 boot()에서 복원)
 let actFilter='';   // '' | regular | occasional | dormant
 
@@ -984,9 +1007,29 @@ function studentSignals(s){
     :goals.length&&!Object.keys(rep).length?{k:'report',t:'리포트 작성 가능'}:null;
   return {obs,emo,goals,days,scored,act,ready,next,trend:trendOf(s.name)};
 }
+/* 학생별 신호 캐시.
+   studentSignals는 관찰·감정 전체를 순회하므로 검색/필터마다 재계산하면 느리다.
+   시트 로드(lastSheetSync)나 팀 데이터 변경(DB.updatedAt) 시에만 무효화한다. */
+let SIGC=new Map(), SIGKEY='';
+function sigKey(){return lastSheetSync+'|'+(DB.updatedAt||0);}
+function sigOf(s){
+  const k=sigKey();
+  if(k!==SIGKEY){SIGC=new Map();SIGKEY=k;}
+  let v=SIGC.get(s.name);
+  if(!v){v=studentSignals(s);SIGC.set(s.name,v);}
+  return v;
+}
+/* 현재 목록 순서 기준 이전/다음 학생 */
+let NAVORDER=[];
+function neighbors(name){
+  const arr=NAVORDER.length?NAVORDER:STUDENTS.map(s=>s.name);
+  const i=arr.indexOf(name);
+  if(i<0)return null;
+  return {i,total:arr.length,prev:i>0?arr[i-1]:null,next:i<arr.length-1?arr[i+1]:null};
+}
 let DASH=null;
 function buildDash(){
-  const rows=STUDENTS.map(s=>({s,...studentSignals(s)}));
+  const rows=STUDENTS.map(s=>({s,...sigOf(s)}));
   const tr=rows.filter(r=>r.trend.ok);
   DASH={
     rows,
@@ -1131,7 +1174,7 @@ function avatarHTML(name,cls){
 window.setSort=m=>{sortMode=m;lsSet('foxgrowth.sort',m);renderStudents();};
 function renderStudents(){
   const q=trim($('#stSearch').value);
-  const sig={};STUDENTS.forEach(s=>sig[s.name]=studentSignals(s));
+  const sig={};STUDENTS.forEach(s=>sig[s.name]=sigOf(s));
   let list=STUDENTS.filter(s=>!q||s.name.includes(q)||(s.member?.school||'').includes(q));
   if(labFilterSet.size)list=list.filter(s=>s.labs.some(l=>labFilterSet.has(l)));
   if(actFilter)list=list.filter(s=>sig[s.name].act.k===actFilter);
@@ -1139,6 +1182,7 @@ function renderStudents(){
   list=list.slice().sort(recent
     ? (a,b)=>(b.last?.getTime()||0)-(a.last?.getTime()||0)||a.name.localeCompare(b.name,'ko')
     : (a,b)=>a.name.localeCompare(b.name,'ko'));
+  NAVORDER=list.map(s=>s.name);   // 학생 페이지 이전/다음이 지금 보는 목록 순서를 따르도록
   const cnt=k=>STUDENTS.filter(s=>sig[s.name].act.k===k).length;
   $('#studSub').innerHTML=`총 <b>${STUDENTS.length}</b>명 · 관찰 ${RAW.obs.length.toLocaleString()}건 · 감정체크 ${RAW.emo.length.toLocaleString()}회`;
   $('#sortBar').innerHTML=`
@@ -1189,7 +1233,15 @@ function renderStudentPage(){
   if(startD){const mo=Math.max(0,Math.round((Date.now()-startD)/2592000000));attend=`${startD.getFullYear()}.${pad2(startD.getMonth()+1)}.${pad2(startD.getDate())}부터${mo?` (${mo}개월)`:''}`;}
   const hide=subTab==='report'?'no-print':'';
   $('#studentPage').innerHTML=`
-  <div class="crumb ${hide}"><a onclick="go('#/students')">← 학생 목록</a></div>
+  <div class="crumb ${hide}">
+    <a onclick="go('#/students')">← 학생 목록</a>
+    ${(()=>{const n=neighbors(name);if(!n)return '';
+      return `<span class="nav2">
+        ${n.prev?`<button class="btn sm" onclick="go('#/student/${encodeURIComponent(n.prev)}/${subTab}')" title="${esc(n.prev)}">‹ 이전</button>`:'<button class="btn sm" disabled>‹ 이전</button>'}
+        <em>${n.i+1} / ${n.total}</em>
+        ${n.next?`<button class="btn sm" onclick="go('#/student/${encodeURIComponent(n.next)}/${subTab}')" title="${esc(n.next)}">다음 ›</button>`:'<button class="btn sm" disabled>다음 ›</button>'}
+      </span>`;})()}
+  </div>
   <div class="card pad ${hide}">
     <div class="phead">
       ${avatarHTML(name,'lg')}
@@ -1263,6 +1315,11 @@ function viewRecords(name){
         <button class="${recTab==='obs'?'on':''}" onclick="setRecTab('obs')">관찰 기록 ${obs.length}</button>
         <button class="${recTab==='emo'?'on':''}" onclick="setRecTab('emo')">감정체크 ${emo.length}</button>
         <button class="${recTab==='all'?'on':''}" onclick="setRecTab('all')">전체 통합 ${obs.length+emo.length}</button>
+      </div>
+      <div class="recsearch">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8a93a1" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3-3"/></svg>
+        <input id="recQ" value="${esc(recQuery)}" placeholder="관찰·감정 기록 내용 검색 (예: 3D펜)" oninput="setRecQ(this.value)">
+        ${recQuery?`<button class="btn ghost sm" onclick="setRecQ('')">지우기</button>`:''}
       </div>
       ${recTab==='obs'?labChips(obs):''}
       <div id="recList">${renderRecords(name)}</div>
@@ -1341,7 +1398,12 @@ function viewAnalysis(name){
   </div>
 
   <div class="card pad" style="margin-bottom:14px">
-    <div class="sec-h">② AI 분석 결과 붙여넣기<span class="act" style="display:flex;gap:6px"><button class="btn sm" onclick="saveAI('${esc(name)}')">저장</button><button class="btn pri sm" onclick="saveAI('${esc(name)}');distributeAI('${esc(name)}')">저장 후 리포트에 반영</button></span></div>
+    <div class="sec-h">② AI 분석 결과 붙여넣기<span class="act" style="display:flex;gap:6px;align-items:center">
+      <select id="distQ" onchange="repQ=+this.value" style="border:1px solid var(--line);border-radius:8px;padding:5px 8px;font-size:12px">
+        ${[0,1,2,3,4].map(q=>`<option value="${q}" ${repQ===q?'selected':''}>${qLabel(q)}</option>`).join('')}
+      </select>
+      <button class="btn sm" onclick="saveAI('${esc(name)}')">저장</button>
+      <button class="btn pri sm" onclick="saveAI('${esc(name)}');distributeAI('${esc(name)}')">저장 후 리포트에 반영</button></span></div>
     <div class="sub" style="margin:0 0 8px">GPT·Claude 결과를 그대로 붙여넣으세요. <b>[요약] [연구소별] [발견]</b> 같은 머리말이 있으면 <b>리포트 각 칸에 자동으로 들어갑니다</b>. ([내부 메모]는 리포트에 넣지 않습니다)</div>
     <textarea id="aiResult" rows="14" class="bigbox" placeholder="여기에 AI 분석 결과를 붙여넣으세요…">${esc(ai.text||'')}</textarea>
     <div class="stamp">${ai.at?`최종 저장: ${esc(ai.by||'')} · ${new Date(ai.at).toLocaleString('ko-KR')}`:'아직 저장된 AI 분석이 없습니다.'}</div>
@@ -1383,22 +1445,21 @@ window.distributeAI=name=>{
   const map={'요약':'headline','감정':'emotion','발견':'discovery','처음과 지금':'change','지원':'response','다음 방향':'next','가정 지원':'home'};
   const {obs}=recordsFor(name);
   const labs=[...new Set(obs.map(o=>o.lab))];
+  // 현재 선택된 기간에만 반영한다. 전 분기에 쓰면 3분기 분석이 1·2분기 리포트까지 덮어쓴다.
   const filled=[];
-  [0,1,2,3,4].forEach(q=>{
-    DB.reports[name]=DB.reports[name]||{};
-    const r=DB.reports[name][q]=DB.reports[name][q]||{};
-    Object.entries(map).forEach(([k,f])=>{if(s[k]){r[f]=s[k];if(!q)filled.push(k);}});
-    // 연구소별: "미술연구소: 내용" 줄을 각 연구소 요약 칸으로
-    if(s['연구소별']) labs.forEach(lab=>{
-      const short=lab.replace('연구소','');
-      const re=new RegExp('^\\s*(?:'+lab+'|'+short+')\\s*[:：]\\s*(.+)$','m');
-      const m=s['연구소별'].match(re);
-      if(m){r['lab_'+lab]=trim(m[1]);if(!q)filled.push(lab);}
-    });
+  DB.reports[name]=DB.reports[name]||{};
+  const r=DB.reports[name][repQ]=DB.reports[name][repQ]||{};
+  Object.entries(map).forEach(([k,f])=>{if(s[k]){r[f]=s[k];filled.push(k);}});
+  // 연구소별: "미술연구소: 내용" 줄을 각 연구소 요약 칸으로
+  if(s['연구소별']) labs.forEach(lab=>{
+    const short=lab.replace('연구소','');
+    const re=new RegExp('^\\s*(?:'+lab+'|'+short+')\\s*[:：]\\s*(.+)$','m');
+    const m=s['연구소별'].match(re);
+    if(m){r['lab_'+lab]=trim(m[1]);filled.push(lab);}
   });
   commit();
   if(subTab==='report')renderStudentPage();
-  toast(`리포트에 반영됨 — ${filled.length}개 항목`);
+  toast(`${qLabel(repQ)} 리포트에 반영됨 — ${filled.length}개 항목`);
 };
 window.saveAI=name=>{DB.aiAnalysis[name]={text:trim($('#aiResult').value),at:Date.now(),by:$('#meName').value};commit();renderStudentPage();toast('AI 분석 저장됨');};
 window.saveExpert=name=>{DB.expert[name]={opinion:trim($('#exOpinion').value),possibility:trim($('#exPossibility').value),response:trim($('#exResponse').value),next:trim($('#exNext').value),home:trim($('#exHome').value),reviewer:$('#meName').value,at:Date.now()};commit();renderStudentPage();toast('전문가 소견 저장됨');};
@@ -1653,9 +1714,14 @@ function buildReport(name,q){
       <text x="86" y="52" font-family="Pretendard,sans-serif" font-size="42" font-weight="800" fill="#203462">FOX</text>
       <text x="183" y="52" font-family="Pretendard,sans-serif" font-size="42" font-weight="700" fill="#72c0a1">LC</text>
     </svg>
-    <div class="rtitle">STUDENT GROWTH REPORT</div>
-    <h1>${esc(name)} 성장 리포트</h1>
-    <div class="rperiod">${YEAR}년 ${esc(label)}${dr.length?` · ${esc(periodTxt)}`:''}</div>
+    <div class="rcvtop">
+      <div>
+        <div class="rtitle">STUDENT GROWTH REPORT</div>
+        <h1>${esc(name)} 성장 리포트</h1>
+        <div class="rperiod">${YEAR}년 ${esc(label)}${dr.length?` · ${esc(periodTxt)}`:''}</div>
+      </div>
+      ${(PHOTOS[name]||DB.students[name]?.photo)?`<div class="rcvphoto">${avatarHTML(name,'lg')}</div>`:''}
+    </div>
     <div class="rfacts">
       ${mb.age?`<div>나이/학년<b>${esc(mb.age)}</b></div>`:''}
       ${mb.school?`<div>학교<b>${esc(mb.school)}</b></div>`:''}
@@ -1925,9 +1991,34 @@ window.toggleDone=(name,q)=>{
   r._done=!r._done;r._doneAt=r._done?Date.now():null;r._doneBy=r._done?($('#meName')?.value||''):'';
   commit();refreshView();toast(r._done?'완료 처리됨':'완료 해제됨');
 };
-window.setRecTab=t=>{recTab=t;recLimit=30;recLab='';renderStudentPage();};
+window.setRecTab=t=>{recTab=t;recLimit=30;recLab='';recQuery='';renderStudentPage();};
 window.setRecLab=l=>{recLab=l;recLimit=30;renderStudentPage();};
 window.moreRecs=()=>{recLimit+=50;$('#recList').innerHTML=renderRecords(curStudent);};
+window.setRecQ=v=>{recQuery=v;recLimit=30;
+  const el=$('#recList');if(el)el.innerHTML=renderRecords(curStudent);
+  const c=$('#recQ');if(c&&document.activeElement!==c)renderStudentPage();};
+/* 완료된 리포트를 한 번에 인쇄 */
+window.printDone=()=>{
+  const done=allReports().filter(x=>x.done);
+  if(!done.length){toast('완료 처리된 리포트가 없습니다');return;}
+  const keepS=curStudent,keepQ=repQ,keepT=subTab;
+  const host=document.createElement('div');host.id='bulkPrint';
+  done.forEach((x,i)=>{
+    curStudent=x.name;repQ=x.q;
+    const w=document.createElement('div');
+    w.innerHTML=buildReport(x.name,x.q);
+    const doc=w.querySelector('.rep');
+    if(doc){doc.removeAttribute('id');if(i)doc.style.pageBreakBefore='always';
+      doc.querySelectorAll('.no-print,#secEvid').forEach(e=>e.remove());
+      host.appendChild(doc);}
+  });
+  curStudent=keepS;repQ=keepQ;subTab=keepT;
+  document.body.appendChild(host);
+  document.body.classList.add('bulkmode');
+  const done2=()=>{document.body.classList.remove('bulkmode');host.remove();window.removeEventListener('afterprint',done2);};
+  window.addEventListener('afterprint',done2);
+  setTimeout(()=>window.print(),120);
+};
 function labChips(obs){
   const labs=[...new Set(obs.map(o=>o.lab))];
   if(labs.length<2)return '';
@@ -1940,6 +2031,13 @@ function labChips(obs){
 function renderRecords(name){
   const {obs,emo,all}=recordsFor(name);
   let list = recTab==='obs'?obs.filter(o=>!recLab||o.lab===recLab) : recTab==='emo'?emo : all;
+  if(recQuery){
+    const q=recQuery.toLowerCase();
+    const hit=r=>[r.topic,r.note,r.program,r.author,r.lab,r.emotion,...(r.fields||[]).map(f=>f[1])]
+      .some(v=>v&&String(v).toLowerCase().includes(q));
+    const n0=list.length;list=list.filter(hit);
+    if(!list.length)return `<div class="estate"><b>“${esc(recQuery)}”와 일치하는 기록이 없습니다.</b><span>전체 ${n0}건에서 찾았습니다. 다른 낱말로 검색해 보세요.</span></div>`;
+  }
   if(!list.length)return '<div class="empty-note">기록이 없습니다.</div>';
   const shown=list.slice(0,recLimit);
   let html='',lastKey='';
@@ -2149,11 +2247,26 @@ window.copyPrompt=()=>{const t=$('#aiPrompt');t.select();navigator.clipboard?.wr
 
 /* ===================== LIBRARY / SETTINGS ===================== */
 function renderLibrary(){
+  // 목표별 사용 현황: 어떤 목표가 몇 명에게 설정됐는지
+  const use={}, byCat={};
+  Object.entries(DB.goalAssignments||{}).forEach(([nm,gs])=>(gs||[]).forEach(g=>{
+    (use[g.text]=use[g.text]||[]).push({nm,status:g.status||''});
+    if(g.cat)byCat[g.cat]=(byCat[g.cat]||0)+1;
+  }));
+  const total=Object.values(use).reduce((a,b)=>a+b.length,0);
+  const gLabel={clear:'명확',partial:'부분적',none:'미관찰',support:'지원필요'};
+  $('#libSub').innerHTML=total
+    ? `학생에게 설정된 목표 <b>${total}</b>건 · 사용 중인 목표 ${Object.keys(use).length}종`
+    : `아직 학생에게 설정된 목표가 없습니다. 학생 페이지 → <b>1 · 관찰 데이터</b>의 활성 성장목표에서 지정하세요.`;
   $('#libBody').innerHTML=DB.goalLibrary.map((c,ci)=>`<div class="card pad lib-cat" style="margin-bottom:12px">
-    <h4>${esc(c.cat)} <span>${c.goals.length}개</span>
+    <h4>${esc(c.cat)} <span>${c.goals.length}개${byCat[c.cat]?` · 설정 ${byCat[c.cat]}건`:''}</span>
       <button class="btn ghost sm" style="margin-left:auto" onclick="addGoalToCat(${ci})">+ 목표</button>
       <button class="btn ghost sm" onclick="delCat(${ci})">역량 삭제</button></h4>
-    ${c.goals.map((g,gi)=>`<div class="lib-goal"><span class="txt" contenteditable="true" onblur="editGoalText(${ci},${gi},this.innerText)">${esc(g)}</span><button class="btn ghost sm" onclick="delGoal(${ci},${gi})">✕</button></div>`).join('')}</div>`).join('');
+    ${c.goals.map((g,gi)=>{const u=use[g]||[];
+      return `<div class="lib-goal"><span class="txt" contenteditable="true" onblur="editGoalText(${ci},${gi},this.innerText)">${esc(g)}</span>
+        ${u.length?`<span class="guse" title="${esc(u.map(x=>x.nm).join(', '))}">${u.length}명</span>
+          <span class="gsts">${u.filter(x=>x.status).map(x=>`<em class="st-${x.status}">${gLabel[x.status]}</em>`).join('')}</span>`:'<span class="guse zero">미사용</span>'}
+        <button class="btn ghost sm" onclick="delGoal(${ci},${gi})">✕</button></div>`;}).join('')}</div>`).join('');
 }
 window.editGoalText=(c,g,t)=>{DB.goalLibrary[c].goals[g]=trim(t);commit();};
 window.delGoal=(c,g)=>{DB.goalLibrary[c].goals.splice(g,1);commit();renderLibrary();};
