@@ -1434,23 +1434,55 @@ function viewAnalysis(name){
 }
 /* AI 결과([머리말] 형식)를 리포트 각 칸으로 분배.
    내부 메모는 리포트에 넣지 않는다. */
+/* AI 결과의 머리말 파싱.
+   GPT가 [요약] / **[요약]** / ## 요약 / [요약]: 내용… 등 다양하게 내므로
+   마크다운 장식과 같은 줄 내용을 허용한다. */
+const AI_KEYS=['요약','연구소별','감정','발견','처음과 지금','지원','다음 방향','가정 지원','내부 메모'];
+const AI_ALIAS={'연구소':'연구소별','연구소별 활동':'연구소별','연구소별활동요약':'연구소별',
+  '감정체크':'감정','전후':'처음과 지금','비포애프터':'처음과 지금','before→after':'처음과 지금',
+  '교육적 반응':'지원','센터 지원':'지원','다음 성장 방향':'다음 방향','가정에서의 지원':'가정 지원',
+  '가정 지원 제안':'가정 지원','내부메모':'내부 메모','내부 참고':'내부 메모'};
+function canonKey(s){
+  const t=trim(s).replace(/\s+/g,'').toLowerCase();
+  if(!t||t.length>14)return null;
+  const hit=AI_KEYS.find(k=>k.replace(/\s+/g,'').toLowerCase()===t);
+  if(hit)return hit;
+  const al=Object.keys(AI_ALIAS).find(k=>k.replace(/\s+/g,'').toLowerCase()===t);
+  return al?AI_ALIAS[al]:null;
+}
 function parseAISections(text){
   const out={};
-  const re=/^\s*\[([^\]]+)\]\s*$/;
   let cur=null, buf=[];
-  String(text||'').split(/\r?\n/).forEach(line=>{
-    const m=line.match(re);
-    if(m){ if(cur)out[cur]=buf.join('\n').trim(); cur=trim(m[1]); buf=[]; }
-    else if(cur!==null) buf.push(line);
+  const flush=()=>{if(cur)out[cur]=buf.join('\n').trim();};
+  String(text||'').split(/\r?\n/).forEach(raw=>{
+    // 줄머리 마크다운(#, *, -, >, 1.) 과 굵게(**) 제거
+    let l=raw.replace(/^[\s>]*[#*\-–—•]*\s*/,'').replace(/^\d+[.)]\s*/,'').replace(/\*\*/g,'').trimEnd();
+    let key=null, rest='';
+    let m=l.match(/^\[([^\]]{1,20})\]\s*[:：]?\s*(.*)$/);          // [요약] 또는 [요약]: 내용
+    if(m){key=canonKey(m[1]);rest=m[2];}
+    // 대괄호 없는 머리말은 그 줄에 내용이 없을 때만 인정한다.
+    // ("발견: 제목" 처럼 발견 카드의 항목 줄을 머리말로 오인하지 않도록)
+    if(!key){const k=canonKey(l.replace(/[:：]\s*$/,''));if(k){key=k;rest='';}}
+    if(key){flush();cur=key;buf=[];if(trim(rest))buf.push(rest);return;}
+    if(cur!==null)buf.push(raw);
   });
-  if(cur)out[cur]=buf.join('\n').trim();
+  flush();
   return out;
 }
 window.distributeAI=name=>{
   const raw=(DB.aiAnalysis[name]||{}).text||trim($('#aiResult')?.value||'');
   if(!raw){toast('먼저 AI 결과를 붙여넣고 저장하세요');return;}
   const s=parseAISections(raw);
-  if(!Object.keys(s).length){toast('[요약] 같은 머리말을 찾지 못했습니다');return;}
+  if(!Object.keys(s).length){
+    openModal('머리말을 찾지 못했습니다',
+      `<p style="margin:0 0 10px;font-size:13.5px;line-height:1.7">붙여넣은 결과에서 <b>[요약]</b> 같은 머리말을 찾지 못했습니다.
+       AI가 아래 형식으로 답하도록 프롬프트를 그대로 복사해 사용해 주세요.</p>
+       <div class="evid" style="font-size:12px">[요약]\n내용…\n\n[연구소별]\n미술연구소: 내용…\n\n[발견]\n발견: …\n근거: …\n가능성: …</div>
+       <p style="margin:10px 0 0;font-size:12.5px;color:var(--ink3)">인식하는 머리말: ${AI_KEYS.map(k=>'['+k+']').join(' · ')}<br>
+       <b>#</b>, <b>**</b> 같은 표시가 붙어 있어도 인식합니다. 형식이 달라도 저장은 되었으니, 리포트 각 칸에 직접 붙여넣어도 됩니다.</p>`,
+      null);
+    $('#mSave').style.display='none';$('#mCancel').textContent='닫기';
+    return;}
   const map={'요약':'headline','감정':'emotion','발견':'discovery','처음과 지금':'change','지원':'response','다음 방향':'next','가정 지원':'home'};
   const {obs}=recordsFor(name);
   const labs=[...new Set(obs.map(o=>o.lab))];
