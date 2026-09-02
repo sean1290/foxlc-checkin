@@ -1770,6 +1770,8 @@ function buildReport(name,q){
       ${ed('headline',`${name} 학생의 ${label} 성장 기록입니다. 아래 내용은 여러 연구소에서 기록한 관찰과 감정체크 데이터를 종합하여 정리하였습니다.`)}
     </div>
 
+    <div class="rstage"><span>관찰</span> 활동에서 무엇이 기록되었나</div>
+
     <section>
       ${sec('한눈에 보기','이번 기간 활동 요약')}
       <div class="rstats">
@@ -1791,7 +1793,6 @@ function buildReport(name,q){
       </div>
     </section>`:''}
 
-    <div class="rstage"><span>관찰</span> 이번 기간에 무엇을 보았나</div>
 
     <section>
       ${sec('연구소별 활동 분석',`${labEntries.length}개 연구소 · ${label} 전체 ${qObs.length}건 집계`)}
