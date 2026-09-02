@@ -534,6 +534,15 @@ main{max-width:1200px;margin:0;padding:28px 36px 90px 300px}
 /* 기록 검색 */
 .recsearch{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-bottom:12px}
 .recsearch input{border:0;outline:none;flex:1;font-size:13.5px;background:transparent}
+/* 연구소 활동 해석 */
+.lsum .lsl{display:flex;align-items:baseline;gap:8px}
+.lhint{font-size:10px;font-weight:600;color:#b6bcc5;letter-spacing:0}
+.lsum p{outline:none;border-radius:6px;padding:2px 4px;margin-left:-4px}
+.lsum p:hover{background:#f7f9fa}
+.lsum p:focus{background:#fff;box-shadow:0 0 0 2px var(--accent-soft)}
+.lsum p.ph{color:#b0b7c0;font-style:italic}
+.lsum.blank{border-top-style:dashed}
+@media print{.lsum.blank{display:none}}
 @media print{
   body.bulkmode>main,body.bulkmode>#sidebar,body.bulkmode>#sbToggle{display:none!important}
   #bulkPrint .rep{margin-bottom:0}
@@ -1833,9 +1842,11 @@ function buildReport(name,q){
             ${topTp.length?`<div class="lrow"><b>진행한 활동</b><span>${topTp.map(([t,n])=>esc(t)+(n>1?` (${n}회)`:'')).join(' · ')}</span></div>`:''}
             ${topLs.length?`<div class="lrow"><b>돋보인 모습</b><span>${topLs.map(([k,v])=>`<span class="otag">${esc(k)} ${v}</span>`).join('')}</span></div>`:''}
             ${topHt.length?`<div class="lrow"><b>지원이 필요했던 상황</b><span>${topHt.map(([k,v])=>`${esc(k)} ${v}회`).join(' · ')}</span></div>`:''}
-            <div class="lsum">
-              <div class="lsl">활동 요약</div>
-              ${ed(key,saved[key]||'이 연구소 활동에 대한 요약을 작성하거나, 발견·분석 탭의 AI 결과에서 해당 연구소 문단을 붙여넣으세요.')}
+            <div class="lsum${trim(saved[key])?'':' blank'}">
+              <div class="lsl">활동 해석<span class="lhint no-print">클릭해 직접 수정 · 저장하려면 상단 [리포트 저장]</span></div>
+              ${trim(saved[key])
+                ? ed(key,'')
+                : `<p contenteditable="true" data-k="${key}" class="ph">위 지표가 무엇을 의미하는지 해석해 적어 주세요. 발견·분석 탭에서 AI 결과를 「리포트에 반영」하면 이 칸이 자동으로 채워집니다.</p>`}
             </div>
           </div>
         </div>`;}).join('')
@@ -1981,8 +1992,23 @@ function buildReport(name,q){
   </div>
 </div>`;
 }
+// 안내문(.ph)에 타이핑을 시작하면 실제 내용 칸으로 전환한다
+document.addEventListener('input',e=>{
+  const el=e.target;
+  if(el instanceof HTMLElement&&el.classList&&el.classList.contains('ph')){
+    el.classList.remove('ph');
+    el.closest('.lsum')?.classList.remove('blank');
+  }
+},true);
+document.addEventListener('focusin',e=>{
+  const el=e.target;
+  if(el instanceof HTMLElement&&el.classList&&el.classList.contains('ph')&&el.isContentEditable){
+    el.textContent='';el.classList.remove('ph');
+    el.closest('.lsum')?.classList.remove('blank');
+  }
+},true);
 window.saveReport=name=>{
-  const o={};$$('#repDoc [data-k]').forEach(e=>o[e.dataset.k]=e.innerText.trim());
+  const o={};$$('#repDoc [data-k]').forEach(e=>{if(e.classList.contains('ph'))return;o[e.dataset.k]=e.innerText.trim();});
   const prev=(DB.reports[name]||{})[repQ]||{};
   o._at=Date.now();o._by=$('#meName')?.value||'';o._done=prev._done||false;
   DB.reports[name]=DB.reports[name]||{};DB.reports[name][repQ]=o;commit();toast('리포트 저장됨');
@@ -2111,6 +2137,27 @@ function buildPrompt(name){
   const lib=(DB.goalLibrary||[]).map(c=>`· ${c.cat}: ${c.goals.join(' / ')}`).join('\n');
   const byLab={};obs.forEach(o=>{(byLab[o.lab]=byLab[o.lab]||[]).push(o);});
   const labSummary=Object.entries(byLab).map(([l,a])=>`${l} ${a.length}건`).join(', ')||'없음';
+  // 리포트가 화면에 표시하는 것과 동일한 집계를 프롬프트에도 넣어야 AI가 수치를 해석할 수 있다
+  const avgP=a=>a.length?(a.reduce((x,y)=>x+y,0)/a.length).toFixed(1):null;
+  const labStats=Object.entries(byLab).sort((a,b)=>b[1].length-a[1].length).map(([lab,a])=>{
+    const fv=a.map(o=>scale5(fieldOf(o,'활동집중도'))).filter(Boolean);
+    const pv=a.map(o=>scale5(fieldOf(o,'또래상호작용'))).filter(Boolean);
+    const cv=a.map(o=>COMPLY[trim(fieldOf(o,'규칙과연구원의안내수용도'))]).filter(Boolean);
+    const dist=[1,2,3,4,5].map(v=>fv.filter(x=>x===v).length);
+    const hv=a.map(o=>trim(fieldOf(o,'어려운상황이있었는가'))).filter(v=>v==='있음'||v==='없음');
+    const hn=hv.filter(v=>v==='있음').length;
+    const ht={};a.forEach(o=>{const t=trim(o.fields.filter(([k])=>k.includes('(있음)')).map(([,v])=>v)[0]||'');if(t)ht[t]=(ht[t]||0)+1;});
+    const st={};a.forEach(o=>{const s=fieldOf(o,'강점또는돋보인모습');if(!s)return;
+      s.split(/[,/·]/).map(x=>trim(x)).filter(Boolean).forEach(x=>st[x]=(st[x]||0)+1);});
+    const tp={};a.forEach(o=>{const t=trim(o.topic).replace(/\s*\n+\s*/g,' ');if(t)tp[t]=(tp[t]||0)+1;});
+    const top=(o,n)=>Object.entries(o).sort((x,y)=>y[1]-x[1]).slice(0,n).map(([k,v])=>`${k}(${v})`).join(', ')||'-';
+    return `· ${lab} — 관찰 ${a.length}건
+    집중도 평균 ${avgP(fv)||'-'}/5 (n=${fv.length}), 분포 1~5: ${dist.join('/')}
+    또래 상호작용 ${avgP(pv)||'-'}/5 (n=${pv.length}) · 안내 수용도 ${avgP(cv)||'-'}/4 (n=${cv.length})
+    지원이 필요했던 상황 ${hv.length?`${hn}/${hv.length}회(${Math.round(hn/hv.length*100)}%)`:'기록 없음'}${Object.keys(ht).length?` · 유형 ${top(ht,2)}`:''}
+    돋보인 모습 ${top(st,4)}
+    진행한 활동 ${top(tp,4)}`;
+  }).join('\n')||'(관찰 없음)';
   const dated=obs.filter(o=>o.date).sort((a,b)=>a.date-b.date);
   const period=dated.length?`${fmtDate(dated[0].date)} ~ ${fmtDate(dated[dated.length-1].date)}`:'기간 미상';
   const oL=obs.slice(0,60).map(o=>`[${fmtDate(o.date)}·${o.lab}]${o.kind?'('+o.kind+')':''} ${o.topic?o.topic+' — ':''}${o.note||'(관찰내용 미기재)'}${o.fields.length?'\n    · '+o.fields.map(([k,v])=>k+': '+v).join(' / '):''}`).join('\n');
@@ -2168,6 +2215,9 @@ SEL: ${d.sel||'(미입력)'}
 [현재 설정된 성장목표 (Active Growth Goal)]
 ${goals}
 
+[연구소별 지표 집계 — 리포트에 그대로 표시되는 수치입니다]
+${labStats}
+
 [연구소 활동 관찰 기록 — 총 ${obs.length}건 중 최근 ${Math.min(obs.length,60)}건]
 ${oL||'(없음)'}
 
@@ -2199,9 +2249,22 @@ ${eL||'(없음)'}
  리포트 첫 화면에 실리는 문단입니다.)
 
 [연구소별]
-(관찰 기록에 등장한 연구소마다 아래 형식으로. 각 3~4문장.
- 어떤 활동을 했고, 어떤 모습이 관찰되었으며, 무엇이 성장했는지.
- 날짜나 활동명 같은 구체적 근거를 1~2개 자연스럽게 포함하세요.)
+(관찰 기록에 등장한 연구소마다 아래 형식으로, 각 4~6문장.
+ 이 글은 리포트의 '연구소별 활동 분석' 섹션에 지표 바로 아래 실립니다.
+ 지표는 화면에 이미 표로 나오므로, 숫자를 나열하지 말고 **그 숫자가 무엇을 뜻하는지 해석**하세요.
+
+ 반드시 포함할 것:
+ 1) 그 연구소에서 어떤 활동을 했고 아이가 어떤 모습을 보였는지 (날짜·활동명 근거 1~2개)
+ 2) 위 [연구소별 지표 집계]의 수치가 의미하는 바 —
+    집중도 분포가 한쪽에 몰렸는지 넓게 퍼졌는지, 그것이 활동 성격과 어떤 관련이 있어 보이는지,
+    지원이 필요했던 상황이 있었다면 어떤 맥락이었는지
+ 3) 다른 연구소와 뚜렷한 차이가 있다면 그 차이와, 근거에 기반한 조심스러운 이유 추정
+ 4) 이 연구소에서 앞으로 무엇을 지켜보거나 지원하면 좋을지 한 문장
+
+ 주의:
+ · "집중도 4.3점"처럼 점수를 그대로 옮기지 말고 "대부분의 활동에서 안정적으로 집중했습니다"처럼 서술하세요.
+ · 표본이 적으면(n이 5 미만) 단정하지 말고 "기록이 적어 아직 판단하기 이릅니다"라고 밝히세요.
+ · 학부모가 읽는 글입니다. 연구원의 내부 표현을 그대로 옮기지 마세요.)
 미술연구소: (내용)
 언어연구소: (내용)
 
