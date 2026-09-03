@@ -790,6 +790,27 @@ async function loadEmotions(){
   try{await grab(EC_OUT,'퇴실');}catch(e){console.warn('emo out',e);}
   RAW.emo=out;
 }
+/* 이름 표기 정규화.
+   같은 아이가 연구소에 따라 "김태웅", "김태웅(수학)", "김태웅(마크)"로 다르게 적혀 있어
+   앱에서 서로 다른 학생 셋으로 갈라졌다. Member_DB에서 생년월일·학교가 같은 동일 인물임을 확인함.
+   괄호를 떼되, 뗀 이름이 Member_DB에 그대로 있는 경우에만 합친다. 괄호 안은 활동 구분으로 남긴다. */
+const baseName=n=>trim(n).replace(/\s*[(（][^)）]*[)）]\s*$/,'').trim();
+function normalizeNames(){
+  const roster=new Set(Object.keys(RAW.members).filter(n=>baseName(n)===n));
+  const canon=n=>{const b=baseName(n);return (b&&b!==n&&roster.has(b))?b:n;};
+  const tagOf=n=>{const m=trim(n).match(/[(（]([^)）]*)[)）]\s*$/);return m?trim(m[1]):'';};
+  RAW.obs.forEach(o=>{const c=canon(o.name);if(c!==o.name){o.track=tagOf(o.name);o.name=c;}});
+  RAW.emo.forEach(e=>{e.name=canon(e.name);});
+  const mm={};                                   // Member_DB도 합치고 빈 칸은 서로 채운다
+  Object.entries(RAW.members).forEach(([n,v])=>{
+    const c=canon(n);
+    if(!mm[c]){mm[c]={...v};return;}
+    const keep=(c===n)?{...v}:mm[c], fill=(c===n)?mm[c]:v;
+    Object.entries(fill).forEach(([k,x])=>{if(!trim(keep[k])&&trim(x))keep[k]=x;});
+    mm[c]=keep;
+  });
+  RAW.members=mm;
+}
 function buildStudents(){
   const m=new Map();
   const touch=n=>{if(!m.has(n))m.set(n,{labs:new Set(),obsN:0,emoN:0,last:null});return m.get(n);};
@@ -2211,6 +2232,7 @@ function obsCard(o){
     <div class="rhead">
       <span class="tb lab">${esc(o.lab)}</span>
       ${o.kind?`<span class="tb g">${esc(o.kind)}</span>`:''}
+      ${o.track?`<span class="tb g">${esc(o.track)}</span>`:''}
       ${o.program?`<span class="tb g">${esc(o.program)}</span>`:''}
       ${o.time?`<span class="tb au">${esc(o.time)}</span>`:''}
       ${o.author?`<span class="tb au">${esc(o.author)}</span>`:''}
@@ -2572,6 +2594,7 @@ function isEditing(){
 async function loadAllSheets(opt){
   const silent=!!(opt&&opt.silent);
   try{await Promise.all([loadMembers(),loadObservations(),loadEmotions()]);}catch(e){console.error(e);}
+  normalizeNames();
   buildStudents();renderLabFilter();
   lastSheetSync=Date.now();
   const ds=$('#dashSub');if(ds)ds.textContent='오늘 확인할 것';
