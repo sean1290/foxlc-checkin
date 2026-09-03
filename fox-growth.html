@@ -1589,17 +1589,31 @@ function viewAnalysis(name){
    GPT가 [요약] / **[요약]** / ## 요약 / [요약]: 내용… 등 다양하게 내므로
    마크다운 장식과 같은 줄 내용을 허용한다. */
 const AI_KEYS=['요약','연구소별','감정','발견','처음과 지금','지원','다음 방향','가정 지원','내부 메모'];
-const AI_ALIAS={'연구소':'연구소별','연구소별 활동':'연구소별','연구소별활동요약':'연구소별',
-  '감정체크':'감정','전후':'처음과 지금','비포애프터':'처음과 지금','before→after':'처음과 지금',
-  '교육적 반응':'지원','센터 지원':'지원','다음 성장 방향':'다음 방향','가정에서의 지원':'가정 지원',
-  '가정 지원 제안':'가정 지원','내부메모':'내부 메모','내부 참고':'내부 메모'};
-function canonKey(s){
-  const t=trim(s).replace(/\s+/g,'').toLowerCase();
-  if(!t||t.length>14)return null;
-  const hit=AI_KEYS.find(k=>k.replace(/\s+/g,'').toLowerCase()===t);
-  if(hit)return hit;
-  const al=Object.keys(AI_ALIAS).find(k=>k.replace(/\s+/g,'').toLowerCase()===t);
-  return al?AI_ALIAS[al]:null;
+const AI_ALIAS={'연구소별 활동':'연구소별','연구소별활동요약':'연구소별','연구소별 활동 분석':'연구소별',
+  '감정체크':'감정','감정 흐름':'감정','정서':'감정','전후':'처음과 지금','비포애프터':'처음과 지금',
+  'before→after':'처음과 지금','before after':'처음과 지금','변화':'처음과 지금',
+  '교육적 반응':'지원','센터 지원':'지원','지원 방향':'지원','교육적 지원':'지원',
+  '다음 성장 방향':'다음 방향','다음 단계':'다음 방향',
+  '가정에서의 지원':'가정 지원','가정 지원 제안':'가정 지원','가정 연계':'가정 지원','가정에서':'가정 지원',
+  '내부메모':'내부 메모','내부 참고':'내부 메모','내부용':'내부 메모',
+  '총평':'요약','한눈에 보기':'요약','핵심 요약':'요약','종합 요약':'요약','주요 발견':'발견','발견한 것':'발견'};
+/* 긴 표현부터 대조해야 '연구소별 활동 요약'이 '요약'으로 잘못 잡히지 않는다 */
+const AI_ORDER=[...AI_KEYS,...Object.keys(AI_ALIAS)]
+  .sort((a,b)=>b.replace(/\s+/g,'').length-a.replace(/\s+/g,'').length);
+const aiNorm=s=>trim(s).replace(/\s+/g,'').toLowerCase();
+const aiCanon=k=>AI_KEYS.includes(k)?k:AI_ALIAS[k];
+/* loose=true면 '종합 요약'처럼 알려진 머리말을 품고 있는 표현도 인정한다.
+   괄호가 있거나 #·** 로 꾸며진 줄, 즉 누가 봐도 제목인 줄에만 허용한다.
+   (그냥 '지원 방향' 같은 본문 한 줄이 새 머리말로 잡혀 뒷내용을 통째로 삼키는 걸 막는다) */
+function canonKey(s,loose){
+  let t=aiNorm(s).replace(/^[[({【〔<《「]+/,'').replace(/[\])}】〕>》」]+$/,'').replace(/[:：.·\-–—]+$/,'');
+  if(!t||t.length>16)return null;
+  // "미술연구소" "SEL센터" 같은 연구소 이름은 절대 섹션 머리말이 아니다.
+  // ([연구소별] 안에서 **미술연구소** 를 새 섹션으로 잡아 앞 연구소 본문을 통째로 날린 적이 있다)
+  if(t!=='연구소별'&&/(연구소|센터)$/.test(t))return null;
+  for(const k of AI_ORDER) if(t===aiNorm(k)) return aiCanon(k);
+  if(loose) for(const k of AI_ORDER){const nk=aiNorm(k);if(nk.length>=2&&t.includes(nk))return aiCanon(k);}
+  return null;
 }
 /* [연구소별] 본문을 연구소 단위로 쪼갠다.
    GPT는 머리말을 "미술연구소:", "**미술연구소**", "### 미술연구소", "- 미술연구소 —" 처럼 제각각 쓰고
@@ -1646,14 +1660,16 @@ function parseAISections(text){
   let cur=null, buf=[];
   const flush=()=>{if(cur)out[cur]=buf.join('\n').trim();};
   String(text||'').split(/\r?\n/).forEach(raw=>{
+    if(/^\s*(```|~~~|---+|===+|___+)\s*$/.test(raw))return;       // 코드펜스·구분선은 건너뛴다
+    const decorated=/^[\s>]*#{1,6}\s/.test(raw)||/\*\*/.test(raw)||/^\s*[[【〔<《「]/.test(raw);
     // 줄머리 마크다운(#, *, -, >, 1.) 과 굵게(**) 제거
     let l=raw.replace(/^[\s>]*[#*\-–—•]*\s*/,'').replace(/^\d+[.)]\s*/,'').replace(/\*\*/g,'').trimEnd();
     let key=null, rest='';
-    let m=l.match(/^\[([^\]]{1,20})\]\s*[:：]?\s*(.*)$/);          // [요약] 또는 [요약]: 내용
-    if(m){key=canonKey(m[1]);rest=m[2];}
-    // 대괄호 없는 머리말은 그 줄에 내용이 없을 때만 인정한다.
+    const m=l.match(/^[[【〔<《「]([^\]】〕>》」]{1,20})[\]】〕>》」]\s*[:：]?\s*(.*)$/);   // [요약] · 【요약】 · <요약>
+    if(m){key=canonKey(m[1],true);rest=m[2];}
+    // 괄호 없는 머리말은 그 줄에 내용이 없을 때만 인정한다.
     // ("발견: 제목" 처럼 발견 카드의 항목 줄을 머리말로 오인하지 않도록)
-    if(!key){const k=canonKey(l.replace(/[:：]\s*$/,''));if(k){key=k;rest='';}}
+    if(!key){const k=canonKey(l.replace(/[:：]\s*$/,''),decorated);if(k){key=k;rest='';}}
     if(key){flush();cur=key;buf=[];if(trim(rest))buf.push(rest);return;}
     if(cur!==null)buf.push(raw);
   });
@@ -1665,12 +1681,16 @@ window.distributeAI=name=>{
   if(!raw){toast('먼저 AI 결과를 붙여넣고 저장하세요');return;}
   const s=parseAISections(raw);
   if(!Object.keys(s).length){
+    const head=raw.split(/\r?\n/).filter(x=>trim(x)).slice(0,12);
     openModal('머리말을 찾지 못했습니다',
-      `<p style="margin:0 0 10px;font-size:13.5px;line-height:1.7">붙여넣은 결과에서 <b>[요약]</b> 같은 머리말을 찾지 못했습니다.
-       AI가 아래 형식으로 답하도록 프롬프트를 그대로 복사해 사용해 주세요.</p>
+      `<p style="margin:0 0 10px;font-size:13.5px;line-height:1.7">붙여넣은 결과에서 <b>[요약]</b> 같은 머리말을 한 개도 찾지 못했습니다.
+       앱이 실제로 받은 내용은 아래와 같습니다 — 머리말 줄이 보이지 않는다면 복사가 덜 되었을 수 있습니다.</p>
+       <div class="evid" style="font-size:12px;max-height:180px;overflow:auto">${esc(head.join('\n'))||'(빈 내용)'}</div>
+       <p style="margin:12px 0 6px;font-size:13px"><b>이런 형식이면 인식합니다</b></p>
        <div class="evid" style="font-size:12px">[요약]\n내용…\n\n[연구소별]\n미술연구소: 내용…\n\n[발견]\n발견: …\n근거: …\n가능성: …</div>
        <p style="margin:10px 0 0;font-size:12.5px;color:var(--ink3)">인식하는 머리말: ${AI_KEYS.map(k=>'['+k+']').join(' · ')}<br>
-       <b>#</b>, <b>**</b> 같은 표시가 붙어 있어도 인식합니다. 형식이 달라도 저장은 되었으니, 리포트 각 칸에 직접 붙여넣어도 됩니다.</p>`,
+       <b>#</b> <b>**</b> <b>1.</b> <b>-</b> 같은 표시나 <b>【 】 &lt; &gt;</b> 괄호가 붙어도, 대괄호 없이 제목만 있어도 인식합니다.<br>
+       형식이 달라도 <b>저장은 되었으니</b> 리포트 각 칸에 직접 붙여넣어도 됩니다.</p>`,
       null);
     $('#mS').style.display='none';$('#mC').textContent='닫기';
     return;}
