@@ -1481,7 +1481,7 @@ window.distributeAI=name=>{
        <p style="margin:10px 0 0;font-size:12.5px;color:var(--ink3)">인식하는 머리말: ${AI_KEYS.map(k=>'['+k+']').join(' · ')}<br>
        <b>#</b>, <b>**</b> 같은 표시가 붙어 있어도 인식합니다. 형식이 달라도 저장은 되었으니, 리포트 각 칸에 직접 붙여넣어도 됩니다.</p>`,
       null);
-    $('#mSave').style.display='none';$('#mCancel').textContent='닫기';
+    $('#mS').style.display='none';$('#mC').textContent='닫기';
     return;}
   const map={'요약':'headline','감정':'emotion','발견':'discovery','처음과 지금':'change','지원':'response','다음 방향':'next','가정 지원':'home'};
   const {obs}=recordsFor(name);
