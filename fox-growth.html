@@ -626,7 +626,7 @@ main{max-width:1200px;margin:0;padding:28px 36px 90px 300px}
     <div class="sub">기존 Google Sheets에서 읽기만 하며 시트를 수정하지 않습니다. 앱에서 입력한 내용은 팀과 실시간 공유됩니다.</div>
     <div class="card pad" style="margin-bottom:14px">
       <div class="sec-h">데이터 소스</div><div id="srcStatus"></div>
-      <div style="margin-top:12px;display:flex;gap:8px"><button class="btn pri sm" id="reloadSheets">시트 새로고침</button><button class="btn sm" id="exportData">앱 데이터 내보내기</button></div>
+      <div style="margin-top:12px;display:flex;gap:8px"><button class="btn pri sm" id="reloadSheets">시트 새로고침</button><button class="btn sm" id="exportData">백업 내보내기</button><label class="btn sm" style="cursor:pointer;margin:0">백업 가져오기<input type="file" accept="application/json,.json" hidden onchange="importData(this)"></label></div>
     </div>
     <div class="card pad" style="margin-bottom:14px">
       <div class="sec-h">학생 사진</div><div id="photoMgr"></div>
@@ -679,7 +679,7 @@ function jsonp(id,gid){return new Promise((res,rej)=>{
   const done=()=>{try{delete window[cb];}catch(e){}s.remove();};
   window[cb]=d=>{done();res(d);};
   s.onerror=()=>{done();rej(new Error('script error'));};
-  s.src=`https://docs.google.com/spreadsheets/d/${id}/gviz/tq?gid=${gid}&tqx=responseHandler:${cb}&_=${Date.now()}`;
+  s.src=`https://docs.google.com/spreadsheets/d/${id}/gviz/tq?gid=${gid}&headers=1&tqx=responseHandler:${cb}&_=${Date.now()}`;
   document.head.appendChild(s);
   setTimeout(()=>{if(window[cb]){done();rej(new Error('timeout'));}},15000);
 });}
@@ -886,28 +886,111 @@ window.bulkPhotos=async input=>{
     renderSettings();toast(`${ok}명 사진 등록됨`);
   }catch(e){if(st)st.textContent='저장 실패: '+e.message;}
 };
-const LKEY='foxgrowth.cache.v1';
+const LKEY='foxgrowth.cache.v1', SKEY='foxgrowth.synced.v1';
 const setSync=(s,t)=>{$('#syncDot').className='dot '+(s||'');$('#syncTxt').textContent=t+(lastSheetSync&&s==='ok'?' · 시트 '+new Date(lastSheetSync).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}):'');};
-function loadCache(){try{const c=JSON.parse(lsGet(LKEY));if(c)DB=Object.assign(DB,c);}catch(e){}}
+function loadCache(){try{const c=JSON.parse(lsGet(LKEY));if(c)DB=Object.assign(DB,c);}catch(e){}
+  try{const s=JSON.parse(lsGet(SKEY));if(s&&typeof s==='object')SYNCED=s;}catch(e){}}
 function saveCache(){lsSet(LKEY,JSON.stringify(DB));}
-let pushTimer=null, editingUntil=0;
+
+/* ===================== 팀 동기화 (3-way 병합) =====================
+   문서를 통째로 덮어쓰면 두 직원이 몇 초 사이에 저장할 때 한쪽 작업이 조용히 사라진다.
+   그래서 "마지막으로 서버와 맞췄던 상태(SYNCED)"를 기준점으로 두고
+   학생·분기 단위로 3-way 병합한다. 서로 다른 학생을 만지는 한 충돌이 나지 않는다.
+   최신 판정을 Date.now() 비교로 하지 않는 것도 중요하다 — PC 시계가 앞선 사람이
+   남의 변경을 영영 못 받고 매번 덮어쓰는 사고가 난다. */
+const COLL=['students','goalAssignments','diagnosis','aiAnalysis','expert'];  // 학생 이름 단위
+const SINGLE=['goalLibrary','staff'];                                          // 통째 단위
+let SYNCED=null;          // null이면 아직 기준점 없음(첫 실행)
+const J=v=>JSON.stringify(v===undefined?null:v);
+const clone=v=>JSON.parse(JSON.stringify(v));
+const entryTime=v=>(v&&(v._at||v.at))||0;
+function flatten(db){
+  const m={};if(!db||typeof db!=='object')return m;
+  COLL.forEach(c=>{const o=db[c];if(o&&typeof o==='object')Object.keys(o).forEach(k=>m[c+'/'+k]=o[k]);});
+  const rp=db.reports;
+  if(rp&&typeof rp==='object')Object.keys(rp).forEach(n=>{
+    const b=rp[n];if(b&&typeof b==='object')Object.keys(b).forEach(q=>m['reports/'+n+'/'+q]=b[q]);});
+  SINGLE.forEach(c=>{if(db[c]!=null)m[c]=db[c];});
+  return m;
+}
+function unflatten(m){
+  const db={students:{},goalAssignments:{},diagnosis:{},aiAnalysis:{},expert:{},reports:{},goalLibrary:null,staff:null};
+  Object.keys(m).forEach(p=>{
+    const v=m[p];if(v===undefined)return;
+    const s=p.split('/');
+    if(s.length===1){db[s[0]]=v;return;}
+    if(s[0]==='reports'){(db.reports[s[1]]=db.reports[s[1]]||{})[s[2]]=v;return;}
+    if(db[s[0]])db[s[0]][s[1]]=v;
+  });
+  return db;
+}
+/* base(=SYNCED)를 기준으로 한쪽만 바꿨으면 그쪽을, 둘 다 바꿨으면 항목 시각이 늦은 쪽을 택한다. */
+function merge3(local,remote,base){
+  const L=flatten(local), R=flatten(remote), B=base?flatten(base):null;
+  const out={}; let conflicts=0;
+  new Set([...Object.keys(L),...Object.keys(R)]).forEach(p=>{
+    const l=L[p], r=R[p];
+    if(l===undefined&&r===undefined)return;
+    if(!B){                                   // 기준점 없음 → 합집합, 겹치면 늦은 쪽
+      if(l===undefined){out[p]=r;return;}
+      if(r===undefined){out[p]=l;return;}
+      out[p]=(J(l)===J(r)||entryTime(r)>=entryTime(l))?r:l;return;
+    }
+    const b=B[p], lc=J(l)!==J(b), rc=J(r)!==J(b);
+    if(!lc&&!rc){if(l!==undefined)out[p]=l;return;}          // 아무도 안 건드림
+    if(lc&&!rc){if(l!==undefined)out[p]=l;return;}           // 나만 바꿈(없으면 내가 지운 것)
+    if(!lc&&rc){if(r!==undefined)out[p]=r;return;}           // 남만 바꿈
+    conflicts++;                                             // 같은 항목을 둘 다 바꿈
+    const pick=entryTime(r)>entryTime(l)?r:l;
+    if(pick!==undefined)out[p]=pick;
+  });
+  return {db:unflatten(out),conflicts};
+}
+let pushTimer=null, editingUntil=0, syncing=false, forceOverwrite=false;
+async function fetchRemote(){
+  try{const r=await fetch(NPOINT+'?t='+Date.now(),{cache:'no-store'});
+    if(!r.ok)throw 0;const j=await r.json();
+    return (j&&typeof j==='object'&&!Array.isArray(j))?j:null;
+  }catch(e){return null;}
+}
+/* 서버본을 병합해 넣는다. changed=화면 다시 그려야 함, dirty=서버에 아직 없는 내 변경 있음 */
+function mergeRemote(rem){
+  const {db,conflicts}=merge3(DB,rem,SYNCED);
+  const changed=J(flatten(DB))!==J(flatten(db));
+  db.updatedAt=Math.max(DB.updatedAt||0,rem.updatedAt||0);
+  DB=db;ensureDefaults();saveCache();
+  SYNCED=clone(rem);lsSet(SKEY,JSON.stringify(SYNCED));
+  return {changed,conflicts,dirty:J(flatten(DB))!==J(flatten(rem))};
+}
 async function pullDB(){
-  if(Date.now()<editingUntil)return;
-  try{const r=await fetch(NPOINT+'?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;const rem=await r.json();
-    if(rem&&(rem.updatedAt||0)>=(DB.updatedAt||0)){
-      const before=JSON.stringify([DB.students,DB.goalAssignments,DB.diagnosis,DB.aiAnalysis,DB.expert,DB.reports,DB.goalLibrary,DB.staff]);
-      DB=Object.assign({students:{},goalAssignments:{},diagnosis:{},aiAnalysis:{},expert:{},reports:{},goalLibrary:DB.goalLibrary,staff:DB.staff},rem);
-      ensureDefaults();saveCache();
-      const after=JSON.stringify([DB.students,DB.goalAssignments,DB.diagnosis,DB.aiAnalysis,DB.expert,DB.reports,DB.goalLibrary,DB.staff]);
-      if(before!==after)refreshView();   // only redraw when team data actually changed
-      setSync('ok','팀 공유됨');}
-  }catch(e){setSync('warn','오프라인(로컬)');}
+  if(Date.now()<editingUntil||syncing)return;
+  const rem=await fetchRemote();
+  if(!rem){setSync('warn','오프라인(로컬)');return;}
+  const {changed,dirty}=mergeRemote(rem);
+  if(changed&&!isEditing())refreshView();
+  setSync('ok','팀 공유됨');
+  if(dirty){clearTimeout(pushTimer);pushTimer=setTimeout(pushDB,600);}   // 병합 결과를 서버에도 올린다
 }
 function commit(){DB.updatedAt=Date.now();editingUntil=Date.now()+3000;saveCache();setSync('load','저장 중…');clearTimeout(pushTimer);pushTimer=setTimeout(pushDB,900);}
 async function pushDB(){
-  try{const r=await fetch(NPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(DB)});
-    if(!r.ok)throw 0;setSync('ok','팀 공유됨');}
-  catch(e){setSync('warn','저장 실패(로컬 보관)');}
+  if(syncing){clearTimeout(pushTimer);pushTimer=setTimeout(pushDB,600);return;}
+  syncing=true;
+  try{
+    const rem=await fetchRemote();                 // 올리기 직전에 최신본과 먼저 병합한다
+    let conflicts=0;
+    if(rem&&forceOverwrite){SYNCED=clone(rem);}                 // 복원: 기준점만 맞추고 내 것으로 덮는다
+    else if(rem){const m=mergeRemote(rem);conflicts=m.conflicts;if(m.changed&&!isEditing())refreshView();}
+    const body=JSON.stringify(DB);
+    const r=await fetch(NPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body});
+    if(!r.ok)throw 0;
+    SYNCED=JSON.parse(body);lsSet(SKEY,body);forceOverwrite=false;
+    setSync('ok','팀 공유됨');
+    if(conflicts)toast(`같은 항목을 동시에 수정해 ${conflicts}건은 나중에 저장된 쪽으로 맞췄습니다`);
+  }catch(e){
+    // 복원 플래그를 남겨두면 다음 저장이 병합 없이 서버를 덮어버린다. 실패하면 반드시 내린다.
+    if(forceOverwrite){forceOverwrite=false;toast('복원을 서버에 올리지 못했습니다 — 이 브라우저에만 반영되었습니다');}
+    setSync('warn','저장 실패(로컬 보관)');}
+  finally{syncing=false;}
 }
 
 /* ===================== DEFAULTS ===================== */
@@ -1344,6 +1427,35 @@ const COMPLY={'지속적인 개입 필요':1,'반복적인 안내 필요':2,'기
 function scale5(v){const m=trim(v).match(/^([1-5])\./);return m?+m[1]:null;}
 function fieldOf(o,key){const f=o.fields.find(([k])=>k.replace(/\s/g,'').includes(key));return f?f[1]:'';}
 function avgOf(arr){return arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:null;}
+/* 연구소별 집계.
+   발견·분석 다이제스트, 성장리포트, AI 프롬프트가 같은 숫자를 써야 하므로
+   계산은 여기 한 곳에만 둔다. (예전에 세 벌로 복사돼 있어 한쪽만 고치는 사고가 있었다) */
+const fmt1=v=>(v==null?null:v.toFixed(1));
+function topN(o,n){return Object.entries(o).sort((x,y)=>y[1]-x[1]).slice(0,n);}
+function labStatsOf(a){
+  const focus =a.map(o=>scale5(fieldOf(o,'활동집중도'))).filter(Boolean);
+  const peer  =a.map(o=>scale5(fieldOf(o,'또래상호작용'))).filter(Boolean);
+  const comply=a.map(o=>COMPLY[trim(fieldOf(o,'규칙과연구원의안내수용도'))]).filter(Boolean);
+  const hardVals=a.map(o=>trim(fieldOf(o,'어려운상황이있었는가'))).filter(v=>v==='있음'||v==='없음');
+  const hardTypes={}, strengths={}, topics={};
+  a.forEach(o=>{
+    const t=trim(o.fields.filter(([k])=>k.includes('(있음)')).map(([,v])=>v)[0]||'');
+    if(t)hardTypes[t]=(hardTypes[t]||0)+1;
+    // 강점은 쉼표/슬래시로 여러 개 기재된다
+    const s=fieldOf(o,'강점또는돋보인모습');
+    if(s)s.split(/[,/·]/).map(x=>trim(x)).filter(Boolean).forEach(x=>strengths[x]=(strengths[x]||0)+1);
+    const tp=trim(o.topic).replace(/\s*\n+\s*/g,' ');
+    if(tp)topics[tp]=(topics[tp]||0)+1;
+  });
+  const dates=a.filter(o=>o.date).map(o=>o.date).sort((x,y)=>x-y);
+  return {n:a.length, focus, peer, comply,
+    f:avgOf(focus), p:avgOf(peer), c:avgOf(comply),
+    dist:[1,2,3,4,5].map(v=>focus.filter(x=>x===v).length),
+    hardVals, hardN:hardVals.filter(v=>v==='있음').length, hardTypes,
+    strengths, topics,
+    noted:a.filter(o=>o.note).length,
+    first:dates[0]||null, last:dates[dates.length-1]||null};
+}
 function metricBox(label,val,max,n){
   if(val==null)return `<div class="mb"><b style="color:var(--ink3)">-</b><span>${label}</span></div>`;
   return `<div class="mb"><b>${val.toFixed(1)}</b><span>${label} <em style="color:var(--ink3)">n=${n}</em></span>
@@ -1353,33 +1465,19 @@ function renderLabDigest(obs){
   const byLab={};obs.forEach(o=>{(byLab[o.lab]=byLab[o.lab]||[]).push(o);});
   if(!Object.keys(byLab).length)return '<div class="empty-note">관찰 없음</div>';
   return Object.entries(byLab).sort((a,b)=>b[1].length-a[1].length).map(([lab,a])=>{
-    const focus=a.map(o=>scale5(fieldOf(o,'활동집중도'))).filter(Boolean);
-    const peer =a.map(o=>scale5(fieldOf(o,'또래상호작용'))).filter(Boolean);
-    const comply=a.map(o=>COMPLY[trim(fieldOf(o,'규칙과연구원의안내수용도'))]).filter(Boolean);
-    // 어려운 상황
-    const hardVals=a.map(o=>trim(fieldOf(o,'어려운상황이있었는가'))).filter(v=>v==='있음'||v==='없음');
-    const hardN=hardVals.filter(v=>v==='있음').length;
-    const hardTypes={};
-    a.forEach(o=>{const t=trim(o.fields.filter(([k])=>k.includes('(있음)')).map(([,v])=>v)[0]||'');if(t)hardTypes[t]=(hardTypes[t]||0)+1;});
-    const topHard=Object.entries(hardTypes).sort((x,y)=>y[1]-x[1]).slice(0,2).map(([k,v])=>`${k} ${v}`).join(' · ');
-    // 강점 빈도 (쉼표/슬래시로 여러 개 기재됨)
-    const st={};
-    a.forEach(o=>{const s=fieldOf(o,'강점또는돋보인모습');if(!s)return;
-      s.split(/[,/·]/).map(x=>trim(x)).filter(Boolean).forEach(x=>st[x]=(st[x]||0)+1);});
-    const topSt=Object.entries(st).sort((x,y)=>y[1]-x[1]).slice(0,3);
-    // 기간
-    const ds=a.filter(o=>o.date).map(o=>o.date).sort((x,y)=>x-y);
-    const noted=a.filter(o=>o.note).length;
-    const hasMetric=focus.length||peer.length||comply.length;
+    const S=labStatsOf(a);
+    const topHard=topN(S.hardTypes,2).map(([k,v])=>`${k} ${v}`).join(' · ');
+    const topSt=topN(S.strengths,3);
+    const hasMetric=S.focus.length||S.peer.length||S.comply.length;
     return `<div class="ldig">
       <div class="lh"><span class="ln">${esc(lab)}</span>
-        <span class="lc">${a.length}건${noted<a.length?` <em style="color:var(--ink3)">(내용 ${noted})</em>`:''}${ds.length?` · ${fmtDate(ds[0])}~${fmtDate(ds[ds.length-1])}`:''}</span></div>
+        <span class="lc">${S.n}건${S.noted<S.n?` <em style="color:var(--ink3)">(내용 ${S.noted})</em>`:''}${S.first?` · ${fmtDate(S.first)}~${fmtDate(S.last)}`:''}</span></div>
       ${hasMetric?`<div class="mbar">
-        ${metricBox('집중도',avgOf(focus),5,focus.length)}
-        ${metricBox('또래',avgOf(peer),5,peer.length)}
-        ${metricBox('수용도',avgOf(comply),4,comply.length)}
+        ${metricBox('집중도',S.f,5,S.focus.length)}
+        ${metricBox('또래',S.p,5,S.peer.length)}
+        ${metricBox('수용도',S.c,4,S.comply.length)}
       </div>`:'<div class="lmeta"><em>척도 지표 기록 없음</em></div>'}
-      ${hardVals.length?`<div class="lmeta">어려운 상황 <b>${hardN}/${hardVals.length}</b> (${Math.round(hardN/hardVals.length*100)}%)${topHard?` <em>· ${esc(topHard)}</em>`:''}</div>`:''}
+      ${S.hardVals.length?`<div class="lmeta">어려운 상황 <b>${S.hardN}/${S.hardVals.length}</b> (${Math.round(S.hardN/S.hardVals.length*100)}%)${topHard?` <em>· ${esc(topHard)}</em>`:''}</div>`:''}
       ${topSt.length?`<div class="lmeta">강점 ${topSt.map(([k,v])=>`<span class="gchip" style="font-size:10.5px">${esc(k)} ${v}</span>`).join(' ')}</div>`:''}
     </div>`;
   }).join('');
@@ -1743,10 +1841,20 @@ function buildReport(name,q){
 
   const warn=(qObs.length+qEmo.length)===0
     ?`<div class="warnbox no-print">선택한 ${label}에 기록이 없습니다. 전체 기록은 관찰 ${obs.length}건·감정 ${emo.length}회입니다 — 다른 기간을 선택하세요.${undated?` (날짜 미기재 ${undated}건은 분기 집계에서 제외)`:''}</div>`:'';
+  /* 날짜 칸이 빈 기록은 어느 분기에도 들어가지 못해 조용히 빠진다.
+     "관찰 5건"이 전부인 줄 알고 리포트를 내보내는 일이 없도록 항상 알린다. */
+  const undNote=(q!==0&&undated)?(()=>{
+    const byLab={};obs.filter(o=>!o.date).forEach(o=>byLab[o.lab]=(byLab[o.lab]||0)+1);
+    const eN=emo.filter(e=>!e.date).length;
+    const parts=Object.entries(byLab).sort((a,b)=>b[1]-a[1]).map(([l,n])=>`${l} ${n}건`);
+    if(eN)parts.push(`감정체크 ${eN}회`);
+    return `<div class="warnbox no-print">이 학생의 기록 중 <b>${undated}건</b>은 시트에 날짜가 비어 있어 분기 집계에 들어가지 못했습니다
+      (${esc(parts.join(' · '))}). 위 ${esc(label)} 수치에는 빠져 있으니, 시트에서 날짜를 채우면 자동으로 반영됩니다.
+      전체 기록은 <b>관찰 ${obs.length}건 · 감정 ${emo.length}회</b>이며 기간을 <b>전체 기간</b>으로 두면 모두 포함됩니다.</div>`;})():'';
 
   let n=0; const sec=(title,sub)=>`<div class="sh"><span class="sn">${++n}</span><span class="st">${title}</span>${sub?`<span class="ss">${sub}</span>`:''}</div>`;
 
-  return warn+`<div class="rep" id="repDoc">
+  return warn+undNote+`<div class="rep" id="repDoc">
 
   <div class="rcover">
     <svg class="rlogo" viewBox="0 0 240 74" aria-label="FOX LC">
@@ -1838,38 +1946,26 @@ function buildReport(name,q){
     <section>
       ${sec('연구소별 활동 분석',`${labEntries.length}개 연구소 · ${label} 전체 ${qObs.length}건 집계`)}
       ${labEntries.length?labEntries.map(([lab,a])=>{
-        const fv=a.map(o=>scale5(fieldOf(o,'활동집중도'))).filter(Boolean);
-        const pv=a.map(o=>scale5(fieldOf(o,'또래상호작용'))).filter(Boolean);
-        const cv=a.map(o=>COMPLY[trim(fieldOf(o,'규칙과연구원의안내수용도'))]).filter(Boolean);
-        const f=avg(fv), p=avg(pv), c=avg(cv);
-        const dist=[1,2,3,4,5].map(v=>fv.filter(x=>x===v).length);
-        const distMax=Math.max(1,...dist);
-        const hv=a.map(o=>trim(fieldOf(o,'어려운상황이있었는가'))).filter(v=>v==='있음'||v==='없음');
-        const hn=hv.filter(v=>v==='있음').length;
-        const ht={};a.forEach(o=>{const t=trim(o.fields.filter(([k])=>k.includes('(있음)')).map(([,v])=>v)[0]||'');if(t)ht[t]=(ht[t]||0)+1;});
-        const topHt=Object.entries(ht).sort((x,y)=>y[1]-x[1]).slice(0,3);
-        const ls={};a.forEach(o=>{const s=fieldOf(o,'강점또는돋보인모습');if(!s)return;
-          s.split(/[,/·]/).map(x=>trim(x)).filter(Boolean).forEach(x=>ls[x]=(ls[x]||0)+1);});
-        const topLs=Object.entries(ls).sort((x,y)=>y[1]-x[1]).slice(0,5);
-        const tp={};a.forEach(o=>{const t=trim(o.topic).replace(/\s*\n+\s*/g,' ');if(t)tp[t]=(tp[t]||0)+1;});
-        const topTp=Object.entries(tp).sort((x,y)=>y[1]-x[1]).slice(0,6);
-        const ld=a.filter(o=>o.date).map(o=>o.date).sort((x,y)=>x-y);
+        const S=labStatsOf(a);
+        const f=fmt1(S.f), p=fmt1(S.p), c=fmt1(S.c);
+        const distMax=Math.max(1,...S.dist);
+        const topHt=topN(S.hardTypes,3), topLs=topN(S.strengths,5), topTp=topN(S.topics,6);
         const key='lab_'+lab;
         return `<div class="rlab">
           <div class="lhd">
             <span class="lnm">${esc(lab)}</span>
-            <span class="lct">관찰 ${a.length}건${ld.length?` · ${fmtDate(ld[0])}~${fmtDate(ld[ld.length-1])}`:''}</span>
+            <span class="lct">관찰 ${S.n}건${S.first?` · ${fmtDate(S.first)}~${fmtDate(S.last)}`:''}</span>
           </div>
           <div class="lbd">
             <div class="lmet">
-              ${f?`<div class="lmc"><b>${f}</b><span>평균 집중도 <em>/5 · n=${fv.length}</em></span></div>`:''}
-              ${p?`<div class="lmc"><b>${p}</b><span>또래 상호작용 <em>/5 · n=${pv.length}</em></span></div>`:''}
-              ${c?`<div class="lmc"><b>${c}</b><span>안내 수용도 <em>/4 · n=${cv.length}</em></span></div>`:''}
-              ${hv.length?`<div class="lmc"><b>${Math.round(hn/hv.length*100)}<em style="font-size:13px">%</em></b><span>지원 필요 상황 <em>${hn}/${hv.length}회</em></span></div>`:''}
+              ${f?`<div class="lmc"><b>${f}</b><span>평균 집중도 <em>/5 · n=${S.focus.length}</em></span></div>`:''}
+              ${p?`<div class="lmc"><b>${p}</b><span>또래 상호작용 <em>/5 · n=${S.peer.length}</em></span></div>`:''}
+              ${c?`<div class="lmc"><b>${c}</b><span>안내 수용도 <em>/4 · n=${S.comply.length}</em></span></div>`:''}
+              ${S.hardVals.length?`<div class="lmc"><b>${Math.round(S.hardN/S.hardVals.length*100)}<em style="font-size:13px">%</em></b><span>지원 필요 상황 <em>${S.hardN}/${S.hardVals.length}회</em></span></div>`:''}
             </div>
-            ${fv.length?`<div class="ldist">
+            ${S.focus.length?`<div class="ldist">
               <div class="dlab">집중도 분포 <em>1(낮음) → 5(높음)</em></div>
-              <div class="dbars">${dist.map((v,i)=>`<div class="db"><i style="height:${v/distMax*100}%"></i><span>${i+1}</span><u>${v}</u></div>`).join('')}</div>
+              <div class="dbars">${S.dist.map((v,i)=>`<div class="db"><i style="height:${v/distMax*100}%"></i><span>${i+1}</span><u>${v}</u></div>`).join('')}</div>
             </div>`:''}
             ${topTp.length?`<div class="lrow"><b>진행한 활동</b><span>${topTp.map(([t,n])=>esc(t)+(n>1?` (${n}회)`:'')).join(' · ')}</span></div>`:''}
             ${topLs.length?`<div class="lrow"><b>돋보인 모습</b><span>${topLs.map(([k,v])=>`<span class="otag">${esc(k)} ${v}</span>`).join('')}</span></div>`:''}
@@ -2042,7 +2138,8 @@ document.addEventListener('focusin',e=>{
 window.saveReport=name=>{
   const o={};$$('#repDoc [data-k]').forEach(e=>{if(e.classList.contains('ph'))return;o[e.dataset.k]=e.innerText.trim();});
   const prev=(DB.reports[name]||{})[repQ]||{};
-  o._at=Date.now();o._by=$('#meName')?.value||'';o._done=prev._done||false;
+  o._at=Date.now();o._by=$('#meName')?.value||'';
+  o._done=prev._done||false;o._doneAt=prev._doneAt||0;o._doneBy=prev._doneBy||'';   // 완료 처리 정보는 재저장해도 유지
   DB.reports[name]=DB.reports[name]||{};DB.reports[name][repQ]=o;commit();toast('리포트 저장됨');
 };
 window.toggleDone=(name,q)=>{
@@ -2172,23 +2269,14 @@ function buildPrompt(name){
   // 리포트가 화면에 표시하는 것과 동일한 집계를 프롬프트에도 넣어야 AI가 수치를 해석할 수 있다
   const avgP=a=>a.length?(a.reduce((x,y)=>x+y,0)/a.length).toFixed(1):null;
   const labStats=Object.entries(byLab).sort((a,b)=>b[1].length-a[1].length).map(([lab,a])=>{
-    const fv=a.map(o=>scale5(fieldOf(o,'활동집중도'))).filter(Boolean);
-    const pv=a.map(o=>scale5(fieldOf(o,'또래상호작용'))).filter(Boolean);
-    const cv=a.map(o=>COMPLY[trim(fieldOf(o,'규칙과연구원의안내수용도'))]).filter(Boolean);
-    const dist=[1,2,3,4,5].map(v=>fv.filter(x=>x===v).length);
-    const hv=a.map(o=>trim(fieldOf(o,'어려운상황이있었는가'))).filter(v=>v==='있음'||v==='없음');
-    const hn=hv.filter(v=>v==='있음').length;
-    const ht={};a.forEach(o=>{const t=trim(o.fields.filter(([k])=>k.includes('(있음)')).map(([,v])=>v)[0]||'');if(t)ht[t]=(ht[t]||0)+1;});
-    const st={};a.forEach(o=>{const s=fieldOf(o,'강점또는돋보인모습');if(!s)return;
-      s.split(/[,/·]/).map(x=>trim(x)).filter(Boolean).forEach(x=>st[x]=(st[x]||0)+1);});
-    const tp={};a.forEach(o=>{const t=trim(o.topic).replace(/\s*\n+\s*/g,' ');if(t)tp[t]=(tp[t]||0)+1;});
-    const top=(o,n)=>Object.entries(o).sort((x,y)=>y[1]-x[1]).slice(0,n).map(([k,v])=>`${k}(${v})`).join(', ')||'-';
-    return `· ${lab} — 관찰 ${a.length}건
-    집중도 평균 ${avgP(fv)||'-'}/5 (n=${fv.length}), 분포 1~5: ${dist.join('/')}
-    또래 상호작용 ${avgP(pv)||'-'}/5 (n=${pv.length}) · 안내 수용도 ${avgP(cv)||'-'}/4 (n=${cv.length})
-    지원이 필요했던 상황 ${hv.length?`${hn}/${hv.length}회(${Math.round(hn/hv.length*100)}%)`:'기록 없음'}${Object.keys(ht).length?` · 유형 ${top(ht,2)}`:''}
-    돋보인 모습 ${top(st,4)}
-    진행한 활동 ${top(tp,4)}`;
+    const S=labStatsOf(a);
+    const top=(o,n)=>topN(o,n).map(([k,v])=>`${k}(${v})`).join(', ')||'-';
+    return `· ${lab} — 관찰 ${S.n}건
+    집중도 평균 ${avgP(S.focus)||'-'}/5 (n=${S.focus.length}), 분포 1~5: ${S.dist.join('/')}
+    또래 상호작용 ${avgP(S.peer)||'-'}/5 (n=${S.peer.length}) · 안내 수용도 ${avgP(S.comply)||'-'}/4 (n=${S.comply.length})
+    지원이 필요했던 상황 ${S.hardVals.length?`${S.hardN}/${S.hardVals.length}회(${Math.round(S.hardN/S.hardVals.length*100)}%)`:'기록 없음'}${Object.keys(S.hardTypes).length?` · 유형 ${top(S.hardTypes,2)}`:''}
+    돋보인 모습 ${top(S.strengths,4)}
+    진행한 활동 ${top(S.topics,4)}`;
   }).join('\n')||'(관찰 없음)';
   const dated=obs.filter(o=>o.date).sort((a,b)=>a.date-b.date);
   const period=dated.length?`${fmtDate(dated[0].date)} ~ ${fmtDate(dated[dated.length-1].date)}`:'기간 미상';
@@ -2403,7 +2491,60 @@ window.editStaff=(i,k,v)=>{DB.staff[i][k]=trim(v);commit();fillMe();};
 window.delStaff=i=>{DB.staff.splice(i,1);commit();renderStaff();fillMe();};
 $('#addStaff').onclick=()=>{DB.staff.push({name:'새 직원',role:'연구원'});commit();renderStaff();fillMe();};
 $('#reloadSheets').onclick=async()=>{setSync('load','새로고침…');await loadAllSheets();toast('시트 새로고침 완료');};
-$('#exportData').onclick=()=>{const b=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='fox-growth-backup.json';a.click();};
+$('#exportData').onclick=()=>{const b=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='fox-growth-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();};
+/* 백업 되돌리기. 내보내기만 있고 가져오기가 없으면 사고가 나도 손쓸 방법이 없다.
+   기본은 병합(현재 데이터를 지우지 않음), 필요할 때만 통째 덮어쓰기. */
+window.importData=input=>{
+  const f=input.files&&input.files[0];if(!f)return;
+  const fr=new FileReader();
+  fr.onerror=()=>{input.value='';toast('파일을 읽지 못했습니다');};
+  fr.onload=()=>{
+    input.value='';
+    let d;try{d=JSON.parse(fr.result);}catch(e){toast('JSON 파일이 아닙니다');return;}
+    if(!d||typeof d!=='object'||Array.isArray(d)){toast('백업 파일 형식이 아닙니다');return;}
+    const F=flatten(d);
+    if(!Object.keys(F).length){toast('불러올 내용이 없습니다');return;}
+    const cnt=p=>Object.keys(F).filter(k=>k.indexOf(p+'/')===0).length;
+    const row=(l,v)=>v?`<dt>${l}</dt><dd><b>${v}</b></dd>`:'';
+    openModal('백업 가져오기',
+      `<div class="empty-note" style="margin:0 0 10px">${esc(f.name)} · ${Math.round(f.size/1024)}KB</div>
+       <dl class="kv" style="grid-template-columns:120px 1fr">
+         ${row('성장리포트',cnt('reports')+'건')}${row('AI 분석',cnt('aiAnalysis')+'명')}
+         ${row('전문가 소견',cnt('expert')+'명')}${row('성장목표',cnt('goalAssignments')+'명')}
+         ${row('진단 메모',cnt('diagnosis')+'명')}${row('목표 라이브러리',F.goalLibrary?F.goalLibrary.length+'개 역량':'')}
+         ${row('직원 명단',F.staff?F.staff.length+'명':'')}
+       </dl>
+       <div style="margin-top:12px;display:grid;gap:8px;font-size:13px;line-height:1.6">
+         <label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer">
+           <input type="radio" name="impMode" value="merge" checked style="margin-top:3px">
+           <span><b>병합 (권장)</b><br><span style="color:var(--ink3)">지금 데이터를 지우지 않고 학생별 기록을 합칩니다. 같은 항목이 양쪽에 있으면 나중에 저장된 쪽을 남기고, 목표 라이브러리·직원 명단은 지금 것을 그대로 둡니다.</span></span></label>
+         <label style="display:flex;gap:8px;align-items:flex-start;cursor:pointer">
+           <input type="radio" name="impMode" value="replace" style="margin-top:3px">
+           <span><b>덮어쓰기</b><br><span style="color:var(--ink3)">지금 팀 데이터를 모두 버리고 백업 상태로 되돌립니다. 백업 이후의 작업은 사라집니다.</span></span></label>
+       </div>
+       <div class="empty-note" style="margin-top:10px">구글시트 원본(관찰·감정체크)과 학생 사진은 이 파일에 들어 있지 않으며 영향을 받지 않습니다.</div>`,
+      ()=>{
+        const sel=document.querySelector('input[name=impMode]:checked');
+        const mode=sel?sel.value:'merge';
+        if(mode==='replace'){
+          if(!confirm('지금 팀 데이터를 모두 버리고 백업 상태로 되돌립니다. 계속할까요?'))return;
+          DB=unflatten(F);forceOverwrite=true;
+        }else{
+          // 목표 라이브러리·직원 명단은 통째 항목이라 병합 시 백업본이 현재 설정을 덮어버린다.
+          // 학생 데이터만 합치고 설정은 지금 것을 지킨다. (되돌리려면 덮어쓰기)
+          const lib=DB.goalLibrary, staff=DB.staff;
+          DB=merge3(DB,d,null).db;      // 기준점 없음 = 합집합, 겹치면 나중 것
+          if(lib)DB.goalLibrary=lib;
+          if(staff)DB.staff=staff;
+        }
+        DB.updatedAt=Date.now();ensureDefaults();saveCache();fillMe();
+        setSync('load','저장 중…');clearTimeout(pushTimer);pushTimer=setTimeout(pushDB,300);
+        refreshView();
+        toast(mode==='replace'?'백업 상태로 되돌렸습니다':'백업을 병합했습니다');
+      });
+  };
+  fr.readAsText(f);
+};
 
 function fillMe(){const s=$('#meName'),cur=lsGet('foxgrowth.me')||DB.staff[0]?.name;
   s.innerHTML=DB.staff.map(x=>`<option ${x.name===cur?'selected':''}>${esc(x.name)}</option>`).join('');updateRole();}
