@@ -1601,6 +1601,46 @@ function canonKey(s){
   const al=Object.keys(AI_ALIAS).find(k=>k.replace(/\s+/g,'').toLowerCase()===t);
   return al?AI_ALIAS[al]:null;
 }
+/* [연구소별] 본문을 연구소 단위로 쪼갠다.
+   GPT는 머리말을 "미술연구소:", "**미술연구소**", "### 미술연구소", "- 미술연구소 —" 처럼 제각각 쓰고
+   본문도 4~6문장이라 여러 줄에 걸친다. 그래서 머리말 줄을 찾은 뒤
+   "다음 머리말 직전까지"를 통째로 그 연구소 몫으로 가져온다.
+   (예전에는 한 줄 정규식이라 형식이 조금만 달라도 '활동 해석' 칸이 통째로 비었다) */
+const reEsc=s=>String(s).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+function labAliases(labs){
+  const out=[];
+  labs.forEach(lab=>{
+    const a=[lab];
+    const short=lab.replace(/연구소$/,'');
+    if(short&&short!==lab)a.push(short);
+    if(lab==='인공지능연구소')a.push('AI연구소','AI');
+    a.forEach(x=>out.push({a:x,lab}));
+  });
+  // 긴 이름을 먼저 본다. 'SEL'이 'SEL센터' 줄을 가로채지 않도록.
+  return out.sort((x,y)=>y.a.length-x.a.length);
+}
+function splitLabSections(text,labs){
+  const alias=labAliases(labs);
+  const lines=String(text||'').split(/\r?\n/);
+  const marks=[];
+  lines.forEach((raw,i)=>{
+    // 줄머리 마크다운(#, *, -, >, 1.)과 굵게(**) 제거
+    const l=raw.replace(/^[\s>]*[#*\-–—•]+\s*/,'').replace(/^\d+[.)]\s*/,'').replace(/\*\*/g,'').trim();
+    if(!l)return;
+    for(const {a,lab} of alias){
+      // 연구소 이름 뒤에 콜론이나 대시가 오거나, 그 줄이 이름만으로 끝나야 머리말로 본다
+      const m=l.match(new RegExp('^'+reEsc(a)+'\\s*(?:[:：]\\s*(.*)|[-–—]\\s+(.*)|)$'));
+      if(m){marks.push({i,lab,rest:trim(m[1]||m[2]||'')});return;}
+    }
+  });
+  const out={};
+  marks.forEach((mk,n)=>{
+    const end=n+1<marks.length?marks[n+1].i:lines.length;
+    const body=trim([mk.rest,...lines.slice(mk.i+1,end)].join('\n'));
+    if(body&&!out[mk.lab])out[mk.lab]=body;   // 같은 연구소가 두 번 나오면 첫 덩어리를 쓴다
+  });
+  return out;
+}
 function parseAISections(text){
   const out={};
   let cur=null, buf=[];
@@ -1642,16 +1682,18 @@ window.distributeAI=name=>{
   DB.reports[name]=DB.reports[name]||{};
   const r=DB.reports[name][repQ]=DB.reports[name][repQ]||{};
   Object.entries(map).forEach(([k,f])=>{if(s[k]){r[f]=s[k];filled.push(k);}});
-  // 연구소별: "미술연구소: 내용" 줄을 각 연구소 요약 칸으로
-  if(s['연구소별']) labs.forEach(lab=>{
-    const short=lab.replace('연구소','');
-    const re=new RegExp('^\\s*(?:'+lab+'|'+short+')\\s*[:：]\\s*(.+)$','m');
-    const m=s['연구소별'].match(re);
-    if(m){r['lab_'+lab]=trim(m[1]);filled.push(lab);}
-  });
+  // 연구소별: 연구소 머리말을 찾아 다음 머리말 전까지를 통째로 그 연구소 칸에 넣는다
+  let labMiss=false;
+  if(s['연구소별']){
+    const byLab=splitLabSections(s['연구소별'],labs);
+    Object.entries(byLab).forEach(([lab,body])=>{r['lab_'+lab]=body;filled.push(lab);});
+    labMiss=!Object.keys(byLab).length;
+  }
   commit();
   if(subTab==='report')renderStudentPage();
-  toast(`${qLabel(repQ)} 리포트에 반영됨 — ${filled.length}개 항목`);
+  toast(labMiss
+    ? `${qLabel(repQ)} 리포트에 ${filled.length}개 항목 반영 — 단, [연구소별]에서 연구소 이름을 찾지 못해 '활동 해석'은 비어 있습니다`
+    : `${qLabel(repQ)} 리포트에 반영됨 — ${filled.length}개 항목`);
 };
 window.saveAI=name=>{DB.aiAnalysis[name]={text:trim($('#aiResult').value),at:Date.now(),by:$('#meName').value};commit();renderStudentPage();toast('AI 분석 저장됨');};
 window.saveExpert=name=>{DB.expert[name]={opinion:trim($('#exOpinion').value),possibility:trim($('#exPossibility').value),response:trim($('#exResponse').value),next:trim($('#exNext').value),home:trim($('#exHome').value),reviewer:$('#meName').value,at:Date.now()};commit();renderStudentPage();toast('전문가 소견 저장됨');};
@@ -2439,8 +2481,8 @@ ${eL||'(없음)'}
  · "집중도 4.3점"처럼 점수를 그대로 옮기지 말고 "대부분의 활동에서 안정적으로 집중했습니다"처럼 서술하세요.
  · 표본이 적으면(n이 5 미만) 단정하지 말고 "기록이 적어 아직 판단하기 이릅니다"라고 밝히세요.
  · 학부모가 읽는 글입니다. 연구원의 내부 표현을 그대로 옮기지 마세요.)
-미술연구소: (내용)
-언어연구소: (내용)
+${Object.keys(byLab).length?Object.keys(byLab).map(l=>`${l}: (내용)`).join('\n'):'(관찰된 연구소 없음)'}
+ ※ 연구소 이름은 위에 적힌 그대로 써 주세요. 그래야 리포트의 해당 칸에 자동으로 들어갑니다.
 
 [감정]
 (2~3문장. 아이가 등원·하원 때 직접 남긴 감정체크에서 눈에 띄는 점.
