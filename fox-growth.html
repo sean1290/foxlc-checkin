@@ -706,17 +706,49 @@ function cellVal(cell){
   }
   return String(v);
 }
+/* 따옴표·줄바꿈이 들어간 CSV를 그대로 읽는다 (관찰 내용에 줄바꿈이 흔하다) */
+function parseCSV(text){
+  const rows=[];let row=[],cur='',q=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(q){
+      if(c!=='"')cur+=c;
+      else if(text[i+1]==='"'){cur+='"';i++;}
+      else q=false;
+    }else if(c==='"')q=true;
+    else if(c===',')  {row.push(cur);cur='';}
+    else if(c==='\n') {row.push(cur);cur='';rows.push(row);row=[];}
+    else if(c!=='\r') cur+=c;
+  }
+  if(cur!==''||row.length){row.push(cur);rows.push(row);}
+  return rows;
+}
+/* 시트 한 탭을 표로 읽는다.
+   반드시 CSV 내보내기를 쓴다 — 시트에 필터가 걸려 있으면 gviz는 "화면에 보이는 행"만 돌려주기 때문이다.
+   (인공지능 탭은 804행 중 27행, 언어 탭은 814행 중 14행만 왔었다. 필터가 없는 미술·수리만 멀쩡했다.)
+   CSV가 막히면 예전 gviz 방식으로 물러난다 — 일부라도 읽는 편이 낫다. */
 async function fetchTable(id,gid){
-  const d=await jsonp(id,gid);
-  if(!d||!d.table)throw new Error('no table');
-  const cols=d.table.cols.map(c=>trim(c.label));
-  const rows=d.table.rows.map(r=>(r.c||[]).map(cellVal));
-  return {cols,rows};
+  try{
+    const r=await fetch(`https://docs.google.com/spreadsheets/d/${id}/export?format=csv&gid=${gid}`,
+      {credentials:'omit',cache:'no-store'});
+    if(!r.ok)throw new Error('csv '+r.status);
+    const all=parseCSV(await r.text());
+    if(!all.length)throw new Error('csv empty');
+    let hi=all.findIndex(x=>x.some(c=>trim(c)==='이름'));
+    if(hi<0)hi=0;
+    return {cols:all[hi].map(c=>trim(c)),rows:all.slice(hi+1),via:'csv'};
+  }catch(e){
+    console.warn('CSV 실패 → gviz로 대체 (필터에 걸린 행은 빠질 수 있음)',gid,e.message);
+    const d=await jsonp(id,gid);
+    if(!d||!d.table)throw new Error('no table');
+    return {cols:d.table.cols.map(c=>trim(c.label)),rows:d.table.rows.map(r=>(r.c||[]).map(cellVal)),via:'gviz'};
+  }
 }
 function parseKDate(s){
   s=trim(s);if(!s)return null;
-  let m=s.match(/^(\d{4})-(\d{2})-(\d{2})$/);       if(m)return new Date(+m[1],+m[2]-1,+m[3]);
-  m=s.match(/(\d{1,2})\s*월\s*(\d{1,2})\s*일/);      if(m)return new Date(YEAR,+m[1]-1,+m[2]);
+  let m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);   if(m)return new Date(+m[1],+m[2]-1,+m[3]);
+  m=s.match(/^(\d{4})[.\/]\s*(\d{1,2})[.\/]\s*(\d{1,2})/); if(m)return new Date(+m[1],+m[2]-1,+m[3]);  // 2026. 6. 1 (CSV 기본 표기)
+  m=s.match(/(\d{1,2})\s*월\s*(\d{1,2})/);           if(m)return new Date(YEAR,+m[1]-1,+m[2]);  // "8월 26일" · 오타("26알")도 허용
   m=s.match(/^(\d{1,2})\/(\d{1,2})/);                if(m)return new Date(YEAR,+m[1]-1,+m[2]);
   m=s.match(/^(\d{2})\.(\d{1,2})\.(\d{1,2})/);       if(m)return new Date(2000+ +m[1],+m[2]-1,+m[3]);
   return null;
