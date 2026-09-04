@@ -9,8 +9,11 @@
 <meta name="theme-color" content="#72c0a1">
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="stylesheet" media="print" onload="this.media='all'" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"></noscript>
 <style>
 :root{
+  /* 글꼴은 여기 한 곳에서만 정한다. SVG 로고까지 같은 값을 쓴다. */
+  --font:'Pretendard','Pretendard Variable',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif;
   --bg:#f5f6f8; --panel:#fff; --line:#e6e8ec; --line2:#eef0f3;
   --ink:#1e2530; --ink2:#5b6472; --ink3:#8a93a1;
   --accent:#2e7d59; --accent-soft:#e7f2ec; --accent-ink:#1f5c40;
@@ -19,9 +22,13 @@
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
-body{background:var(--bg);color:var(--ink);font-family:'Pretendard',-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
-button{font-family:inherit;cursor:pointer}
-input,select,textarea{font-family:inherit;font-size:14px;color:var(--ink)}
+/* html까지 지정해야 폼 요소·SVG 등 body 밖 기본값을 물려받는 것들이 브라우저 기본 한글꼴로 새지 않는다 */
+html{font-family:var(--font)}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+/* 폼 요소와 SVG 글자는 상속을 안 받는 브라우저가 있어 따로 지정한다 */
+button,input,select,textarea,optgroup,option,svg text,svg tspan{font-family:var(--font)}
+button{cursor:pointer}
+input,select,textarea{font-size:14px;color:var(--ink)}
 ::-webkit-scrollbar{width:10px;height:10px}
 ::-webkit-scrollbar-thumb{background:#d3d8de;border-radius:6px;border:2px solid var(--bg)}
 
@@ -573,6 +580,8 @@ main{max-width:1200px;margin:0;padding:28px 36px 90px 300px}
   .rcover{border-radius:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .rstrength,.rexp,.rstat,.rlab .lhd,.rgbadge,.rint,.rintro,.iloop .il,.rstage span,.rsign,.aH1 span,.aH2,.aEvid,.aInterp,.aBA th,.aBA td:last-child,.evoice,.evi.top,.ebar i,.emc{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .rep section{page-break-inside:avoid}
+  /* 인쇄본도 같은 글꼴로. 학부모에게 나가는 문서라 대체 글꼴로 찍히면 안 된다 */
+  html,body,.rep,.rep *{font-family:var(--font)!important}
   @page{margin:14mm}
 }
 </style>
@@ -583,8 +592,8 @@ main{max-width:1200px;margin:0;padding:28px 36px 90px 300px}
     <svg class="logo" viewBox="0 0 240 74" role="img" aria-label="FOX LC">
       <g fill="#72c0a1"><path d="M53 52 71 72 46 65z"/><circle cx="37" cy="37" r="37"/></g>
       <path fill="#fff" d="M21 19 37 31 53 19 53 47 37 60 21 47z"/>
-      <text x="86" y="52" font-family="Pretendard,-apple-system,'Malgun Gothic',sans-serif" font-size="42" font-weight="800" letter-spacing="-.5" fill="#203462">FOX</text>
-      <text x="183" y="52" font-family="Pretendard,-apple-system,'Malgun Gothic',sans-serif" font-size="42" font-weight="700" letter-spacing="-.5" fill="#72c0a1">LC</text>
+      <text x="86" y="52" font-size="42" font-weight="800" letter-spacing="-.5" fill="#203462">FOX</text>
+      <text x="183" y="52" font-size="42" font-weight="700" letter-spacing="-.5" fill="#72c0a1">LC</text>
     </svg>
     <small>학생 성장관리 시스템</small>
   </div>
@@ -2120,8 +2129,8 @@ function buildReport(name,q){
     <svg class="rlogo" viewBox="0 0 240 74" aria-label="FOX LC">
       <g fill="#72c0a1"><path d="M53 52 71 72 46 65z"/><circle cx="37" cy="37" r="37"/></g>
       <path fill="#fff" d="M21 19 37 31 53 19 53 47 37 60 21 47z"/>
-      <text x="86" y="52" font-family="Pretendard,sans-serif" font-size="42" font-weight="800" fill="#203462">FOX</text>
-      <text x="183" y="52" font-family="Pretendard,sans-serif" font-size="42" font-weight="700" fill="#72c0a1">LC</text>
+      <text x="86" y="52" font-size="42" font-weight="800" fill="#203462">FOX</text>
+      <text x="183" y="52" font-size="42" font-weight="700" fill="#72c0a1">LC</text>
     </svg>
     <div class="rcvtop">
       <div>
