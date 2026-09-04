@@ -485,6 +485,27 @@ main{max-width:1200px;margin:0;padding:28px 36px 90px 300px}
 .skrow .a{width:38px;height:38px;border-radius:11px;flex:0 0 38px}
 .skrow .l1{height:12px;width:34%;margin-bottom:5px}
 .skrow .l2{height:10px;width:22%}
+/* 오늘 명단 */
+.tdlist{display:flex;flex-direction:column;gap:9px}
+.tdcard{display:flex;gap:14px;align-items:flex-start;background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:13px 15px;cursor:pointer;transition:.15s;box-shadow:var(--shadow)}
+.tdcard:hover{border-color:#cfd6dd;transform:translateY(-1px)}
+.tdt{flex:0 0 62px;font-weight:800;font-size:14.5px;letter-spacing:-.02em;color:#203462;line-height:1.25}
+.tdt em{display:block;font-style:normal;font-size:11px;font-weight:600;color:var(--ink3);margin-top:1px}
+.tdmain{flex:1;min-width:0}
+.tdn{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.tdn b{font-size:15px;font-weight:800;letter-spacing:-.02em}
+.tdlast{margin-top:6px;font-size:12.5px;color:var(--ink2);line-height:1.55}
+.tdlast b{display:block;font-size:11px;color:var(--ink3);font-weight:700;margin-bottom:1px}
+.tdgoal{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+.tdcnt{flex:0 0 44px;text-align:right}
+.tdcnt b{display:block;font-size:16px;font-weight:800;color:#203462;letter-spacing:-.02em}
+.tdcnt span{font-size:10.5px;color:var(--ink3)}
+.tdcard.off{opacity:.55;background:#fbfcfd}
+.tb.ok{background:#e3f3ec;color:#1c7a54}
+
+.tdabs{display:flex;gap:6px;flex-wrap:wrap}
+@media(max-width:640px){.tdcard{gap:10px;padding:11px 12px}.tdt{flex-basis:52px;font-size:13px}.tdcnt{display:none}}
+
 .estate{text-align:center;padding:44px 20px;border:1px dashed var(--line);border-radius:11px;background:#fbfcfd;grid-column:1/-1}
 .estate b{display:block;font-size:14px;color:var(--ink2);margin-bottom:5px}
 .estate span{font-size:12.5px;color:var(--ink3)}
@@ -569,6 +590,7 @@ main{max-width:1200px;margin:0;padding:28px 36px 90px 300px}
   </div>
   <nav class="snav" id="tabs">
     <button data-v="dash"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="11" width="7" height="10" rx="1.5"/><rect x="3" y="15" width="7" height="6" rx="1.5"/></svg>대시보드</button>
+    <button data-v="today"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/><path d="M8 14h4"/></svg>오늘 명단<i id="navToday"></i></button>
     <div class="sgrp">학생</div>
     <button data-v="students"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><path d="M16 11.5a3 3 0 1 0-1.5-5.6"/><path d="M17 19c0-2.2-.8-3.6-2-4.5"/></svg>전체 학생<i id="navStud"></i></button>
     <div class="sgrp">성장</div>
@@ -585,6 +607,11 @@ main{max-width:1200px;margin:0;padding:28px 36px 90px 300px}
 <button id="sbToggle" onclick="document.body.classList.toggle('sbopen')" aria-label="메뉴">☰</button>
 
 <main>
+  <section class="view" id="v-today">
+    <div class="phead2"><div><h2 class="title">오늘 명단</h2><div class="sub" id="todaySub">주간 활동명단을 불러오는 중…</div></div></div>
+    <div class="toolbar"><div id="todayTabs" style="display:flex;gap:6px;flex-wrap:wrap"></div></div>
+    <div id="todayBody"></div>
+  </section>
   <section class="view" id="v-dash">
     <div class="phead2"><div><h2 class="title">대시보드</h2><div class="sub" id="dashSub">오늘 확인할 것</div></div></div>
     <div id="dashBody"></div>
@@ -657,7 +684,7 @@ const NPOINT='https://api.npoint.io/240a1e52df2a7cf131dd';
 const YEAR=2026;
 
 /* ===================== STATE ===================== */
-const RAW={obs:[],emo:[],members:{}};
+const RAW={obs:[],emo:[],members:{},roster:[]};
 let DB={students:{},goalAssignments:{},diagnosis:{},aiAnalysis:{},expert:{},reports:{},goalLibrary:null,staff:null,updatedAt:0};
 let STUDENTS=[], labFilterSet=new Set(), curStudent=null, recTab='obs', recLab='', recLimit=30;
 let subTab='records', repQ=0, lastSheetSync=0, recQuery='';
@@ -736,12 +763,14 @@ async function fetchTable(id,gid){
     if(!all.length)throw new Error('csv empty');
     let hi=all.findIndex(x=>x.some(c=>trim(c)==='이름'));
     if(hi<0)hi=0;
-    return {cols:all[hi].map(c=>trim(c)),rows:all.slice(hi+1),via:'csv'};
+    // all·hi도 함께 넘긴다 — 주간 명단처럼 머리글 위에 날짜 줄이 있는 탭이 있다
+    return {cols:all[hi].map(c=>trim(c)),rows:all.slice(hi+1),all,hi,via:'csv'};
   }catch(e){
     console.warn('CSV 실패 → gviz로 대체 (필터에 걸린 행은 빠질 수 있음)',gid,e.message);
     const d=await jsonp(id,gid);
     if(!d||!d.table)throw new Error('no table');
-    return {cols:d.table.cols.map(c=>trim(c.label)),rows:d.table.rows.map(r=>(r.c||[]).map(cellVal)),via:'gviz'};
+    const cols=d.table.cols.map(c=>trim(c.label)), rows=d.table.rows.map(r=>(r.c||[]).map(cellVal));
+    return {cols,rows,all:[cols,...rows],hi:0,via:'gviz'};
   }
 }
 function parseKDate(s){
@@ -833,6 +862,8 @@ function normalizeNames(){
   const tagOf=n=>{const m=trim(n).match(/[(（]([^)）]*)[)）]\s*$/);return m?trim(m[1]):'';};
   RAW.obs.forEach(o=>{const c=canon(o.name);if(c!==o.name){o.track=tagOf(o.name);o.name=c;}});
   RAW.emo.forEach(e=>{e.name=canon(e.name);});
+  // 주간 명단에도 "이시호(바이올린)" 같은 표기가 섞여 있다. raw는 남겨 사유를 보여준다.
+  (RAW.roster||[]).forEach(d=>d.rows.forEach(r=>{r.name=canon(r.raw);}));
   const mm={};                                   // Member_DB도 합치고 빈 칸은 서로 채운다
   Object.entries(RAW.members).forEach(([n,v])=>{
     const c=canon(n);
@@ -1076,6 +1107,7 @@ function refreshView(){   // redraw current view WITHOUT scrolling/navigating
 }
 function drawView(name){
   if(name==='dash')renderDash();
+  else if(name==='today')renderToday();
   else if(name==='students')renderStudents();
   else if(name==='reports')renderReports();
   else if(name==='library')renderLibrary();
@@ -1261,6 +1293,119 @@ function renderDash(){
 /* ===================== STUDENT LIST ===================== */
 /* ===== 성장 리포트 목록 =====
    저장된 리포트를 모아 보여주고, 클릭하면 해당 학생·기간 리포트로 바로 이동한다. */
+/* ===== 주간 활동명단 =====
+   '주간 활동명단(New)' 탭은 월~토 여섯 덩어리가 가로로 나란히 놓여 있다.
+   머리글(등원시간·이름·…) 위 두 줄에 요일과 실제 날짜("9월 2일(수)")가 적혀 있어서,
+   그 날짜 줄로 덩어리의 시작 열을 찾고 각 덩어리를 따로 읽는다.
+   요일 순서를 짐작하지 않고 시트에 적힌 날짜를 그대로 쓴다 — 엉뚱한 날 명단을 보여주면 안 된다. */
+const ROSTER_GID='1870342180';
+const ROSTER_LABS=[['ai','인공지능연구소'],['언어','언어연구소'],['미술','미술연구소'],['수리','수리연구소'],['sel','SEL연구소'],['음악','음악연구소']];
+async function loadRoster(){
+  RAW.roster=[];
+  try{
+    const {all,hi}=await fetchTable(OBS_ID,ROSTER_GID);
+    if(!all||!all.length)return;
+    const hdr=all[hi]||[];
+    const isDate=c=>/\d{1,2}\s*월\s*\d{1,2}/.test(trim(c));
+    let dateRow=null;
+    for(let i=hi-1;i>=0&&i>=hi-4;i--){ if((all[i]||[]).some(isDate)){dateRow=all[i];break;} }
+    if(!dateRow)return;
+    const starts=[];
+    dateRow.forEach((c,j)=>{if(isDate(c))starts.push(j);});
+    starts.forEach((s,bi)=>{
+      const end=bi+1<starts.length?starts[bi+1]:hdr.length;
+      const idx={};
+      for(let j=s;j<end;j++){const h=trim(hdr[j]).replace(/\s/g,'').toLowerCase();if(h&&idx[h]==null)idx[h]=j;}
+      if(idx['이름']==null)return;
+      const label=trim(dateRow[s]);
+      const rows=[];
+      all.slice(hi+1).forEach(r=>{
+        const nm=trim(r[idx['이름']]); if(!nm)return;
+        rows.push({raw:nm,name:nm,
+          inT:idx['등원시간']!=null?trim(r[idx['등원시간']]):'',
+          outT:idx['하원시간']!=null?trim(r[idx['하원시간']]):'',
+          ride:idx['이동수단']!=null?trim(r[idx['이동수단']]):'',
+          present:idx['출석']!=null&&/^(true|o|y|출석)$/i.test(trim(r[idx['출석']])),
+          labs:ROSTER_LABS.filter(([k])=>idx[k]!=null&&+trim(r[idx[k]])>0).map(([,v])=>v),
+          note:idx['비고']!=null?trim(r[idx['비고']]):''});
+      });
+      RAW.roster.push({label,date:parseKDate(label),rows});
+    });
+  }catch(e){console.warn('roster',e);}
+}
+/* ===== 오늘 명단 화면 =====
+   수업 직전에 "오늘 누가 오고, 그 아이 최근에 무슨 일이 있었나"를 한 화면에서 본다. */
+let todayIdx=-1;   // -1 = 아직 정하지 않음(오늘 날짜로 자동 선택)
+function updateTodayBadge(){
+  const el=$('#navToday');if(!el)return;
+  const d=(RAW.roster||[]).find(x=>sameDay(x.date,new Date()));
+  el.textContent=d?(d.rows.filter(r=>trim(r.raw)).length||''):'';
+}
+window.setToday=i=>{todayIdx=+i;renderToday();};
+const sameDay=(a,b)=>a&&b&&a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate();
+function renderToday(){
+  const R=RAW.roster||[];
+  if(!R.length){
+    $('#todaySub').textContent='주간 활동명단을 읽지 못했습니다';
+    $('#todayBody').innerHTML=`<div class="estate"><b>주간 활동명단(New) 탭을 읽지 못했습니다.</b>
+      <span>시트에 접근할 수 없거나 형식이 바뀌었을 수 있습니다. 설정 화면에서 [시트 새로고침]을 눌러 보세요.</span></div>`;
+    return;
+  }
+  const now=new Date();
+  if(todayIdx<0){
+    const i=R.findIndex(d=>sameDay(d.date,now));
+    todayIdx=i>=0?i:0;
+  }
+  const day=R[Math.min(todayIdx,R.length-1)];
+  const isToday=sameDay(day.date,now);
+  const weekHas=R.some(d=>sameDay(d.date,now));
+  /* 출석 칸은 아이가 온 뒤에 체크하는 것이라 아침에는 전부 비어 있다.
+     그래서 '출석 표시된 사람'이 아니라 '이름이 적힌 예정 명단'을 보여준다.
+     출석 표시는 확인용 표식으로만 곁들인다. */
+  const sched=day.rows.filter(r=>trim(r.raw));
+  const nPresent=sched.filter(r=>r.present).length;
+  $('#todaySub').innerHTML=`${isToday?'오늘 ':''}<b>${esc(day.label)}</b> · 예정 <b>${sched.length}명</b>`
+    +(nPresent?` · 등원 확인 ${nPresent}명`:'')
+    +(isToday||weekHas?'':' <span style="color:var(--warn)">(이번 주 명단에 오늘 날짜가 없습니다)</span>');
+  $('#todayTabs').innerHTML=R.map((d,i)=>{
+    const on=i===todayIdx, t=sameDay(d.date,now);
+    return `<span class="chip ${on?'on':''}" onclick="setToday(${i})">${esc(d.label.replace(/^\d+월\s*/,''))}${t?' ·오늘':''} <em style="font-style:normal;opacity:.7">${d.rows.filter(r=>trim(r.raw)).length}</em></span>`;
+  }).join('');
+  if(!sched.length){
+    $('#todayBody').innerHTML=`<div class="estate"><b>${esc(day.label)} 명단이 비어 있습니다.</b>
+      <span>주간 활동명단(New) 탭의 이 요일 칸이 아직 채워지지 않았습니다.</span></div>`;
+    return;
+  }
+  const timeKey=r=>(r.inT||'99:99');
+  sched.sort((a,b)=>timeKey(a).localeCompare(timeKey(b))||a.name.localeCompare(b.name,'ko'));
+  $('#todayBody').innerHTML=`<div class="tdlist">${sched.map(r=>todayCard(r)).join('')}</div>`;
+}
+function todayCard(r){
+  const known=STUDENTS.some(s=>s.name===r.name);
+  const {obs,emo}=known?recordsFor(r.name):{obs:[],emo:[]};
+  const last=obs.find(o=>o.date);
+  const goals=(DB.goalAssignments[r.name]||[]);
+  const gLabel={clear:'명확히 나타남',partial:'부분적으로 나타남',none:'관찰되지 않음',support:'지원이 필요함'};
+  const days=last&&last.date?Math.round((new Date()-last.date)/864e5):null;
+  const tag=r.raw!==r.name?r.raw.match(/[(（]([^)）]*)[)）]\s*$/):null;
+  return `<div class="tdcard${r.note&&!r.present?' off':''}" ${known?`onclick="go('#/student/${encodeURIComponent(r.name)}')"`:''}>
+    <div class="tdt">${esc(r.inT||'—')}<em>${esc(r.outT||'')}</em></div>
+    <div class="tdmain">
+      <div class="tdn">${avatarHTML(r.name)}<b>${esc(r.name)}</b>
+        ${r.present?`<span class="tb ok">등원</span>`:''}
+        ${tag?`<span class="tb g">${esc(tag[1])}</span>`:''}
+        ${r.labs.map(l=>`<span class="tb lab">${esc(l.replace('연구소',''))}</span>`).join('')}
+        ${r.note?`<span class="tb g">${esc(r.note)}</span>`:''}</div>
+      ${!known?`<div class="tdlast" style="color:var(--warn)">앱 학생 명단에 없는 이름입니다</div>`
+        :last?`<div class="tdlast"><b>${esc(fmtDate(last.date))}${days!=null?` · ${days===0?'오늘':days+'일 전'}`:''} · ${esc(last.lab)}</b>
+               ${last.note?esc(last.note.replace(/\s*\n+\s*/g,' ').slice(0,90))+(last.note.length>90?'…':''):'<i style="color:var(--ink3)">관찰 내용 미기재</i>'}</div>`
+        :`<div class="tdlast" style="color:var(--ink3)">아직 기록된 관찰이 없습니다</div>`}
+      ${goals.length?`<div class="tdgoal">${goals.slice(0,2).map(g=>
+        `<span class="gchip${g.status?'':' empty'}">${esc(g.text.length>34?g.text.slice(0,34)+'…':g.text)}${g.status?` · ${gLabel[g.status]}`:''}</span>`).join('')}</div>`:''}
+    </div>
+    ${known?`<div class="tdcnt"><b>${obs.length}</b><span>관찰</span></div>`:''}
+  </div>`;
+}
 const qLabel=q=>(+q===0?'전체 기간':`${YEAR} ${q}분기`);
 function allReports(){
   const out=[];
@@ -2687,9 +2832,9 @@ function isEditing(){
 }
 async function loadAllSheets(opt){
   const silent=!!(opt&&opt.silent);
-  try{await Promise.all([loadMembers(),loadObservations(),loadEmotions()]);}catch(e){console.error(e);}
+  try{await Promise.all([loadMembers(),loadObservations(),loadEmotions(),loadRoster()]);}catch(e){console.error(e);}
   normalizeNames();
-  buildStudents();renderLabFilter();
+  buildStudents();renderLabFilter();updateTodayBadge();
   lastSheetSync=Date.now();
   const ds=$('#dashSub');if(ds)ds.textContent='오늘 확인할 것';
   if(silent)refreshView(); else route();
