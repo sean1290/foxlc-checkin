@@ -227,6 +227,10 @@ label.fld select,label.fld input,label.fld textarea{width:100%;border:1px solid 
 .rselPastI{border-left:2px solid var(--line);padding:2px 0 2px 11px;margin-bottom:8px}
 .rselPastI b{display:block;font-size:11px;color:var(--ink3);font-weight:700;margin-bottom:2px}
 .rselPastI p{margin:0;font-size:12.5px;line-height:1.65;color:var(--ink2);white-space:pre-wrap}
+.rselRef{margin-top:16px;border:1px solid var(--line);border-radius:11px;padding:13px 15px 6px;background:#fbfcfd}
+.rselRef .selrefb{padding:0}
+.rselRefT{font-size:12px;font-weight:800;color:var(--ink2);margin:0 0 9px}
+
 .rselNote{margin-top:12px;padding:10px 13px;border:1px solid #e6cfa8;background:#fdf8ef;border-radius:9px;font-size:12px;color:#8a6a1f;line-height:1.65}
 .selnr td{background:#fbfcfd;text-align:left!important;padding:8px 12px 12px!important}
 .selnr label{display:block;font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:4px}
@@ -1777,6 +1781,20 @@ const selBadge=o=>o?`<em class="slv ${o.k}">${o.t}</em>`:'';
 const selRounds=n=>((DB.selTest||{})[n]||{}).rounds||[];
 const selSum=s=>{const v=SEL_AREAS.map(([k])=>+s[k]).filter(x=>x>=5&&x<=15);return v.length===5?v.reduce((a,b)=>a+b,0):null;};
 const today=()=>{const d=new Date();return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;};
+/* 점수 해석표 — 채점 화면과 성장리포트가 같은 표를 쓴다.
+   기준이 바뀌면 여기 한 곳만 고치면 두 곳에 함께 반영된다. */
+const SEL_REF_AREA=[['low','관심 필요','5~8','해당 영역에서 어려움이 자주 관찰됩니다. 구체적인 상황을 함께 살펴보고 지원이 필요해요.'],
+  ['mid','보통','9~11','또래 수준에서 무난한 모습입니다. 꾸준한 격려가 도움이 됩니다.'],
+  ['high','우수','12~15','해당 영역에서 안정적이고 뛰어난 모습을 보입니다.']];
+const SEL_REF_TOTAL=[['low','관심 필요','25~41','전반적인 사회정서역량 발달에 지지와 관심이 필요한 단계입니다.'],
+  ['mid','보통','42~58','전반적으로 무난한 사회정서역량을 보이고 있습니다.'],
+  ['high','우수','59~75','전 영역에서 우수한 사회정서역량을 나타냅니다.']];
+const SEL_DISCLAIMER='※ 이 구간은 표준화된 규준이 아닌 잠정 기준입니다. 진단이 아닌 관찰·성장 참고용으로 활용해 주세요.';
+const selRefCol=(title,rows)=>`<div class="selrefc"><b>${esc(title)}</b>
+  ${rows.map(([k,t,range,desc])=>`<div class="selrow"><span class="slv ${k}">${t}</span><i>${range}</i><p>${esc(desc)}</p></div>`).join('')}</div>`;
+const selRefTables=()=>`<div class="selrefb">
+  ${selRefCol('영역 점수 (5~15점)',SEL_REF_AREA)}
+  ${selRefCol('총점 (25~75점)',SEL_REF_TOTAL)}</div>`;
 /* 예전에는 소견이 학생 단위(memo)였다. 남아 있으면 마지막 회차 소견으로 읽어 준다. */
 function roundNote(name,i){
   const t=(DB.selTest||{})[name]||{}, R=t.rounds||[], r=R[i]||{};
@@ -1816,21 +1834,8 @@ function viewSelTest(name){
 
     <details class="selref">
       <summary>점수 해석표 보기</summary>
-      <div class="selrefb">
-        <div class="selrefc">
-          <b>영역 점수 (5~15점)</b>
-          <div class="selrow"><span class="slv low">관심 필요</span><i>5~8</i><p>해당 영역에서 어려움이 자주 관찰됩니다. 구체적인 상황을 함께 살펴보고 지원이 필요해요.</p></div>
-          <div class="selrow"><span class="slv mid">보통</span><i>9~11</i><p>또래 수준에서 무난한 모습입니다. 꾸준한 격려가 도움이 됩니다.</p></div>
-          <div class="selrow"><span class="slv high">우수</span><i>12~15</i><p>해당 영역에서 안정적이고 뛰어난 모습을 보입니다.</p></div>
-        </div>
-        <div class="selrefc">
-          <b>총점 (25~75점)</b>
-          <div class="selrow"><span class="slv low">관심 필요</span><i>25~41</i><p>전반적인 사회정서역량 발달에 지지와 관심이 필요한 단계입니다.</p></div>
-          <div class="selrow"><span class="slv mid">보통</span><i>42~58</i><p>전반적으로 무난한 사회정서역량을 보이고 있습니다.</p></div>
-          <div class="selrow"><span class="slv high">우수</span><i>59~75</i><p>전 영역에서 우수한 사회정서역량을 나타냅니다.</p></div>
-        </div>
-      </div>
-      <div class="selnotice">※ 이 구간은 표준화된 규준이 아닌 잠정 기준입니다. 진단이 아닌 관찰·성장 참고용으로 활용해 주세요.</div>
+      ${selRefTables()}
+      <div class="selnotice">${SEL_DISCLAIMER}</div>
     </details>
 
     <div class="sec-h" style="margin-top:20px">장기 추적 결과표
@@ -1962,6 +1967,11 @@ function selReportBlock(name,sec){
       ${(()=>{const past=R.slice(0,-1).map((r,i)=>({i,n:roundNote(name,i)})).filter(x=>trim(x.n));
         return past.length?`<div class="rselPast"><div class="rselPastL">지난 회차 소견</div>
           ${past.map(x=>`<div class="rselPastI"><b>${x.i+1}차 · ${esc(R[x.i].date)}</b><p>${esc(x.n)}</p></div>`).join('')}</div>`:'';})()}`:''}
+
+      <div class="rselRef">
+        <div class="rselRefT">점수 해석표</div>
+        ${selRefTables()}
+      </div>
 
       <div class="rselNote">이 점수는 표준화된 규준이 아닌 폭스러닝센터의 <b>잠정 기준</b>에 따른 것입니다.
         진단이 아니라 아이의 사회정서역량을 같은 잣대로 <b>반복해서 살펴보기 위한 참고 자료</b>이며,
