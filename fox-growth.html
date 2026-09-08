@@ -227,6 +227,22 @@ label.fld select,label.fld input,label.fld textarea{width:100%;border:1px solid 
 .rselPastI{border-left:2px solid var(--line);padding:2px 0 2px 11px;margin-bottom:8px}
 .rselPastI b{display:block;font-size:11px;color:var(--ink3);font-weight:700;margin-bottom:2px}
 .rselPastI p{margin:0;font-size:12.5px;line-height:1.65;color:var(--ink2);white-space:pre-wrap}
+.rselRadar,.selRadarBox{display:flex;flex-direction:column;align-items:center;margin:0 0 14px}
+.selRadarBox{margin:16px 0 4px;padding:14px 0 6px;border:1px solid var(--line);border-radius:12px;background:#fff}
+.selRadarSvg{width:100%;max-width:330px;height:auto;display:block}
+.selRadarLb{font-size:11px;font-weight:700;fill:#5b6472}
+.selRadarSc{font-size:12px;font-weight:800;fill:#203462}
+.selRadarTick{font-size:9px;fill:#9aa3af}
+.selRadarLg{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;align-items:center;font-size:11px;color:var(--ink3);margin-top:4px}
+.selRadarLg span{display:flex;align-items:center;gap:5px}
+.selRadarLg i{display:inline-block;width:13px;height:3px;border-radius:2px}
+.selRadarLg i.cur{background:#3b6ea5;height:3px}
+.selRadarLg i.prev{background:repeating-linear-gradient(90deg,#9aa3af 0 4px,transparent 4px 7px)}
+.selRadarBand i{width:11px;height:11px;border-radius:3px;margin-left:6px}
+.selRadarBand i.b1{background:#fae7ee;border:1px solid #e9cdd8;margin-left:0}
+.selRadarBand i.b2{background:#faf1dc;border:1px solid #e6d6ae}
+.selRadarBand i.b3{background:#e8f4ee;border:1px solid #c6e0d3}
+
 .rselRef{margin-top:16px;border:1px solid var(--line);border-radius:11px;padding:13px 15px 6px;background:#fbfcfd}
 .rselRef .selrefb{padding:0}
 .rselRefT{font-size:12px;font-weight:800;color:var(--ink2);margin:0 0 9px}
@@ -659,7 +675,7 @@ main{max-width:1200px;margin:0;padding:28px 36px 90px 300px}
   body{background:#fff}main{padding:0}
   .rep{border:0;box-shadow:none;max-width:100%;border-radius:0}
   .rcover{border-radius:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .rselTop,.rselSum,.rselBar i,.rselOp,.rselNote,.slv,.seltrack th,.seltrack tr.cur td,.rstrength,.rexp,.rstat,.rlab .lhd,.rgbadge,.rint,.rintro,.iloop .il,.rstage span,.rsign,.aH1 span,.aH2,.aEvid,.aInterp,.aBA th,.aBA td:last-child,.evoice,.evi.top,.ebar i,.emc{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .selRadarSvg,.selRadarSvg polygon,.selRadarLg i,.selRadarBand i,.rselTop,.rselSum,.rselBar i,.rselOp,.rselNote,.slv,.seltrack th,.seltrack tr.cur td,.rstrength,.rexp,.rstat,.rlab .lhd,.rgbadge,.rint,.rintro,.iloop .il,.rstage span,.rsign,.aH1 span,.aH2,.aEvid,.aInterp,.aBA th,.aBA td:last-child,.evoice,.evi.top,.ebar i,.emc{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .rep section{page-break-inside:avoid}
   /* 인쇄본도 같은 글꼴로. 학부모에게 나가는 문서라 대체 글꼴로 찍히면 안 된다 */
   html,body,.rep,.rep *{font-family:var(--font)!important}
@@ -1838,6 +1854,11 @@ function viewSelTest(name){
       <div class="selnotice">${SEL_DISCLAIMER}</div>
     </details>
 
+    ${R.length?`<div class="selRadarBox">
+      ${selRadar(R[R.length-1].s, R.length>1?R[R.length-2].s:null,
+        `${R[R.length-1].date} 검사`, R.length>1?`${R[R.length-2].date} 검사`:'')}
+    </div>`:''}
+
     <div class="sec-h" style="margin-top:20px">장기 추적 결과표
       <span class="act" style="font-size:11px;color:var(--ink3);font-weight:600">${R.length?`${R.length}회 기록됨`:'아직 기록 없음'}</span></div>
     <div class="sub" style="margin:0 0 9px">6개월~1년 간격으로 검사할 때마다 결과가 아래에 쌓입니다. 소견은 회차별로 수정할 수 있습니다.</div>
@@ -1913,6 +1934,41 @@ window.saveRoundNote=(name,i,v)=>{
    검사는 6개월~1년 간격이라 분기로 걸러내면 대부분 빈칸이 된다.
    그래서 분기와 무관하게 '가장 최근 검사'를 싣고, 2회 이상이면 변화까지 보여준다.
    점수가 학부모에게 나가므로 '잠정 기준·진단 아님' 문구를 반드시 함께 싣는다. */
+/* 5개 역량 오각형 그래프.
+   축은 검사지와 같은 5~15 범위를 그대로 쓴다(5가 중심, 15가 바깥).
+   배경 띠는 해석표 구간과 같다 — 안쪽 5~8 관심 필요, 8~11 보통, 바깥 11~15 우수.
+   그래서 점수를 몰라도 어느 구간에 있는지 모양만 보고 읽을 수 있다.
+   라이브러리 없이 인라인 SVG로 그려 인쇄본에도 그대로 나온다. */
+function selRadar(cur,prev,curLabel,prevLabel){
+  const W=320,H=286,cx=160,cy=138,R=96;
+  const ang=i=>(-90+i*72)*Math.PI/180;
+  const at=(i,v)=>{const rr=R*Math.max(0,Math.min(1,(v-5)/10));
+    return [cx+rr*Math.cos(ang(i)), cy+rr*Math.sin(ang(i))];};
+  const ring=v=>SEL_AREAS.map((_,i)=>at(i,v).map(n=>n.toFixed(1)).join(',')).join(' ');
+  const shape=s=>SEL_AREAS.map(([k],i)=>at(i,+s[k]).map(n=>n.toFixed(1)).join(',')).join(' ');
+  // 라벨은 꼭짓점 바깥에 붙인다. 위치에 따라 정렬을 달리해야 겹치지 않는다.
+  const anchor=['middle','start','start','end','end'], dy=[-9,-2,14,14,-2];
+  return `<svg class="selRadarSvg" viewBox="0 0 ${W} ${H}" role="img" aria-label="영역별 점수 오각형 그래프">
+    <polygon points="${ring(15)}" fill="#e8f4ee"/>
+    <polygon points="${ring(11)}" fill="#faf1dc"/>
+    <polygon points="${ring(8)}"  fill="#fae7ee"/>
+    ${[8,11,15].map(v=>`<polygon points="${ring(v)}" fill="none" stroke="#c8d0d8" stroke-width="1"/>`).join('')}
+    ${SEL_AREAS.map((_,i)=>{const[x,y]=at(i,15);return `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#c8d0d8" stroke-width="1"/>`;}).join('')}
+    ${[8,11,15].map(v=>{const[,y]=at(0,v);return `<text x="${cx+4}" y="${(y+4).toFixed(1)}" class="selRadarTick">${v}</text>`;}).join('')}
+    ${prev?`<polygon points="${shape(prev)}" fill="none" stroke="#9aa3af" stroke-width="1.6" stroke-dasharray="4 3"/>`:''}
+    <polygon points="${shape(cur)}" fill="rgba(59,110,165,.18)" stroke="#3b6ea5" stroke-width="2.2" stroke-linejoin="round"/>
+    ${SEL_AREAS.map(([k],i)=>{const[x,y]=at(i,+cur[k]);
+      return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.4" fill="#3b6ea5"/>`;}).join('')}
+    ${SEL_AREAS.map(([k],i)=>{const[x,y]=at(i,15.9);
+      return `<text x="${x.toFixed(1)}" y="${(y+dy[i]).toFixed(1)}" text-anchor="${anchor[i]}" class="selRadarLb">${esc(SEL_SHORT[k])}
+        <tspan class="selRadarSc" dx="4">${cur[k]}</tspan></text>`;}).join('')}
+  </svg>
+  <div class="selRadarLg">
+    <span><i class="cur"></i>${esc(curLabel||'이번 검사')}</span>
+    ${prev?`<span><i class="prev"></i>${esc(prevLabel||'지난 검사')}</span>`:''}
+    <span class="selRadarBand"><i class="b1"></i>관심 필요<i class="b2"></i>보통<i class="b3"></i>우수</span>
+  </div>`;
+}
 function selReportBlock(name,sec){
   const R=selRounds(name);
   if(!R.length)return '';
@@ -1939,6 +1995,10 @@ function selReportBlock(name,sec){
           ${diff!=null&&diff!==0?`<u class="${diff>0?'up':'dn'}">지난 검사보다 ${diff>0?'+':''}${diff}점</u>`:''}
         </div>
         <p class="rselDesc">${TOTAL_DESC[lv.k]}</p>
+      </div>
+
+      <div class="rselRadar">
+        ${selRadar(last.s, prev?prev.s:null, `${last.date} 검사`, prev?`${prev.date} 검사`:'')}
       </div>
 
       <div class="rselAreas">
