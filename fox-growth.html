@@ -1799,8 +1799,8 @@ function viewSelTest(name){
         </tr>`;}).join('')}</tbody></table></div>`
       :`<div class="empty-note">저장된 검사 결과가 없습니다. 위에 점수를 넣고 [이 회차 저장]을 누르면 여기에 쌓입니다.</div>`}
 
-    <div class="dfield" style="margin-top:14px"><label>메모</label>
-      <textarea id="selMemo" rows="3" class="bigbox" onblur="saveSelMemo('${esc(name)}')" placeholder="검사 상황, 특이사항, 다음 검사 때 확인할 점 등">${esc(memo)}</textarea></div>
+    <div class="dfield" style="margin-top:14px"><label>전문가 소견</label>
+      <textarea id="selMemo" rows="4" class="bigbox" onblur="saveSelMemo('${esc(name)}')" placeholder="점수와 관찰을 함께 놓고 본 해석, 검사 상황에서 눈여겨본 점, 다음 검사까지 지켜볼 부분">${esc(memo)}</textarea></div>
   </div>`;
 }
 /* 입력할 때마다 수준과 총점을 다시 계산한다 */
