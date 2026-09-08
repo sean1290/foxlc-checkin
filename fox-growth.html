@@ -157,6 +157,42 @@ label.fld select,label.fld input,label.fld textarea{width:100%;border:1px solid 
 .subnav button.on{background:var(--accent);color:#fff}
 .subnav button:hover:not(.on){background:var(--line2)}
 .stepnote{font-size:11.5px;color:var(--ink3);margin:6px 2px 14px}
+/* SEL 역량 검사 채점표 */
+.selgrid{border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:#fbfcfd}
+.seldate{display:flex;align-items:center;gap:9px;margin-bottom:11px}
+.seldate label{font-size:12px;font-weight:700;color:var(--ink2)}
+.seldate input{border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:13px}
+.seltbl{width:100%;border-collapse:collapse;background:#fff;border-radius:9px;overflow:hidden}
+.seltbl th{background:#1f4d3a;color:#fff;font-size:12px;font-weight:700;padding:9px 12px;text-align:left}
+.seltbl th:not(:first-child),.seltbl td:not(:first-child){text-align:center}
+.seltbl td{border-top:1px solid var(--line2);padding:8px 12px;font-size:13.5px;font-weight:600}
+.seltbl tr.seltot td{background:#eef0f3;font-weight:800;font-size:14px}
+.seltbl tr.seltot td b{font-size:17px;color:#1f4d3a}
+.selin{width:92px;border:1px solid var(--line);border-radius:7px;padding:6px 8px;font-size:14px;font-weight:700;text-align:center}
+.selin.err{border-color:var(--warn);background:#fdf0e8}
+.selwarn{font-size:12px;color:var(--warn);font-weight:700;margin-top:8px;min-height:1px}
+.slv{display:inline-block;font-style:normal;font-size:11.5px;font-weight:800;border-radius:20px;padding:3px 11px;white-space:nowrap}
+.slv.low{background:#f7dce6;color:#9b3757}
+.slv.mid{background:#f5e7c8;color:#8a6a1f}
+.slv.high{background:#dcefe5;color:#1f5c40}
+.selref{margin-top:14px;border:1px solid var(--line);border-radius:11px;background:#fff}
+.selref summary{cursor:pointer;padding:11px 15px;font-size:13px;font-weight:700;color:var(--ink2)}
+.selrefb{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:0 15px 4px}
+.selrefc b{display:block;font-size:12px;color:var(--accent-ink);margin-bottom:7px}
+.selrow{display:grid;grid-template-columns:78px 52px 1fr;gap:8px;align-items:start;padding:6px 0;border-top:1px solid var(--line2);font-size:12px}
+.selrow i{font-style:normal;font-weight:700;color:var(--ink2)}
+.selrow p{margin:0;color:var(--ink3);line-height:1.55}
+.selnotice{margin:10px 15px 14px;padding:9px 12px;border:1px solid #e6cfa8;background:#fdf8ef;border-radius:8px;font-size:12px;color:#8a6a1f;line-height:1.6}
+.seltrackwrap{overflow-x:auto}
+.seltrack{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.seltrack th{background:#1f4d3a;color:#fff;font-size:11.5px;font-weight:700;padding:8px 6px;white-space:nowrap}
+.seltrack td{border-top:1px solid var(--line2);padding:8px 6px;font-size:13px;text-align:center}
+.seltrack td:nth-child(2){white-space:nowrap;color:var(--ink2);font-size:12.5px}
+.seltrack td u{text-decoration:none;font-size:11px;font-weight:800;margin-left:4px}
+.seltrack td u.up{color:#1f5c40}
+.seltrack td u.dn{color:var(--warn)}
+@media(max-width:760px){.selrefb{grid-template-columns:1fr}}
+
 /* AI paste + expert */
 .bigbox{width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:13px;line-height:1.6;resize:vertical}
 .stamp{font-size:11px;color:var(--ink3);margin-top:5px}
@@ -694,7 +730,7 @@ const YEAR=2026;
 
 /* ===================== STATE ===================== */
 const RAW={obs:[],emo:[],members:{},roster:[]};
-let DB={students:{},goalAssignments:{},diagnosis:{},aiAnalysis:{},expert:{},reports:{},goalLibrary:null,staff:null,updatedAt:0};
+let DB={students:{},goalAssignments:{},diagnosis:{},aiAnalysis:{},expert:{},selTest:{},reports:{},goalLibrary:null,staff:null,updatedAt:0};
 let STUDENTS=[], labFilterSet=new Set(), curStudent=null, recTab='obs', recLab='', recLimit=30;
 let subTab='records', repQ=0, lastSheetSync=0, recQuery='';
 let sortMode='name';   // name | recent (실제 값은 boot()에서 복원)
@@ -991,7 +1027,7 @@ function saveCache(){lsSet(LKEY,JSON.stringify(DB));}
    학생·분기 단위로 3-way 병합한다. 서로 다른 학생을 만지는 한 충돌이 나지 않는다.
    최신 판정을 Date.now() 비교로 하지 않는 것도 중요하다 — PC 시계가 앞선 사람이
    남의 변경을 영영 못 받고 매번 덮어쓰는 사고가 난다. */
-const COLL=['students','goalAssignments','diagnosis','aiAnalysis','expert'];  // 학생 이름 단위
+const COLL=['students','goalAssignments','diagnosis','aiAnalysis','expert','selTest'];  // 학생 이름 단위
 const SINGLE=['goalLibrary','staff'];                                          // 통째 단위
 let SYNCED=null;          // null이면 아직 기준점 없음(첫 실행)
 const J=v=>JSON.stringify(v===undefined?null:v);
@@ -1007,7 +1043,7 @@ function flatten(db){
   return m;
 }
 function unflatten(m){
-  const db={students:{},goalAssignments:{},diagnosis:{},aiAnalysis:{},expert:{},reports:{},goalLibrary:null,staff:null};
+  const db={students:{},goalAssignments:{},diagnosis:{},aiAnalysis:{},expert:{},selTest:{},reports:{},goalLibrary:null,staff:null};
   Object.keys(m).forEach(p=>{
     const v=m[p];if(v===undefined)return;
     const s=p.split('/');
@@ -1090,7 +1126,7 @@ async function pushDB(){
 function ensureDefaults(){
   if(!DB.goalLibrary)DB.goalLibrary=defaultLibrary();
   if(!DB.staff)DB.staff=[{name:'센터장',role:'센터장'},{name:'Research Lead',role:'리드'},{name:'이영연',role:'연구원'},{name:'윤승희',role:'연구원'},{name:'이안나',role:'연구원'},{name:'SEL 상담가',role:'상담가'}];
-  ['students','goalAssignments','diagnosis','aiAnalysis','expert','reports'].forEach(k=>{if(!DB[k])DB[k]={};});
+  ['students','goalAssignments','diagnosis','aiAnalysis','expert','selTest','reports'].forEach(k=>{if(!DB[k])DB[k]={};});
 }
 function defaultLibrary(){return [
   {cat:'자기표현',goals:['새로운 활동에서 자신의 의견을 자발적으로 표현한다.','자신의 생각을 말할 때 구체적인 이유나 근거를 함께 설명한다.','자신의 감정이나 상태를 적절한 말로 표현한다.']},
@@ -1230,7 +1266,7 @@ function buildDash(){
     obsTotal:RAW.obs.length, emoTotal:RAW.emo.length,
     reports:rows.filter(r=>Object.keys(DB.reports[r.s.name]||{}).length).length,
     findings:rows.filter(r=>{const q=DB.reports[r.s.name]||{};return Object.values(q).some(x=>x&&x.discovery);}).length,
-    expert:Object.keys(DB.expert||{}).length,
+    selTested:Object.keys(DB.selTest||{}).filter(n=>((DB.selTest[n]||{}).rounds||[]).length).length,
     regular:rows.filter(r=>r.act.k==='regular').length,
     occasional:rows.filter(r=>r.act.k==='occasional').length,
     dormant:rows.filter(r=>r.act.k==='dormant').length,
@@ -1251,7 +1287,7 @@ function renderDash(){
     ${stat(d.total,'등록 학생',`관찰 ${d.obsTotal.toLocaleString()}건 · 감정 ${d.emoTotal.toLocaleString()}회`)}
     ${stat(d.regular,'정기 활동',`최근 8주 중 6주 이상 · 간헐 ${d.occasional} · 활동없음 ${d.dormant}`)}
     ${stat(d.withGoal,'성장목표 설정됨',`기록이 충분한 학생 중심으로`)}
-    ${stat(d.reports,'리포트 작성됨',`전문가 소견 ${d.expert}건`)}
+    ${stat(d.reports,'리포트 작성됨',`SEL 역량 검사 ${d.selTested}명`)}
   </div>
 
   <div class="dloop">
@@ -1426,9 +1462,8 @@ function allReports(){
       if(!r._at&&!r._done)return;
       const filled=Object.entries(r).filter(([k,v])=>k[0]!=='_'&&trim(v)).length;
       if(!filled)return;
-      const ex=DB.expert[name]||{};
       out.push({name,q:+q,r,filled,at:r._at||0,by:r._by||'',done:!!r._done,
-        doneAt:r._doneAt||0,doneBy:r._doneBy||'',reviewed:!!ex.opinion,reviewer:ex.reviewer||''});
+        doneAt:r._doneAt||0,doneBy:r._doneBy||'',reviewed:selRounds(name).length>0,reviewer:''});
     });
   });
   return out.sort((a,b)=>(b.done-a.done)||(b.at-a.at)||a.name.localeCompare(b.name,'ko'));
@@ -1452,7 +1487,7 @@ function renderReports(){
         <span class="rtn">${avatarHTML(x.name)}<b>${esc(x.name)}</b></span>
         <span>${esc(qLabel(x.q))}</span>
         <span>${x.done?`<em class="rbadge done">완료</em>`:`<em class="rbadge draft">작성 중</em>`}
-              ${x.reviewed?`<em class="rbadge rev">전문가 검토</em>`:''}</span>
+              ${x.reviewed?`<em class="rbadge rev">SEL 검사</em>`:''}</span>
         <span class="rtm">${x.at?new Date(x.at).toLocaleDateString('ko-KR'):'-'}${x.by?`<i>${esc(x.by)}</i>`:''}</span>
         <span class="rta"><button class="btn sm" onclick="event.stopPropagation();toggleDone('${esc(x.name)}',${x.q})">${x.done?'완료 해제':'완료 처리'}</button></span>
       </div>`).join('')}
@@ -1564,7 +1599,7 @@ function renderStudentPage(){
   </div>
   <div class="subnav">
     <button class="${subTab==='records'?'on':''}" onclick="goSub('records')">1 · 관찰 데이터</button>
-    <button class="${subTab==='analysis'?'on':''}" onclick="goSub('analysis')">2 · 발견·분석${ai.text?' ✓':''}${ex.opinion?' · 전문가 ✓':''}</button>
+    <button class="${subTab==='analysis'?'on':''}" onclick="goSub('analysis')">2 · 발견·분석${ai.text?' ✓':''}${selRounds(name).length?' · 검사 '+selRounds(name).length+'회':''}</button>
     <button class="${subTab==='report'?'on':''}" onclick="goSub('report')">3 · 성장리포트</button>
   </div>
   <div class="stepnote ${hide}">관찰 데이터를 확인하고 → AI로 패턴을 분석한 뒤 SEL 전문가가 소견을 확정하면 → 리포트에 자동 반영됩니다.</div>
@@ -1689,11 +1724,135 @@ function renderLabDigest(obs){
     </div>`;
   }).join('');
 }
+/* ===================== SEL 역량 검사 채점 =====================
+   종이 채점표(영역별 5~15점 · 총점 25~75점)를 그대로 앱에 옮긴 것.
+   구간은 표준화된 규준이 아니라 센터의 잠정 기준이므로 화면에도 그렇게 밝힌다. */
+const SEL_AREAS=[['aw','자기인식'],['sm','자기관리'],['soc','사회적 인식'],['rel','관계기술'],['dec','책임 있는 의사결정']];
+const SEL_SHORT={aw:'자기인식',sm:'자기관리',soc:'사회적 인식',rel:'관계기술',dec:'의사결정'};
+const selArea=v=>v==null?null:v<=8?{k:'low',t:'관심 필요'}:v<=11?{k:'mid',t:'보통'}:{k:'high',t:'우수'};
+const selTotal=v=>v==null?null:v<=41?{k:'low',t:'관심 필요'}:v<=58?{k:'mid',t:'보통'}:{k:'high',t:'우수'};
+const selBadge=o=>o?`<em class="slv ${o.k}">${o.t}</em>`:'';
+const selRounds=n=>((DB.selTest||{})[n]||{}).rounds||[];
+const selSum=s=>{const v=SEL_AREAS.map(([k])=>+s[k]).filter(x=>x>=5&&x<=15);return v.length===5?v.reduce((a,b)=>a+b,0):null;};
+const today=()=>{const d=new Date();return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;};
+
+function viewSelTest(name){
+  const R=selRounds(name), memo=((DB.selTest||{})[name]||{}).memo||'';
+  return `
+  <div class="card pad">
+    <div class="sec-h">③ SEL 역량 검사 <span style="font-weight:600;color:var(--ink3)">— 채점 및 결과</span>
+      <span class="act"><button class="btn pri sm" onclick="saveSelRound('${esc(name)}')">이 회차 저장</button></span></div>
+
+    <div class="sub" style="margin:0 0 10px">검사지의 영역별 문항 점수를 합산해 아래에 기입하세요. 총점과 수준은 자동으로 계산됩니다.</div>
+    <div class="selgrid">
+      <div class="seldate"><label>검사일</label><input type="date" id="selDate" value="${today()}"></div>
+      <table class="seltbl">
+        <thead><tr><th>영역</th><th style="width:120px">점수 (5~15)</th><th style="width:96px">수준</th></tr></thead>
+        <tbody>
+          ${SEL_AREAS.map(([k,label])=>`<tr>
+            <td>${esc(label)}</td>
+            <td><input type="number" class="selin" id="sel_${k}" min="5" max="15" step="1" placeholder="5~15" oninput="selCalc()"></td>
+            <td id="lv_${k}"></td></tr>`).join('')}
+          <tr class="seltot">
+            <td>총점 (25~75)</td>
+            <td id="selSum">—</td>
+            <td id="lv_sum"></td></tr>
+        </tbody>
+      </table>
+      <div id="selWarn" class="selwarn"></div>
+    </div>
+
+    <details class="selref">
+      <summary>점수 해석표 보기</summary>
+      <div class="selrefb">
+        <div class="selrefc">
+          <b>영역 점수 (5~15점)</b>
+          <div class="selrow"><span class="slv low">관심 필요</span><i>5~8</i><p>해당 영역에서 어려움이 자주 관찰됩니다. 구체적인 상황을 함께 살펴보고 지원이 필요해요.</p></div>
+          <div class="selrow"><span class="slv mid">보통</span><i>9~11</i><p>또래 수준에서 무난한 모습입니다. 꾸준한 격려가 도움이 됩니다.</p></div>
+          <div class="selrow"><span class="slv high">우수</span><i>12~15</i><p>해당 영역에서 안정적이고 뛰어난 모습을 보입니다.</p></div>
+        </div>
+        <div class="selrefc">
+          <b>총점 (25~75점)</b>
+          <div class="selrow"><span class="slv low">관심 필요</span><i>25~41</i><p>전반적인 사회정서역량 발달에 지지와 관심이 필요한 단계입니다.</p></div>
+          <div class="selrow"><span class="slv mid">보통</span><i>42~58</i><p>전반적으로 무난한 사회정서역량을 보이고 있습니다.</p></div>
+          <div class="selrow"><span class="slv high">우수</span><i>59~75</i><p>전 영역에서 우수한 사회정서역량을 나타냅니다.</p></div>
+        </div>
+      </div>
+      <div class="selnotice">※ 이 구간은 표준화된 규준이 아닌 잠정 기준입니다. 진단이 아닌 관찰·성장 참고용으로 활용해 주세요.</div>
+    </details>
+
+    <div class="sec-h" style="margin-top:20px">장기 추적 결과표
+      <span class="act" style="font-size:11px;color:var(--ink3);font-weight:600">${R.length?`${R.length}회 기록됨`:'아직 기록 없음'}</span></div>
+    <div class="sub" style="margin:0 0 9px">6개월~1년 간격으로 검사할 때마다 결과가 아래에 쌓입니다. 변화를 비교해 보세요.</div>
+    ${R.length?`<div class="seltrackwrap"><table class="seltrack">
+      <thead><tr><th>검사 차수</th><th>검사일</th>${SEL_AREAS.map(([k])=>`<th>${esc(SEL_SHORT[k])}</th>`).join('')}<th>총점</th><th>수준</th><th></th></tr></thead>
+      <tbody>${R.map((r,i)=>{const sum=selSum(r.s);const lv=selTotal(sum);
+        const prev=i>0?selSum(R[i-1].s):null;
+        const diff=(prev!=null&&sum!=null)?sum-prev:null;
+        return `<tr>
+          <td><b>${i+1}차</b></td>
+          <td>${esc(r.date||'-')}</td>
+          ${SEL_AREAS.map(([k])=>`<td>${r.s[k]!=null?r.s[k]:'-'}</td>`).join('')}
+          <td><b>${sum!=null?sum:'-'}</b>${diff!=null&&diff!==0?`<u class="${diff>0?'up':'dn'}">${diff>0?'+':''}${diff}</u>`:''}</td>
+          <td>${selBadge(lv)}</td>
+          <td><button class="btn ghost sm" onclick="delSelRound('${esc(name)}',${i})" title="이 회차 삭제">✕</button></td>
+        </tr>`;}).join('')}</tbody></table></div>`
+      :`<div class="empty-note">저장된 검사 결과가 없습니다. 위에 점수를 넣고 [이 회차 저장]을 누르면 여기에 쌓입니다.</div>`}
+
+    <div class="dfield" style="margin-top:14px"><label>메모</label>
+      <textarea id="selMemo" rows="3" class="bigbox" onblur="saveSelMemo('${esc(name)}')" placeholder="검사 상황, 특이사항, 다음 검사 때 확인할 점 등">${esc(memo)}</textarea></div>
+  </div>`;
+}
+/* 입력할 때마다 수준과 총점을 다시 계산한다 */
+window.selCalc=()=>{
+  let sum=0, filled=0, bad=false;
+  SEL_AREAS.forEach(([k])=>{
+    const el=$('#sel_'+k); if(!el)return;
+    const raw=trim(el.value), v=+raw;
+    const ok=raw!==''&&Number.isInteger(v)&&v>=5&&v<=15;
+    el.classList.toggle('err',raw!==''&&!ok);
+    if(raw!==''&&!ok)bad=true;
+    const cell=$('#lv_'+k); if(cell)cell.innerHTML=ok?selBadge(selArea(v)):'';
+    if(ok){sum+=v;filled++;}
+  });
+  const done=filled===SEL_AREAS.length;
+  $('#selSum').innerHTML=done?`<b>${sum}</b>`:`<span style="color:var(--ink3)">${filled}/5 입력</span>`;
+  $('#lv_sum').innerHTML=done?selBadge(selTotal(sum)):'';
+  $('#selWarn').textContent=bad?'점수는 5에서 15 사이의 정수여야 합니다.':'';
+};
+window.saveSelRound=name=>{
+  const s={}; let miss=[];
+  SEL_AREAS.forEach(([k,label])=>{
+    const raw=trim($('#sel_'+k)?.value), v=+raw;
+    if(raw===''||!Number.isInteger(v)||v<5||v>15)miss.push(label); else s[k]=v;
+  });
+  if(miss.length){toast(`점수를 확인해 주세요 — ${miss.join(', ')}`);return;}
+  const date=trim($('#selDate')?.value)||today();
+  DB.selTest=DB.selTest||{};
+  const cur=DB.selTest[name]||{rounds:[],memo:''};
+  cur.rounds=[...(cur.rounds||[]),{date,s,by:$('#meName')?.value||'',at:Date.now()}]
+    .sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+  DB.selTest[name]=cur;
+  commit();renderStudentPage();
+  toast(`${date} 검사 결과 저장됨 — 총점 ${selSum(s)}점`);
+};
+window.delSelRound=(name,i)=>{
+  const cur=DB.selTest?.[name]; if(!cur||!cur.rounds[i])return;
+  if(!confirm(`${i+1}차 검사 결과(${cur.rounds[i].date})를 지울까요?`))return;
+  cur.rounds.splice(i,1);commit();renderStudentPage();toast('삭제됨');
+};
+window.saveSelMemo=name=>{
+  DB.selTest=DB.selTest||{};
+  const cur=DB.selTest[name]||{rounds:[],memo:''};
+  const t=trim($('#selMemo')?.value);
+  if(t===(cur.memo||''))return;
+  cur.memo=t;DB.selTest[name]=cur;commit();
+};
 function viewAnalysis(name){
   const {obs,emo,ai,ex,goals}=studentCtx(name);
   const strengths=[...new Set(obs.flatMap(o=>o.fields.filter(([k])=>k.includes('강점')).map(([,v])=>v)))];
   return `
-  <div class="flow"><b class="done">관찰 ${obs.length}건 · 감정 ${emo.length}회</b> → <b class="${ai.text?'done':''}">AI 패턴 분석</b> → <b class="${ex.opinion?'done':''}">SEL 전문가 확정</b> → <b>성장리포트</b></div>
+  <div class="flow"><b class="done">관찰 ${obs.length}건 · 감정 ${emo.length}회</b> → <b class="${ai.text?'done':''}">AI 패턴 분석</b> → <b class="${selRounds(name).length?'done':''}">SEL 역량 검사</b> → <b>성장리포트</b></div>
   <div class="pcols" style="grid-template-columns:1fr 1fr;margin-bottom:14px">
     <div class="card pad"><div class="sec-h">연구소별 관찰 종합<span class="act" style="font-size:10px;color:var(--ink3);font-weight:600">지표 요약 · 원문은 1번 탭</span></div>
       ${renderLabDigest(obs)}
@@ -1725,20 +1884,8 @@ function viewAnalysis(name){
       return m?`<div class="memo"><b>내부 메모 — 리포트에 포함되지 않습니다</b>${esc(m)}</div>`:'';})()}
   </div>
 
-  <div class="card pad">
-    <div class="sec-h">③ SEL 전문가 소견 <span style="font-weight:600;color:var(--ink3)">— AI 제안을 검토·수정·확정</span><span class="act"><button class="btn pri sm" onclick="saveExpert('${esc(name)}')">저장</button></span></div>
-    <div class="expert">
-      <div class="dfield"><label>전문 소견 · 해석 (관찰 → 근거 → 해석)</label><textarea id="exOpinion" rows="4" class="bigbox">${esc(ex.opinion||'')}</textarea></div>
-      <div class="dfield"><label>발견된 가능성 (단정하지 않고 가능성으로)</label><textarea id="exPossibility" rows="3" class="bigbox">${esc(ex.possibility||'')}</textarea></div>
-      <div class="dfield"><label>교육적 반응 · 지원 방향</label><textarea id="exResponse" rows="3" class="bigbox">${esc(ex.response||'')}</textarea></div>
-      <div class="dfield"><label>다음 성장 방향</label><textarea id="exNext" rows="2" class="bigbox">${esc(ex.next||'')}</textarea></div>
-      <div class="dfield"><label>가정에서의 지원 제안 (학부모용)</label><textarea id="exHome" rows="3" class="bigbox">${esc(ex.home||'')}</textarea></div>
-      <div class="stamp">${ex.at?`확정: ${esc(ex.reviewer||'')} · ${new Date(ex.at).toLocaleString('ko-KR')}`:'아직 전문가 소견이 없습니다.'}</div>
-    </div>
-  </div>`;
+  ${viewSelTest(name)}`;
 }
-/* AI 결과([머리말] 형식)를 리포트 각 칸으로 분배.
-   내부 메모는 리포트에 넣지 않는다. */
 /* AI 결과의 머리말 파싱.
    GPT가 [요약] / **[요약]** / ## 요약 / [요약]: 내용… 등 다양하게 내므로
    마크다운 장식과 같은 줄 내용을 허용한다. */
